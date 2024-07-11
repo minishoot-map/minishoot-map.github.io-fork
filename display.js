@@ -6,14 +6,7 @@ var emenies = []
 ;(() => {
     for(let i = 0; i < data.length; i++) {
         let it = data[i]
-        if(it[2].startsWith('Cave')) continue;
-
-        it.hp = it[0]
-        it.xp = it[1]
-        it.name = it[2]
-        it.name_dedup = it.name.replace(dedup, "$1")
-        it.x = it[3]
-        it.y = it[4]
+        if(it.name.startsWith('Cave')) continue;
         emenies.push(it)
 
         minx = Math.min(minx, it.x)
@@ -75,7 +68,7 @@ var map_details = {
         let it = emenies[i]
 
         var img = document.createElement('img')
-        img.src = 'sprites-dedup/' + it.name_dedup + '.png'
+        img.src = 'sprites-dedup/' + it.dedup_name + '.png'
         img.title = it.name + ' (' + it.hp + 'hp)';
         img.draggable = "false"
         // + ' (' + it.x + ', ' + it.y + ')';

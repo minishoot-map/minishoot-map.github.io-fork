@@ -1,4 +1,4 @@
-var data = [{ "hp":4, "size":1, "tier":1, "name":"Cave 000 CreeperT1 S1", "dedup_name":"Cave CreeperT1 S1", "x":-974, "y":-45 },
+{ "hp":4, "size":1, "tier":1, "name":"Cave 000 CreeperT1 S1", "dedup_name":"Cave CreeperT1 S1", "x":-974, "y":-45 },
 { "hp":4, "size":1, "tier":1, "name":"Cave 001 CreeperT1 S1", "dedup_name":"Cave CreeperT1 S1", "x":-1002, "y":-60 },
 { "hp":4, "size":1, "tier":1, "name":"Cave 003 CreeperT1 S1", "dedup_name":"Cave CreeperT1 S1", "x":-978.22, "y":-68 },
 { "hp":4, "size":1, "tier":1, "name":"Cave 002 CreeperT1 S1", "dedup_name":"Cave CreeperT1 S1", "x":-967, "y":-48 },
@@ -2082,4 +2082,4 @@ var data = [{ "hp":4, "size":1, "tier":1, "name":"Cave 000 CreeperT1 S1", "dedup
 { "hp":133, "size":1, "tier":3, "name":"Dungeon3 117 Slider T3 S1", "dedup_name":"Dungeon3 Slider T3 S1", "x":768, "y":46 },
 { "hp":133, "size":1, "tier":3, "name":"Dungeon3 115 Slider T3 S1", "dedup_name":"Dungeon3 Slider T3 S1", "x":774, "y":53 },
 { "hp":133, "size":1, "tier":3, "name":"Dungeon3 116 Slider T3 S1", "dedup_name":"Dungeon3 Slider T3 S1", "x":768, "y":53 },
-{ "hp":133, "size":1, "tier":3, "name":"Dungeon3 114 Slider T3 S1", "dedup_name":"Dungeon3 Slider T3 S1", "x":774, "y":46 }]
+{ "hp":133, "size":1, "tier":3, "name":"Dungeon3 114 Slider T3 S1", "dedup_name":"Dungeon3 Slider T3 S1", "x":774, "y":46 },
