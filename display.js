@@ -2,12 +2,10 @@ var minx = 1/0, maxx = -1/0, miny = 1/0, maxy = -1/0
 
 var dedup = /^(.+?) [0-9]+/
 
-var enemies = []
+var enemies = data
 ;(() => {
     for(let i = 0; i < data.length; i++) {
         let it = data[i]
-        if(it.name.startsWith('Cave')) continue;
-        enemies.push(it)
 
         minx = Math.min(minx, it.x)
         maxx = Math.max(maxx, it.x)
@@ -37,7 +35,7 @@ function cy(i) {
 }
 
 function updSize(scale) {
-    document.body.style.setProperty('--size2', 10 / Math.max(scale, 5) + "px")
+    document.body.style.setProperty('--size2', 10 / Math.max(scale, 15 * dd) + "px")
 }
 
 function icx(i) {
@@ -196,7 +194,7 @@ function updProp(i) {
         var delta = 1 + Math.abs(e.deltaY) * -zoomFactor;
         if(e.deltaY < 0) delta = 1 / delta
 
-        const newScale = Math.min(Math.max(0.2, scale * delta), 25);
+        const newScale = Math.min(Math.max(0.2, scale * delta), 35);
 
         const tx = offsetX + (originX - offsetX) * (newScale / scale)
         const ty = offsetY + (originY - offsetY) * (newScale / scale)
