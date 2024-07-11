@@ -26,25 +26,21 @@ body {
 }
 .overworld {
     position: absolute;
-    top: -19px;
-    left: -9px;
     transform-origin: top left;
-    transform: scale(0.3206); /*translate(-1580px, 430px);*/
 }
 .d3 {
     position: absolute;
-    top: 135px;
-    left: 826px;
     transform-origin: top left;
-    transform: scale(0.13);
 }
 </style>
     </head>
     <body>
         <div id="cont">
             <div id="view">
-                <img src="overworld.png" class="overworld"  draggable="false">
-                <img src="d3.png" class="d3"  draggable="false">
+                <div id="maps">
+                    <img id="ow" src="overworld.png" class="overworld"  draggable="false">
+                    <img id="d3" src="d3.png" class="d3"  draggable="false">
+                </div>
             </div>
         </div>
 

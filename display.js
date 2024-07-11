@@ -42,6 +42,34 @@ function updSize(scale) {
     document.body.style.setProperty('--size2', 10 / Math.max(scale, 5) + "px")
 }
 
+function icx(i) {
+    return (i - 5) / dd + minx;
+}
+function icy(i) {
+    return maxy - (i - 5) / dd;
+}
+
+// console.log(icx(-9), icy(-19), icx(826), icy(135))
+// -313.66262626262625 288.7287878787879 739.7868686868687 94.43989898989898
+// console.log(dd)
+// 0.7926341072858286
+
+var map_details = {
+    "ow": [ -313.66262626262625, 288.7287878787879, 0.3206 / 0.7926341072858286 ],
+    "d3": [ 739.7868686868687, 94.43989898989898, 0.13 / 0.7926341072858286 ]
+}
+
+
+;(() => {
+    var maps = document.getElementById("maps")
+    for (const child of maps.children) {
+        var d = map_details[child.id]
+        child.style.left = cx(d[0]) + "px"
+        child.style.top = cy(d[1]) + "px"
+        child.style.transform = `scale(${d[2] * dd})`
+    }
+})()
+
 ;(() => {
     for(let i = 0; i < emenies.length; i++) {
         let it = emenies[i]
