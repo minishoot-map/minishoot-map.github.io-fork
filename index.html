@@ -1,0 +1,54 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <title>Enemies hp and xp</title>
+<style>
+#cont {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+#view {
+    transform-origin: top left;
+    position: relative;
+    width: 1000px;
+    height: 1000px;
+}
+body {
+    --size2: 2px;
+}
+.enemy {
+    position: absolute;
+    width: calc(var(--size2) * 2);
+    height: calc(var(--size2) * 2);
+    transform: translate(calc(-1 * var(--size2)), calc(-1 * var(--size2)));
+}
+.overworld {
+    position: absolute;
+    top: -19px;
+    left: -9px;
+    transform-origin: top left;
+    transform: scale(0.3206); /*translate(-1580px, 430px);*/
+}
+.d3 {
+    position: absolute;
+    top: 135px;
+    left: 826px;
+    transform-origin: top left;
+    transform: scale(0.13);
+}
+</style>
+    </head>
+    <body>
+        <div id="cont">
+            <div id="view">
+                <img src="overworld.png" class="overworld"  draggable="false">
+                <img src="d3.png" class="d3"  draggable="false">
+            </div>
+        </div>
+
+        <script src="data.js"></script>
+        <script src="display.js"></script>
+    </body>
+</html>
