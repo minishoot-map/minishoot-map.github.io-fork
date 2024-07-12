@@ -152,7 +152,7 @@ function updProp(i) {
     var e = enemies[i]
     title.value = e.name
     desc.innerText = "HP: " + e.hp + "\nSize: " + e.size + "\nTier: " + e.tier
-    if(!lvl.value) lvl.value = "1"
+    if(!lvl.value) lvl.value = "0"
     var level = +lvl.value
     xp.innerText = calcXp(e.size, enemyLevel(e), level)
 
