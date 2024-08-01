@@ -13,17 +13,17 @@ var enemies = data
         maxy = Math.max(maxy, it.y)
     }
 
-    for(let i = 0; i < scenes.length; i++) {
-        let scene = scenes[i];
-        let objs = scene.objects;
-        for(let j = 0; j < objs.length; j++) {
-            let it = objs[j]
+    for(let i = 0; i < jars.length; i++) {
+        let it = jars[i]
+        it.x = it[0]
+        it.y = it[1]
+        it.size = it[2]
+        it.type = it[3]
 
-            minx = Math.min(minx, it.x)
-            maxx = Math.max(maxx, it.x)
-            miny = Math.min(miny, it.y)
-            maxy = Math.max(maxy, it.y)
-        }
+        minx = Math.min(minx, it.x)
+        maxx = Math.max(maxx, it.x)
+        miny = Math.min(miny, it.y)
+        maxy = Math.max(maxy, it.y)
     }
 })()
 
@@ -38,17 +38,13 @@ var other = document.getElementById('other')
 var mx = (maxx - minx)
 var my = (maxy - miny)
 var mm = Math.max(mx, my)
-var dd = 990 / mm
+var dd = 99000 / mm
 
 function cx(i) {
     return 5 + (i - minx) * dd
 }
 function cy(i) {
     return 5 + (maxy - i) * dd
-}
-
-function updSize(scale) {
-    document.body.style.setProperty('--size2', 10 / Math.max(scale, 15 * dd) + "px")
 }
 
 function icx(i) {
@@ -107,7 +103,7 @@ function calcXp(size, level, playerL) {
 }
 
 var originX = 0, originY = 0;
-var scale = 1;
+var scale = 0.01
 
 let isPanning = false;
 let prevX, prevY;
@@ -120,11 +116,11 @@ container.addEventListener('click', function(e) {
 
     ca = new Array()
     for(let i = 0; i < 5; i++) {
-        ca[i] = [-1, 1/0]
+        ca[i] = [-1, 1/0, -1]
     }
 
     for(let i = 0; i < enemies.length; i++) {
-        var v = [i, sqd(x, y, enemies[i].x, enemies[i].y)]
+        var v = [i, sqd(x, y, enemies[i].x, enemies[i].y), 0]
         for(let j = 0; j < ca.length; j++) {
             if(v[1] < ca[j][1]) {
                 var t = ca[j]
@@ -134,13 +130,31 @@ container.addEventListener('click', function(e) {
         }
     }
 
-    var s = "Other enemies nearby:\n"
+    for(let i = 0; i < jars.length; i++) {
+        var v = [i, sqd(x, y, jars[i].x, jars[i].y), 1]
+        for(let j = 0; j < ca.length; j++) {
+            if(v[1] < ca[j][1]) {
+                var t = ca[j]
+                ca[j] = v
+                v = t
+            }
+        }
+    }
+
+    var s = "Other markers nearby:\n"
     for(let i = 1; i < ca.length; i++) {
-        s += enemies[ca[i][0]].name + ` (away ${Math.round(Math.sqrt(ca[i][1]))})\n`
+        let c = ca[i]
+        if(c[2] == 0) {
+            s += enemies[ca[i][0]].name + ` (away ${Math.round(Math.sqrt(ca[i][1]))})\n`
+        }
+        else {
+            s += "jar " + c[0] + ` (away ${Math.round(Math.sqrt(ca[i][1]))})\n`
+        }
     }
 
     other.innerText = s
-    updProp(ca[0][0])
+    if(ca[0][2] == 0) updProp(ca[0][0])
+    else updJar(ca[0][0])
 });
 
 title.addEventListener("change", (e) => {
@@ -153,15 +167,20 @@ title.addEventListener("change", (e) => {
     }
 });
 
-lvl.addEventListener("change", () => { updProp(curI) })
+lvl.addEventListener("change", () => {
+    if(curJ == 0) updProp(curI)
+    else if(curJ == 1) updJar(curI)
+})
 
 function enemyLevel(e) {
     return 3 * (e.tier - 1) + e.size
 }
 
-var curI
+var curI, curJ
 function updProp(i) {
     curI = i
+    curJ = 0
+
     var e = enemies[i]
     title.value = e.name
     desc.innerText = "HP: " + e.hp + "\nSize: " + e.size + "\nTier: " + e.tier
@@ -176,58 +195,68 @@ function updProp(i) {
     }
 }
 
-var filtered = []
+var jarTypes = ["nothing", "hp", "random", "big crystal", "energy", "full energy", "big srystals (65)"]
 
-    for(let i = 0; i < 100; i++) {
-        filtered[i] = [-1, 1/0]
+function getExtra(e) {
+    var extra
+    if(e.type == 1) extra = e.size - 1
+    if(e.type == 2) extra = "15% hp, 15% 1-9 xp, 15% 2-4 energy"
+    if(e.type == 3) extra = (e.size - 1) * 2
+    if(e.type == 4) extra = "3-5"
+    return extra !== undefined ? ' (' + extra + ')' : ''
+}
+
+function updJar(i) {
+    curI = i
+    curJ = 1
+
+    var e = jars[i]
+    title.value = "jar " + i
+    desc.innerText = "Type: " + jarTypes[e.type] + getExtra(e) + "\nSize: " + e.size
+
+    document.querySelectorAll('.selected').forEach((el) => { el.classList.remove('selected') })
+    var el = document.querySelector('[data-jar-index="' + i + '"]')
+    if(el) {
+        el.classList.add('selected')
     }
+}
 
-function addObj(sceneI, prefix, it) {
-    /*var dot = document.createElement('span')
-    dot.classList.add('dot')
-    dot.style.left = cx(it.x) + 'px'
-    dot.style.top = cy(it.y) + 'px'
-    dot.setAttribute("data-scene", sceneI)
-    dot.setAttribute("data-index", prefix)
-    view.appendChild(dot)
+function updTransform() {
+    view.style.transform = `matrix(${scale}, 0, 0, ${scale}, ${originX}, ${originY}`
+}
 
-    for(let i = 0; i < it.children.length; i++) {
-        var itt = it.children[i]
-        var v = [itt, sqd(-1005, 247, itt.x, itt.y)]
-        for(let j = 0; j < filtered.length; j++) {
-            if(v[1] < filtered[j][1]) {
-                var t = filtered[j]
-                filtered[j] = v
-                v = t
-            }
-        }
-
-        addObj(sceneI, prefix + "$" + i, it.children[i]);
-    }*/
+function updSize() {
+    document.body.style.setProperty('--size2', 1000 / Math.max(scale * 100, 9900 / mm) + "px")
 }
 
 ;(() => {
     for(let i = 0; i < enemies.length; i++) {
         let it = enemies[i]
 
+        var el = document.createElement('span')
+        el.classList.add('enemy')
+        el.setAttribute("data-index", i)
+        el.style.left = cx(it.x) + 'px'
+        el.style.top = cy(it.y) + 'px'
+
         var img = document.createElement('img')
-        img.src = 'sprites-dedup/' + it.dedup_name + '.png'
         img.title = it.name + ' (' + it.hp + 'hp)';
+        img.src = 'sprites-dedup/' + it.dedup_name + '.png'
         img.draggable = "false"
-        img.setAttribute("data-index", i)
-        // + ' (' + it.x + ', ' + it.y + ')';
-        img.style.left = cx(it.x) + 'px'
-        img.style.top = cy(it.y) + 'px'
-        img.classList.add('enemy')
-        view.appendChild(img)
+        el.appendChild(img)
+
+        view.appendChild(el)
     }
 
-    for(let i = 0; i < scenes.length; i++) {
-        let scene = scenes[i];
-        let objs = scene.objects;
-        for(let j = 0; j < objs.length; j++) {
-            addObj(i, "" + j, objs[j]);
-        }
+    for(let i = 0; i < jars.length; i++) {
+        let it = jars[i]
+
+        var dot = document.createElement('span')
+        dot.classList.add('dot')
+        dot.setAttribute("data-jar-index", i)
+        dot.style.left = cx(it.x) + 'px'
+        dot.style.top = cy(it.y) + 'px'
+        view.appendChild(dot)
     }
 
 
@@ -241,7 +270,7 @@ function addObj(sceneI, prefix, it) {
         var delta = 1 + Math.abs(e.deltaY) * -zoomFactor;
         if(e.deltaY < 0) delta = 1 / delta
 
-        const newScale = Math.min(Math.max(0.2, scale * delta), 35);
+        const newScale = Math.min(Math.max(0.01, scale * delta), 0.35);
 
         const tx = offsetX + (originX - offsetX) * (newScale / scale)
         const ty = offsetY + (originY - offsetY) * (newScale / scale)
@@ -249,11 +278,9 @@ function addObj(sceneI, prefix, it) {
         scale = newScale;
         originX = tx;
         originY = ty;
-        view.style.transform = `matrix(${scale}, 0, 0, ${scale}, ${tx}, ${ty}`
-        updSize(scale)
+        updTransform()
+        updSize()
     });
-    updSize(scale)
-
 
     container.addEventListener('mousedown', (e) => {
         isPanning = true;
@@ -273,7 +300,7 @@ function addObj(sceneI, prefix, it) {
             originX = originX + (curX - prevX)
             originY = originY + (curY - prevY)
 
-            view.style.transform = `matrix(${scale}, 0, 0, ${scale}, ${originX}, ${originY}`
+            updTransform()
             prevX = curX
             prevY = curY
         }
@@ -283,3 +310,6 @@ function addObj(sceneI, prefix, it) {
         isPanning = false;
     });
 })()
+
+updTransform()
+updSize()

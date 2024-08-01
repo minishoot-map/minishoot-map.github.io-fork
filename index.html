@@ -17,10 +17,16 @@ body {
     --size2: 2px;
 }
 .enemy {
+    display: inline-block;
     position: absolute;
     width: calc(var(--size2) * 2);
     height: calc(var(--size2) * 2);
     transform: translate(calc(-1 * var(--size2)), calc(-1 * var(--size2)));
+}
+.enemy > img {
+    display: block;
+    width: 100%;
+    height: 100%;
 }
 .overworld {
     position: absolute;
@@ -37,10 +43,23 @@ body {
     display: flex;
     flex-direction: row;
 }
-.selected {
-    background: red;
-    filter: brightness(1.2);
-    outline: 0.1px solid red;
+.selected::before {
+    content: "";
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    outline: calc(0.3 * var(--size2)) solid red;
+}
+.dot {
+    display: inline-block;
+    position: absolute;
+    width: calc(var(--size2) * 2);
+    height: calc(var(--size2) * 2);
+    transform: translate(calc(-1 * var(--size2)), calc(-1 * var(--size2)));
+    background: blue;
+    border-radius: 999999px;
 }
 
 </style>
@@ -64,7 +83,7 @@ body {
         </div>
 
         <script src="data.js"></script>
-        <script src="objects.js"></script>
+        <script src="jars.js"></script>
 
         <script src="display.js"></script>
     </body>
