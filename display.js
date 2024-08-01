@@ -12,6 +12,19 @@ var enemies = data
         miny = Math.min(miny, it.y)
         maxy = Math.max(maxy, it.y)
     }
+
+    for(let i = 0; i < scenes.length; i++) {
+        let scene = scenes[i];
+        let objs = scene.objects;
+        for(let j = 0; j < objs.length; j++) {
+            let it = objs[j]
+
+            minx = Math.min(minx, it.x)
+            maxx = Math.max(maxx, it.x)
+            miny = Math.min(miny, it.y)
+            maxy = Math.max(maxy, it.y)
+        }
+    }
 })()
 
 var view = document.getElementById('view')
@@ -163,6 +176,36 @@ function updProp(i) {
     }
 }
 
+var filtered = []
+
+    for(let i = 0; i < 100; i++) {
+        filtered[i] = [-1, 1/0]
+    }
+
+function addObj(sceneI, prefix, it) {
+    /*var dot = document.createElement('span')
+    dot.classList.add('dot')
+    dot.style.left = cx(it.x) + 'px'
+    dot.style.top = cy(it.y) + 'px'
+    dot.setAttribute("data-scene", sceneI)
+    dot.setAttribute("data-index", prefix)
+    view.appendChild(dot)
+
+    for(let i = 0; i < it.children.length; i++) {
+        var itt = it.children[i]
+        var v = [itt, sqd(-1005, 247, itt.x, itt.y)]
+        for(let j = 0; j < filtered.length; j++) {
+            if(v[1] < filtered[j][1]) {
+                var t = filtered[j]
+                filtered[j] = v
+                v = t
+            }
+        }
+
+        addObj(sceneI, prefix + "$" + i, it.children[i]);
+    }*/
+}
+
 ;(() => {
     for(let i = 0; i < enemies.length; i++) {
         let it = enemies[i]
@@ -173,14 +216,18 @@ function updProp(i) {
         img.draggable = "false"
         img.setAttribute("data-index", i)
         // + ' (' + it.x + ', ' + it.y + ')';
-        let x = cx(it.x);
-        let y = cy(it.y);
-        img.style.left = x + 'px'
-        img.style.top = y + 'px'
+        img.style.left = cx(it.x) + 'px'
+        img.style.top = cy(it.y) + 'px'
         img.classList.add('enemy')
-        if(x < 0 || x > 1000) console.log("x", x)
-        if(y < 0 || y > 1000) console.log("y", y)
         view.appendChild(img)
+    }
+
+    for(let i = 0; i < scenes.length; i++) {
+        let scene = scenes[i];
+        let objs = scene.objects;
+        for(let j = 0; j < objs.length; j++) {
+            addObj(i, "" + j, objs[j]);
+        }
     }
 
 
