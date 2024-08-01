@@ -189,7 +189,7 @@ function updProp(i) {
     xp.innerText = calcXp(e.size, enemyLevel(e), level)
 
     document.querySelectorAll('.selected').forEach((el) => { el.classList.remove('selected') })
-    var el = document.querySelector('[data-index="' + i + '"]')
+    var el = document.querySelector('[data-enemy-index="' + i + '"]')
     if(el) {
         el.classList.add('selected')
     }
@@ -213,6 +213,7 @@ function updJar(i) {
     var e = jars[i]
     title.value = "jar " + i
     desc.innerText = "Type: " + jarTypes[e.type] + getExtra(e) + "\nSize: " + e.size
+    xp.innerText = 'N/A'
 
     document.querySelectorAll('.selected').forEach((el) => { el.classList.remove('selected') })
     var el = document.querySelector('[data-jar-index="' + i + '"]')
@@ -229,13 +230,85 @@ function updSize() {
     document.body.style.setProperty('--size2', 1000 / Math.max(scale * 100, 9900 / mm) + "px")
 }
 
+var filters = {
+    enemies: true, e_name: false, e_name_text: "", e_size: false, e_size_text: 3, e_tier: false, e_tier_text: 1,
+    jars: true, jars_t0: true, jars_t1: true, jars_t2: true, jars_t3: true, jars_t4: true, jars_t5: true, jars_t6: true
+}
+var filters_elements = {}
+
+;((fe) => {
+    fe.enemies = window['e-f']
+    fe.e_name = window['e-f-name']
+    fe.e_name_text = window['e-f-name-text']
+    fe.e_size = window['e-f-size']
+    fe.e_size_text = window['e-f-size-text']
+    fe.e_tier = window['e-f-tier']
+    fe.e_tier_text = window['e-f-tier-text']
+
+    fe.jars = window['j-f']
+    fe.jars_t0 = window['j-f-0']
+    fe.jars_t1 = window['j-f-1']
+    fe.jars_t2 = window['j-f-2']
+    fe.jars_t3 = window['j-f-3']
+    fe.jars_t4 = window['j-f-4']
+    fe.jars_t5 = window['j-f-5']
+    fe.jars_t6 = window['j-f-6']
+
+    for(let key in filters_elements) {
+        let el = filters_elements[key]
+        let f = filters[key]
+        el.type = el.getAttribute('type')
+        if(el.type == 'checkbox') {
+            el.checked = f
+            el.addEventListener("change", (event) => {
+                filters[key] = el.checked
+                updFilters()
+            })
+        }
+        else {
+            el.value = f
+            el.addEventListener("change", (event) => {
+                filters[key] = el.type == 'number' ? parseInt(el.value) : el.value
+                updFilters()
+            })
+        }
+    }
+})(filters_elements)
+
+const filters_style = document.createElement('style');
+document.head.appendChild(filters_style);
+function updFilters() {
+    for(let key in filters_elements) {
+        let el = filters_elements[key]
+        let f = filters[key]
+        el.value = f
+        el.checked = f
+    }
+
+    var css = ""
+    if(!filters.enemies) css += '[data-enemy-index] { display: none; }'
+    if(filters.e_name) css += '[data-enemy-name]:not([data-enemy-name*="' + filters.e_name_text.replace(/[^a-zA-Z0-9-\s]/g, '') + '"]) { display: none; }'
+    if(filters.e_size) css += '[data-enemy-size]:not([data-enemy-size="' + filters.e_size_text + '"]) { display: none; }'
+    if(filters.e_tier) css += '[data-enemy-tier]:not([data-enemy-tier="' + filters.e_tier_text + '"]) { display: none; }'
+    if(!filters.jars) css += '[data-jar-index] { display: none; }'
+
+    for(let i = 0; i < 7; i++) {
+        if(!filters["jars_t" + i]) css += '[data-jar-type="' + i + '"] { display: none; }'
+    }
+
+    filters_style.textContent = css;
+}
+
 ;(() => {
     for(let i = 0; i < enemies.length; i++) {
         let it = enemies[i]
 
         var el = document.createElement('span')
         el.classList.add('enemy')
-        el.setAttribute("data-index", i)
+        el.setAttribute("data-enemy-index", i)
+        el.setAttribute("data-enemy-name", it.name)
+        el.setAttribute("data-enemy-size", it.size)
+        el.setAttribute("data-enemy-tier", it.tier)
         el.style.left = cx(it.x) + 'px'
         el.style.top = cy(it.y) + 'px'
 
@@ -254,6 +327,7 @@ function updSize() {
         var dot = document.createElement('span')
         dot.classList.add('dot')
         dot.setAttribute("data-jar-index", i)
+        dot.setAttribute("data-jar-type", it.type)
         dot.style.left = cx(it.x) + 'px'
         dot.style.top = cy(it.y) + 'px'
         view.appendChild(dot)
