@@ -120,7 +120,9 @@ container.addEventListener('click', function(e) {
     }
 
     for(let i = 0; i < enemies.length; i++) {
-        var v = [i, sqd(x, y, enemies[i].x, enemies[i].y), 0]
+        let it = enemies[i]
+        if(!testFiltersEnemy(it)) continue;
+        var v = [i, sqd(x, y, it.x, it.y), 0]
         for(let j = 0; j < ca.length; j++) {
             if(v[1] < ca[j][1]) {
                 var t = ca[j]
@@ -131,7 +133,9 @@ container.addEventListener('click', function(e) {
     }
 
     for(let i = 0; i < jars.length; i++) {
-        var v = [i, sqd(x, y, jars[i].x, jars[i].y), 1]
+        let it = jars[i]
+        if(!testFiltersJar(it)) continue;
+        var v = [i, sqd(x, y, it.x, it.y), 1]
         for(let j = 0; j < ca.length; j++) {
             if(v[1] < ca[j][1]) {
                 var t = ca[j]
@@ -152,9 +156,11 @@ container.addEventListener('click', function(e) {
         }
     }
 
-    other.innerText = s
-    if(ca[0][2] == 0) updProp(ca[0][0])
-    else updJar(ca[0][0])
+    if(ca[0][0] !== -1) {
+        other.innerText = s
+        if(ca[0][2] == 0) updProp(ca[0][0])
+        else updJar(ca[0][0])
+    }
 });
 
 title.addEventListener("change", (e) => {
@@ -287,7 +293,7 @@ function updFilters() {
 
     var css = ""
     if(!filters.enemies) css += '[data-enemy-index] { display: none; }'
-    if(filters.e_name) css += '[data-enemy-name]:not([data-enemy-name*="' + filters.e_name_text.replace(/[^a-zA-Z0-9-\s]/g, '') + '"]) { display: none; }'
+    if(filters.e_name) css += '[data-enemy-name]:not([data-enemy-name*="' + filters.e_name_text.replace(/[^a-zA-Z0-9-\s]/g, '') + '" i]) { display: none; }'
     if(filters.e_size) css += '[data-enemy-size]:not([data-enemy-size="' + filters.e_size_text + '"]) { display: none; }'
     if(filters.e_tier) css += '[data-enemy-tier]:not([data-enemy-tier="' + filters.e_tier_text + '"]) { display: none; }'
     if(!filters.jars) css += '[data-jar-index] { display: none; }'
@@ -297,6 +303,20 @@ function updFilters() {
     }
 
     filters_style.textContent = css;
+}
+
+function testFiltersEnemy(it) {
+    if(!filters.enemies) return false;
+    if(filters.e_name && !it.name.toLowerCase().includes(filters.e_name_text.toLowerCase())) return false;
+    if(filters.e_size && it.size != filters.e_size_text) return false;
+    if(filters.e_tier && it.tier != filters.e_tier_text) return false;
+    return true;
+}
+
+function testFiltersJar(it) {
+    if(!filters.jars) return false;
+    if(!filters['jars_t' + it.type]) return false
+    return true
 }
 
 ;(() => {
