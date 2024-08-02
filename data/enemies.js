@@ -1,4 +1,4 @@
-var data = [{ "hp":4, "size":1, "tier":1, "name":"Cave 000 CreeperT1 S1", "dedup_name":"Cave CreeperT1 S1", "x":-974, "y":-45 },
+var enemies = [{ "hp":4, "size":1, "tier":1, "name":"Cave 000 CreeperT1 S1", "dedup_name":"Cave CreeperT1 S1", "x":-974, "y":-45 },
 { "hp":4, "size":1, "tier":1, "name":"Cave 001 CreeperT1 S1", "dedup_name":"Cave CreeperT1 S1", "x":-1002, "y":-60 },
 { "hp":4, "size":1, "tier":1, "name":"Cave 003 CreeperT1 S1", "dedup_name":"Cave CreeperT1 S1", "x":-978.22, "y":-68 },
 { "hp":4, "size":1, "tier":1, "name":"Cave 002 CreeperT1 S1", "dedup_name":"Cave CreeperT1 S1", "x":-967, "y":-48 },

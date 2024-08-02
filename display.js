@@ -2,10 +2,9 @@ var minx = 1/0, maxx = -1/0, miny = 1/0, maxy = -1/0
 
 var dedup = /^(.+?) [0-9]+/
 
-var enemies = data
 ;(() => {
-    for(let i = 0; i < data.length; i++) {
-        let it = data[i]
+    for(let i = 0; i < enemies.length; i++) {
+        let it = enemies[i]
 
         minx = Math.min(minx, it.x)
         maxx = Math.max(maxx, it.x)
