@@ -2,6 +2,7 @@
 <html>
     <head>
         <title>Enemies hp and xp</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <style>
 #map-cont {
     flex-grow: 1;
@@ -10,8 +11,6 @@
 #view {
     transform-origin: top left;
     position: relative;
-    width: 1000px;
-    height: 1000px;
 }
 body {
     --size2: 2px;
@@ -35,13 +34,6 @@ body {
 .d3 {
     position: absolute;
     transform-origin: top left;
-}
-.wrapper {
-    width: 100%;
-    height: 98vh;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: row;
 }
 .selected {
     z-index: 2;
@@ -70,39 +62,91 @@ body {
     width: 1rem;
 }
 
+.wrapper {
+    width: 100%;
+    height: 98vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+#views {
+    flex-grow: 1;
+}
+
+#views > * {
+    background: white;
+}
+
+@media not (orientation: portrait) {
+#prop-show-hide {
+    display: none;
+}
+#views {
+    display: flex;
+    flex-direction: row;
+}
+}
+
+@media(orientation: portrait) {
+#prop-show-hide {
+    display: block;
+    text-align: center;
+    padding: 0.5rem;
+    background: #80808020;
+    border: none;
+}
+#views {
+    position: relative;
+}
+#views > * {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+}
+#views[data-hidden="true"] #prop {
+    display: none;
+}
+}
+
 </style>
     </head>
     <body>
         <div class="wrapper">
-            <div id="map-cont">
-                <div id="view">
-                    <div id="maps">
-                        <img id="ow" src="overworld.png" class="overworld"  draggable="false">
-                        <img id="d3" src="d3.png" class="d3"  draggable="false">
+            <button id="prop-show-hide">properties</button>
+            <div id="views">
+                <div id="map-cont">
+                    <div id="view">
+                        <div id="maps">
+                            <img id="ow" src="overworld.png" class="overworld"  draggable="false">
+                            <img id="d3" src="d3.png" class="d3"  draggable="false">
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div id="prop" style="border-left: 1px solid gray; padding: 0.2rem; min-width: 15rem">
-                <div>
-                    Selected: <input id="name" type="text" style="display: inline-block; min-width: 5rem"></input><br>
-                    <div id="desc"></div>
-                    XP for level <input id="lvl" type="number" style="width: 2rem;">: <span id="xp" style="display: inline-block; min-width: 3rem"></span>
-                    <div id="other"></div>
-                </div>
-                <div>
-                    <hr>
-                    <input type="checkbox" id="e-f">Show enemies:<br>
-                    <span class="gap"></span><input type="checkbox" id="e-f-name">Filter by name containing <input type="text" style="width: 3rem" id="e-f-name-text"><br>
-                    <span class="gap"></span><input type="checkbox" id="e-f-size">Filter by size <input type="number" style="width: 3rem" id="e-f-size-text"><br>
-                    <span class="gap"></span><input type="checkbox" id="e-f-tier">Filter by tier <input type="number" style="width: 3rem" id="e-f-tier-text"><br>
-                    <input type="checkbox" id="j-f">Show jars:<br>
-                    <span class="gap"></span><input type="checkbox" id="j-f-0">Show type nothing<br>
-                    <span class="gap"></span><input type="checkbox" id="j-f-1">Show type hp<br>
-                    <span class="gap"></span><input type="checkbox" id="j-f-2">Show type random<br>
-                    <span class="gap"></span><input type="checkbox" id="j-f-3">Show type big crystal<br>
-                    <span class="gap"></span><input type="checkbox" id="j-f-4">Show type enegry<br>
-                    <span class="gap"></span><input type="checkbox" id="j-f-5">Show type full energy<br>
-                    <span class="gap"></span><input type="checkbox" id="j-f-6">Show type 65 big crystals<br>
+                <div id="prop" style="border-left: 1px solid gray; padding: 0.2rem; min-width: 15rem">
+                    <div>
+                        Selected: <input id="name" type="text" style="display: inline-block; min-width: 5rem"></input><br>
+                        <div id="desc"></div>
+                        XP for level <input id="lvl" type="number" style="width: 2rem;">: <span id="xp" style="display: inline-block; min-width: 3rem"></span>
+                        <div id="other"></div>
+                    </div>
+                    <div>
+                        <hr>
+                        <input type="checkbox" id="e-f">Show enemies:<br>
+                        <span class="gap"></span><input type="checkbox" id="e-f-name">Filter by name containing <input type="text" style="width: 3rem" id="e-f-name-text"><br>
+                        <span class="gap"></span><input type="checkbox" id="e-f-size">Filter by size <input type="number" style="width: 3rem" id="e-f-size-text"><br>
+                        <span class="gap"></span><input type="checkbox" id="e-f-tier">Filter by tier <input type="number" style="width: 3rem" id="e-f-tier-text"><br>
+                        <input type="checkbox" id="j-f">Show jars:<br>
+                        <span class="gap"></span><input type="checkbox" id="j-f-0">Show type nothing<br>
+                        <span class="gap"></span><input type="checkbox" id="j-f-1">Show type hp<br>
+                        <span class="gap"></span><input type="checkbox" id="j-f-2">Show type random<br>
+                        <span class="gap"></span><input type="checkbox" id="j-f-3">Show type big crystal<br>
+                        <span class="gap"></span><input type="checkbox" id="j-f-4">Show type enegry<br>
+                        <span class="gap"></span><input type="checkbox" id="j-f-5">Show type full energy<br>
+                        <span class="gap"></span><input type="checkbox" id="j-f-6">Show type 65 big crystals<br>
+                    </div>
                 </div>
             </div>
         </div>

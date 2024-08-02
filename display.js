@@ -35,6 +35,16 @@ var xp = document.getElementById('xp')
 var desc = document.getElementById('desc')
 var other = document.getElementById('other')
 
+var propsHidden = true
+window['prop-show-hide'].addEventListener('click', () => {
+    propsHidden = !propsHidden
+    updPropsHidden()
+})
+function updPropsHidden() {
+    window.views.setAttribute('data-hidden', propsHidden)
+}
+updPropsHidden()
+
 var mx = (maxx - minx)
 var my = (maxy - miny)
 var mm = Math.max(mx, my)
@@ -105,9 +115,8 @@ function calcXp(size, level, playerL) {
 var originX = 0, originY = 0;
 var scale = 0.01
 
-let isPanning = false;
-let prevX, prevY;
-
+var panning = { is: false, prevX: undefined, prevY: undefined }
+var touches = { order: [/*id*/], touches: {/*id: { prevX, prevY }*/} }
 
 container.addEventListener('click', function(e) {
     const rect = view.getBoundingClientRect()
@@ -319,6 +328,21 @@ function testFiltersJar(it) {
     return true
 }
 
+function clampScale(scale, old) {
+    if(scale != scale) return old;
+    if(scale <= 0.35) {
+        if(scale >= 0.01) return scale
+        else return 0.01
+    }
+    else return 0.35
+}
+
+function hypot2(xd, yd) {
+    var h = Math.hypot(xd, yd)
+    if(h >= 0.0001) return h
+    else return 0.0001
+}
+
 ;(() => {
     for(let i = 0; i < enemies.length; i++) {
         let it = enemies[i]
@@ -364,7 +388,7 @@ function testFiltersJar(it) {
         var delta = 1 + Math.abs(e.deltaY) * -zoomFactor;
         if(e.deltaY < 0) delta = 1 / delta
 
-        const newScale = Math.min(Math.max(0.01, scale * delta), 0.35);
+        const newScale = clampScale(scale * delta, scale)
 
         const tx = offsetX + (originX - offsetX) * (newScale / scale)
         const ty = offsetY + (originY - offsetY) * (newScale / scale)
@@ -377,31 +401,114 @@ function testFiltersJar(it) {
     });
 
     container.addEventListener('mousedown', (e) => {
-        isPanning = true;
-        prevX = e.clientX
-        prevY = e.clientY
+        panning.is = true
+        panning.prevX = e.clientX
+        panning.prevY = e.clientY
     });
 
     container.addEventListener('mouseup', () => {
-        isPanning = false;
+        panning.is = false
     });
 
     container.addEventListener('mousemove', (e) => {
-        if (isPanning) {
-            var curX = e.clientX
-            var curY = e.clientY
+        if(!panning.is) return;
 
-            originX = originX + (curX - prevX)
-            originY = originY + (curY - prevY)
+        var curX = e.clientX
+        var curY = e.clientY
 
-            updTransform()
-            prevX = curX
-            prevY = curY
+        originX += curX - panning.prevX
+        originY += curY - panning.prevY
+        updTransform()
+
+        panning.prevX = curX
+        panning.prevY = curY
+    });
+
+    container.addEventListener('touchstart', function (e) {
+        for(var i = 0; i < e.changedTouches.length; i++) {
+            var t = e.changedTouches[i]
+            if(touches.touches[t.identifier]) continue;
+            touches.order.push(t.identifier)
+            touches.touches[t.identifier] = { prevX: t.clientX, prevY: t.clientY }
         }
     });
 
-    view.addEventListener('mouseleave', () => {
-        isPanning = false;
+    container.addEventListener('touchmove', function (e) {
+        const firstId = touches.order[0]
+        if(firstId == undefined) return
+        const secondId = touches.order[1]
+
+        let t1, t2
+        for(let i = 0; i < e.touches.length; i++) {
+            const t = e.touches[i]
+            if(t.identifier == firstId) {
+                t1 = t
+            }
+            else if(t.identifier == secondId) {
+                t2 = t
+            }
+        }
+        if(t1 == undefined) return
+
+        const touch1 = touches.touches[firstId]
+        if(t2 == undefined) { // pan
+            const curX = t1.clientX
+            const curY = t1.clientY
+
+            originX += curX - touch1.prevX
+            originY += curY - touch1.prevY
+            updTransform()
+        }
+        else {
+            const touch2 = touches.touches[secondId]
+
+            const curX = t1.clientX
+            const curY = t1.clientY
+            const curX2 = t2.clientX
+            const curY2 = t2.clientY
+
+            const preX = touch1.prevX
+            const preY = touch1.prevY
+            const preX2 = touch2.prevX
+            const preY2 = touch2.prevY
+
+            const delta = hypot2(curX - curX2, curY - curY2) / hypot2(preX - preX2, preY - preY2)
+            const newScale = clampScale(scale * delta, scale)
+
+            const tx = curX - (preX - originX) * (newScale / scale)
+            const ty = curY - (preY - originY) * (newScale / scale)
+
+            scale = newScale
+            originX = tx
+            originY = ty
+
+            updTransform()
+            updSize()
+        }
+
+        for(let i = 0; i < e.changedTouches.length; i++) {
+            const t = e.changedTouches[i]
+            const touch = touches.touches[t.identifier]
+            if(!touch) continue
+
+            touch.prevX = t.clientX
+            touch.prevY = t.clientY
+        }
+
+        e.preventDefault()
+    });
+
+    container.addEventListener('touchend', function (e) {
+        for(let i = 0; i < e.changedTouches.length; i++) {
+            const t = e.changedTouches[i]
+            for(let j = 0; j < touches.order.length; j++) {
+                if(touches.order[j] === t.identifier) {
+                    delete touches.touches[t.identifier]
+                    touches.order.splice(j, 1)
+                    break;
+                }
+            }
+        }
     });
 })()
 
