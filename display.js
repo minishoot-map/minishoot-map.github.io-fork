@@ -7,18 +7,16 @@ var dedup = /^(.+?) [0-9]+/
         let it = objects[i]
         it.name = it[0]
         it.parentI = it[1]
-        it.x = it[2]
-        it.y = it[3]
-        it.rz = it[4]
-        it.sx = it[5]
-        it.sy = it[6]
-        it.allComponents = it[7]
+        it.pos = it[2]
+        it.rz = it[3]
+        it.scale = it[4]
+        it.allComponents = it[5]
         it.components = {}
 
-        minx = Math.min(minx, it.x)
-        maxx = Math.max(maxx, it.x)
-        miny = Math.min(miny, it.y)
-        maxy = Math.max(maxy, it.y)
+        minx = Math.min(minx, it.pos[0])
+        maxx = Math.max(maxx, it.pos[0])
+        miny = Math.min(miny, it.pos[1])
+        maxy = Math.max(maxy, it.pos[1])
     }
 
     for(let i = 0; i < enemies.length; i++) {
@@ -58,16 +56,33 @@ var dedup = /^(.+?) [0-9]+/
         objects[it.objI].components['Scarab'] = it
     }
 
-    for(let i = 0; i < envColliders.length; i++) {
-        let it = envColliders[i]
+    for(let i = 0; i < colliders.length; i++) {
+        let it = colliders[i]
         it.objI = it[0]
         it.isTrigger = it[1]
-        it.ox = it[2]
-        it.oy = it[3]
-        it.layer = it[4]
-        it.polygons = it[5]
+        it.off = it[2]
+        it.layer = it[3]
+        it.type = it[4]
+        if(it.type == 'Box') {
+            it.size = it[5]
+            it.usedByComposite = it[6]
+        }
+        else if(it.type == 'Capsule') {
+            it.size = it[5]
+            it.vertical = it[6]
+        }
+        else if(it.type == 'Circle') {
+            it.radius = it[5]
+        }
+        else if(it.type == 'Polygon') {
+            it.usedByComposite = it[5]
+            it.polygon = it[6]
+        }
+        else if(it.type == 'Composite') {
+            it.polygons = it[5]
+        }
 
-        objects[it.objI].components['CompositeCollider2D'] = it
+        objects[it.objI].components[it.type + 'Collider2D'] = it
     }
 
     for(let i = 0; i < transitions.length; i++) {
@@ -186,7 +201,7 @@ container.addEventListener('click', function(e) {
         let it = enemies[i]
         let obj = objects[it.objI]
         if(!testFiltersEnemy(it, obj)) continue;
-        var v = [i, sqd(x, y, obj.x, obj.y), 0]
+        var v = [i, sqd(x, y, obj.pos[0], obj.pos[1]), 0]
         for(let j = 0; j < ca.length; j++) {
             if(v[1] < ca[j][1]) {
                 var t = ca[j]
@@ -200,7 +215,7 @@ container.addEventListener('click', function(e) {
         let it = jars[i]
         let obj = objects[it.objI]
         if(!testFiltersJar(it)) continue;
-        var v = [i, sqd(x, y, obj.x, obj.y), 1]
+        var v = [i, sqd(x, y, obj.pos[0], obj.pos[1]), 1]
         for(let j = 0; j < ca.length; j++) {
             if(v[1] < ca[j][1]) {
                 var t = ca[j]
@@ -303,9 +318,10 @@ function updSize() {
 }
 
 var filters = {
-    enemies: true, e_name: false, e_name_text: "", e_size: false, e_size_text: 3, e_tier: false, e_tier_text: 1,
-    jars: true, jars_t0: true, jars_t1: true, jars_t2: true, jars_t3: true, jars_t4: true, jars_t5: true, jars_t6: true,
-    backg: true, env: true, env_hole: true, env_water: true, env_deep_water: true, env_walls: true,
+    enemies: false, e_name: false, e_name_text: "", e_size: false, e_size_text: 3, e_tier: false, e_tier_text: 1,
+    jars: false, jars_t0: true, jars_t1: true, jars_t2: true, jars_t3: true, jars_t4: true, jars_t5: true, jars_t6: true,
+    backg: true, coll: true, coll_hole: true, coll_water: true, coll_deep_water: true, coll_walls: true, coll_trigger: false,
+    coll_ui: false,
 }
 var filters_elements = {}
 
@@ -328,11 +344,13 @@ var filters_elements = {}
     fe.jars_t6 = window['j-f-6']
 
     fe.backg = window['b-f']
-    fe.env = window['en-f']
-    fe.env_hole = window['en-f-16']
-    fe.env_water = window['en-f-4']
-    fe.env_deep_water = window['en-f-6']
-    fe.env_walls = window['en-f-14']
+    fe.coll = window['c-f']
+    fe.coll_hole = window['c-f-16']
+    fe.coll_water = window['c-f-4']
+    fe.coll_deep_water = window['c-f-6']
+    fe.coll_walls = window['c-f-14']
+    fe.coll_trigger = window['c-f-17']
+    fe.coll_ui = window['c-f-29']
 
     for(let key in filters_elements) {
         let el = filters_elements[key]
@@ -377,14 +395,18 @@ function updFilters() {
     }
 
     if(!filters.backg) css += '#maps { display: none; }'
-    if(!filters.env) css += '[data-env-collider-layer] { display: none; }'
-    if(!filters.env_water) css += '[data-env-collider-layer="4"] { display: none; }'
-    if(!filters.env_deep_water) css += '[data-env-collider-layer="6"] { display: none; }'
-    if(!filters.env_walls) css += '[data-env-collider-layer="14"] { display: none; }'
-    if(!filters.env_hole) css += '[data-env-collider-layer="16"] { display: none; }'
+    if(!filters.coll) css += '[data-collider-layer] { display: none; }'
+    if(!filters.coll_water) css += '[data-collider-layer="4"] { display: none; }'
+    if(!filters.coll_deep_water) css += '[data-collider-layer="6"] { display: none; }'
+    if(!filters.coll_walls) css += '[data-collider-layer="14"] { display: none; }'
+    if(!filters.coll_hole) css += '[data-collider-layer="16"] { display: none; }'
+    if(!filters.coll_trigger) css += '[data-collider-layer="17"] { display: none; }'
+    if(!filters.coll_ui) css += '[data-collider-layer="29"] { display: none; }'
 
     filters_style.textContent = css;
 }
+
+updFilters()
 
 function testFiltersEnemy(it, obj) {
     if(!filters.enemies) return false;
@@ -415,6 +437,9 @@ function hypot2(xd, yd) {
     else return 0.0001
 }
 
+
+var Aall = {}
+
 ;(() => {
     const svgNS = "http://www.w3.org/2000/svg"
     const styles = {
@@ -422,64 +447,114 @@ function hypot2(xd, yd) {
         6: "fill: #35009920;", // deep water
         14: "fill: #c14a0320;", // wall
         16: "fill: #00000020;", // hole
+        17: "fill: #6addd520;", // triger?
     }
-    for(let i = 0; i < envColliders.length; i++) {
-        let it = envColliders[i]
+    for(let i = 0; i < colliders.length; i++) {
+        let it = colliders[i]
         let obj = objects[it.objI]
-        if(!(obj.rz == 0 && obj.sx == 1 && obj.sy == 1)) {
+        if(!(obj.rz == 0 && obj.scale[0] == 1 && obj.scale[1] == 1)) {
             console.error("Collider requires some transformation. NOT IMPLEMENTED", obj);
             continue;
         }
 
-        const polygons = it.polygons
+        if(it.type == 'Composite') {
+            const polygons = it.polygons
 
-        let minx = 1/0, maxx = -1/0, miny = 1/0, maxy = -1/0
-        let hasPoints = false
-        for(let j = 0; j < polygons.length; j++) {
-            const points = polygons[j]
-            for(let k = 0; k < points.length; k++) {
-                const x = points[k][0]
-                const y = points[k][1]
+            let minx = 1/0, maxx = -1/0, miny = 1/0, maxy = -1/0
+            let hasPoints = false
+            for(let j = 0; j < polygons.length; j++) {
+                const points = polygons[j]
+                for(let k = 0; k < points.length; k++) {
+                    const x = points[k][0]
+                    const y = points[k][1]
+                    minx = Math.min(minx, x)
+                    maxx = Math.max(maxx, x)
+                    miny = Math.min(miny, y)
+                    maxy = Math.max(maxy, y)
+                    hasPoints = true
+                }
+            }
+            if(!hasPoints) continue
+            const width = maxx - minx, height = maxy - miny
+
+            var el = document.createElement('span')
+            el.setAttribute('data-index', it.objI)
+            el.setAttribute('data-coll-collider-layer', it.layer)
+            el.classList.add('collider')
+            el.style.left = cx(obj.pos[0] + minx + it.off[0]) + 'px'
+            el.style.top = cy(obj.pos[1] + miny + it.off[1]) + 'px'
+
+            const svg = document.createElementNS(svgNS, 'svg')
+            svg.setAttribute('width', '' + width * dd)
+            svg.setAttribute('height', '' + height * dd)
+            svg.setAttribute('viewBox', `${minx} ${miny} ${width} ${height}`);
+            el.appendChild(svg)
+
+            let pathData = ''
+            for(let j = 0; j < polygons.length; j++) {
+                const points = polygons[j]
+                pathData += 'M' + points[0][0] + ' ' + points[0][1] + ' '
+                for(let k = 1; k < points.length; k++) {
+                    pathData += 'L' + points[k][0] + ' ' + points[k][1] + ' '
+                }
+
+            }
+            pathData += 'Z'
+
+            const path = document.createElementNS(svgNS, 'path')
+            path.setAttribute('d', pathData)
+            path.setAttribute('fill-rule', 'evenodd')
+            path.setAttribute('style', styles[it.layer])
+            Aall[it.layer] = true
+            svg.appendChild(path)
+
+            view.appendChild(el)
+        }
+        else if(it.type == 'Polygon') {
+            const polygon = it.polygon
+
+            let minx = 1/0, maxx = -1/0, miny = 1/0, maxy = -1/0
+            let hasPoints = false
+            for(let k = 0; k < polygon.length; k++) {
+                const x = polygon[k][0]
+                const y = polygon[k][1]
                 minx = Math.min(minx, x)
                 maxx = Math.max(maxx, x)
                 miny = Math.min(miny, y)
                 maxy = Math.max(maxy, y)
                 hasPoints = true
             }
-        }
-        if(!hasPoints) continue
-        const width = maxx - minx, height = maxy - miny
+            if(!hasPoints) continue
+            const width = maxx - minx, height = maxy - miny
 
-        var el = document.createElement('span')
-        el.setAttribute('data-env-collider-layer', it.layer)
-        el.classList.add('collider')
-        el.style.left = cx(obj.x + minx + it.ox) + 'px'
-        el.style.top = cy(obj.y + miny + it.oy) + 'px'
+            var el = document.createElement('span')
+            el.setAttribute('data-index', it.objI)
+            el.setAttribute('data-collider-layer', it.layer)
+            el.classList.add('collider')
+            el.style.left = cx(obj.pos[0] + minx + it.off[0]) + 'px'
+            el.style.top = cy(obj.pos[1] + miny + it.off[1]) + 'px'
 
-        const svg = document.createElementNS(svgNS, 'svg')
-        svg.setAttribute('width', '' + (width) * dd)
-        svg.setAttribute('height', '' + (height) * dd)
-        svg.setAttribute('viewBox', `${minx} ${miny} ${width} ${height}`); // Include padding in viewBox
-        el.appendChild(svg)
+            const svg = document.createElementNS(svgNS, 'svg')
+            svg.setAttribute('width', '' + width * dd)
+            svg.setAttribute('height', '' + height * dd)
+            svg.setAttribute('viewBox', `${minx} ${miny} ${width} ${height}`);
+            el.appendChild(svg)
 
-        let pathData = ''
-        for(let j = 0; j < polygons.length; j++) {
-            const points = polygons[j]
-            pathData += 'M' + points[0][0] + ' ' + points[0][1] + ' '
-            for(let k = 1; k < points.length; k++) {
-                pathData += 'L' + points[k][0] + ' ' + points[k][1] + ' '
+            let pathData = 'M' + polygon[0][0] + ' ' + polygon[0][1] + ' '
+            for(let k = 1; k < polygon.length; k++) {
+                pathData += 'L' + polygon[k][0] + ' ' + polygon[k][1] + ' '
             }
+            pathData += 'Z'
 
+            const path = document.createElementNS(svgNS, 'path')
+            path.setAttribute('d', pathData)
+            path.setAttribute('fill-rule', 'evenodd')
+            Aall[it.layer] = true
+            path.setAttribute('style', styles[it.layer])
+            svg.appendChild(path)
+
+            view.appendChild(el)
         }
-        pathData += 'Z'
-
-        const polygon = document.createElementNS(svgNS, 'path')
-        polygon.setAttribute('d', pathData)
-        polygon.setAttribute('fill-rule', 'evenodd')
-        polygon.setAttribute('style', styles[it.layer])
-        svg.appendChild(polygon)
-
-        view.appendChild(el)
     }
 
     for(let i = 0; i < enemies.length; i++) {
@@ -488,12 +563,13 @@ function hypot2(xd, yd) {
 
         var el = document.createElement('span')
         el.classList.add('enemy')
+        el.setAttribute('data-index', it.objI)
         el.setAttribute("data-enemy-index", i)
         el.setAttribute("data-enemy-name", obj.name)
         el.setAttribute("data-enemy-size", it.size)
         el.setAttribute("data-enemy-tier", it.tier)
-        el.style.left = cx(obj.x) + 'px'
-        el.style.top = cy(obj.y) + 'px'
+        el.style.left = cx(obj.pos[0]) + 'px'
+        el.style.top = cy(obj.pos[1]) + 'px'
 
         var img = document.createElement('img')
         img.src = 'data/sprites/' + textures[it.spriteI] + '.png'
@@ -509,10 +585,11 @@ function hypot2(xd, yd) {
 
         var el = document.createElement('span')
         el.classList.add('enemy')
+        el.setAttribute('data-index', it.objI)
         el.setAttribute("data-jar-index", i)
         el.setAttribute("data-jar-type", it.dropType)
-        el.style.left = cx(obj.x) + 'px'
-        el.style.top = cy(obj.y) + 'px'
+        el.style.left = cx(obj.pos[0]) + 'px'
+        el.style.top = cy(obj.pos[1]) + 'px'
 
         var img = document.createElement('img')
         img.src = 'data/sprites/' + textures[jarTexture] + '.png'
