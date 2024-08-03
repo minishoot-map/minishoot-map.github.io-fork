@@ -166,8 +166,8 @@ function calcXp(size, level, playerL) {
     return Round(Math.fround(Math.max(minimumGain, b) * num3))
 }
 
-var originX = 0, originY = 0;
-var scale = 0.01
+var originX = -cx(-1) + 500, originY = -cy(34.44) - 500
+var scale = 1
 
 var panning = { is: false, prevX: undefined, prevY: undefined }
 var touches = { order: [/*id*/], touches: {/*id: { prevX, prevY }*/} }
@@ -304,7 +304,8 @@ function updSize() {
 
 var filters = {
     enemies: true, e_name: false, e_name_text: "", e_size: false, e_size_text: 3, e_tier: false, e_tier_text: 1,
-    jars: true, jars_t0: true, jars_t1: true, jars_t2: true, jars_t3: true, jars_t4: true, jars_t5: true, jars_t6: true
+    jars: true, jars_t0: true, jars_t1: true, jars_t2: true, jars_t3: true, jars_t4: true, jars_t5: true, jars_t6: true,
+    backg: true, env: true, env_hole: true, env_water: true, env_deep_water: true, env_walls: true,
 }
 var filters_elements = {}
 
@@ -325,6 +326,13 @@ var filters_elements = {}
     fe.jars_t4 = window['j-f-4']
     fe.jars_t5 = window['j-f-5']
     fe.jars_t6 = window['j-f-6']
+
+    fe.backg = window['b-f']
+    fe.env = window['en-f']
+    fe.env_hole = window['en-f-16']
+    fe.env_water = window['en-f-4']
+    fe.env_deep_water = window['en-f-6']
+    fe.env_walls = window['en-f-14']
 
     for(let key in filters_elements) {
         let el = filters_elements[key]
@@ -368,6 +376,13 @@ function updFilters() {
         if(!filters["jars_t" + i]) css += '[data-jar-type="' + i + '"] { display: none; }'
     }
 
+    if(!filters.backg) css += '#maps { display: none; }'
+    if(!filters.env) css += '[data-env-collider-layer] { display: none; }'
+    if(!filters.env_water) css += '[data-env-collider-layer="4"] { display: none; }'
+    if(!filters.env_deep_water) css += '[data-env-collider-layer="6"] { display: none; }'
+    if(!filters.env_walls) css += '[data-env-collider-layer="14"] { display: none; }'
+    if(!filters.env_hole) css += '[data-env-collider-layer="16"] { display: none; }'
+
     filters_style.textContent = css;
 }
 
@@ -387,11 +402,11 @@ function testFiltersJar(it) {
 
 function clampScale(scale, old) {
     if(scale != scale) return old;
-    if(scale <= 1) {
+    if(scale <= 100) {
         if(scale >= 0.01) return scale
         else return 0.01
     }
-    else return 1
+    else return 100
 }
 
 function hypot2(xd, yd) {
@@ -403,10 +418,10 @@ function hypot2(xd, yd) {
 ;(() => {
     const svgNS = "http://www.w3.org/2000/svg"
     const styles = {
-        4: "fill: #6a97dd20; stroke: #6a97dd40; stroke-width: 0.1", // water
-        6: "fill: #35009920; stroke: #35009940; stroke-width: 0.1", // deep water
-        14: "fill: #c14a0320; stroke: #c14a0340; stroke-width: 0.1", // wall
-        16: "fill: #00000020; stroke: #10101020; stroke-width: 0.1", // hole
+        4: "fill: #6a97dd20;", // water
+        6: "fill: #35009920;", // deep water
+        14: "fill: #c14a0320;", // wall
+        16: "fill: #00000020;", // hole
     }
     for(let i = 0; i < envColliders.length; i++) {
         let it = envColliders[i]
@@ -436,6 +451,7 @@ function hypot2(xd, yd) {
         const width = maxx - minx, height = maxy - miny
 
         var el = document.createElement('span')
+        el.setAttribute('data-env-collider-layer', it.layer)
         el.classList.add('collider')
         el.style.left = cx(obj.x + minx + it.ox) + 'px'
         el.style.top = cy(obj.y + miny + it.oy) + 'px'
