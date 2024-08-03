@@ -47,14 +47,11 @@ body {
     bottom: 0px;
     outline: calc(0.3 * var(--size2)) solid red;
 }
-.dot {
+.collider {
     display: inline-block;
     position: absolute;
-    width: calc(var(--size2) * 2);
-    height: calc(var(--size2) * 2);
-    transform: translate(calc(-1 * var(--size2)), calc(-1 * var(--size2)));
-    background: blue;
-    border-radius: 999999px;
+    transform: scaleY(-1);
+    transform-origin: top;
 }
 
 .gap {
@@ -151,8 +148,14 @@ body {
             </div>
         </div>
 
+        <script src="data/cdestroyables.js"></script>
         <script src="data/enemies.js"></script>
+        <script src="data/envcolliders.js"></script>
         <script src="data/jars.js"></script>
+        <script src="data/objects.js"></script>
+        <script src="data/scarabs.js"></script>
+        <script src="data/textures.js"></script>
+        <script src="data/transitions.js"></script>
 
         <script src="display.js"></script>
     </body>

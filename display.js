@@ -3,8 +3,17 @@ var minx = 1/0, maxx = -1/0, miny = 1/0, maxy = -1/0
 var dedup = /^(.+?) [0-9]+/
 
 ;(() => {
-    for(let i = 0; i < enemies.length; i++) {
-        let it = enemies[i]
+    for(let i = 0; i < objects.length; i++) {
+        let it = objects[i]
+        it.name = it[0]
+        it.parentI = it[1]
+        it.x = it[2]
+        it.y = it[3]
+        it.rz = it[4]
+        it.sx = it[5]
+        it.sy = it[6]
+        it.allComponents = it[7]
+        it.components = {}
 
         minx = Math.min(minx, it.x)
         maxx = Math.max(maxx, it.x)
@@ -12,17 +21,63 @@ var dedup = /^(.+?) [0-9]+/
         maxy = Math.max(maxy, it.y)
     }
 
+    for(let i = 0; i < enemies.length; i++) {
+        let it = enemies[i]
+        it.objI = it[0]
+        it.size = it[1]
+        it.tier = it[2]
+        it.hp = it[3]
+        it.spriteI = it[4]
+
+        objects[it.objI].components['Enemy'] = it
+    }
+
     for(let i = 0; i < jars.length; i++) {
         let it = jars[i]
-        it.x = it[0]
-        it.y = it[1]
-        it.size = it[2]
-        it.type = it[3]
+        it.objI = it[0]
+        it.size = it[1]
+        it.dropType = it[2]
 
-        minx = Math.min(minx, it.x)
-        maxx = Math.max(maxx, it.x)
-        miny = Math.min(miny, it.y)
-        maxy = Math.max(maxy, it.y)
+        objects[it.objI].components['Jar'] = it
+    }
+
+    for(let i = 0; i < crystalDestroyables.length; i++) {
+        let it = crystalDestroyables[i]
+        it.objI = it[0]
+        it.dropXp = it[1]
+        it.size = it[2]
+
+        objects[it.objI].components['CrystalDestroyable'] = it
+    }
+
+    for(let i = 0; i < scarabs.length; i++) {
+        let it = scarabs[i]
+        it.objI = it[0]
+        it.destrI = it[1]
+
+        objects[it.objI].components['Scarab'] = it
+    }
+
+    for(let i = 0; i < envColliders.length; i++) {
+        let it = envColliders[i]
+        it.objI = it[0]
+        it.isTrigger = it[1]
+        it.ox = it[2]
+        it.oy = it[3]
+        it.layer = it[4]
+        it.polygons = it[5]
+
+        objects[it.objI].components['CompositeCollider2D'] = it
+    }
+
+    for(let i = 0; i < transitions.length; i++) {
+        let it = transitions[i]
+        it.objI = it[0]
+        it.isSameLoc = it[1]
+        it.destLocation = it[2]
+        it.destObject = it[3]
+
+        objects[it.objI].components['Transition'] = it
     }
 })()
 
@@ -129,8 +184,9 @@ container.addEventListener('click', function(e) {
 
     for(let i = 0; i < enemies.length; i++) {
         let it = enemies[i]
-        if(!testFiltersEnemy(it)) continue;
-        var v = [i, sqd(x, y, it.x, it.y), 0]
+        let obj = objects[it.objI]
+        if(!testFiltersEnemy(it, obj)) continue;
+        var v = [i, sqd(x, y, obj.x, obj.y), 0]
         for(let j = 0; j < ca.length; j++) {
             if(v[1] < ca[j][1]) {
                 var t = ca[j]
@@ -142,8 +198,9 @@ container.addEventListener('click', function(e) {
 
     for(let i = 0; i < jars.length; i++) {
         let it = jars[i]
+        let obj = objects[it.objI]
         if(!testFiltersJar(it)) continue;
-        var v = [i, sqd(x, y, it.x, it.y), 1]
+        var v = [i, sqd(x, y, obj.x, obj.y), 1]
         for(let j = 0; j < ca.length; j++) {
             if(v[1] < ca[j][1]) {
                 var t = ca[j]
@@ -196,7 +253,8 @@ function updProp(i) {
     curJ = 0
 
     var e = enemies[i]
-    title.value = e.name
+    var o = objects[e.objI]
+    title.value = o.name
     desc.innerText = "HP: " + e.hp + "\nSize: " + e.size + "\nTier: " + e.tier
     if(!lvl.value) lvl.value = "0"
     var level = +lvl.value
@@ -213,10 +271,10 @@ var jarTypes = ["nothing", "hp", "random", "big crystal", "energy", "full energy
 
 function getExtra(e) {
     var extra
-    if(e.type == 1) extra = e.size - 1
-    if(e.type == 2) extra = "15% hp, 15% 1-9 xp, 15% 2-4 energy"
-    if(e.type == 3) extra = (e.size - 1) * 2
-    if(e.type == 4) extra = "3-5"
+    if(e.dropType == 1) extra = e.size - 1
+    if(e.dropType == 2) extra = "15% hp, 15% 1-9 xp, 15% 2-4 energy"
+    if(e.dropType == 3) extra = (e.size - 1) * 2
+    if(e.dropType == 4) extra = "3-5"
     return extra !== undefined ? ' (' + extra + ')' : ''
 }
 
@@ -226,7 +284,7 @@ function updJar(i) {
 
     var e = jars[i]
     title.value = "jar " + i
-    desc.innerText = "Type: " + jarTypes[e.type] + getExtra(e) + "\nSize: " + e.size
+    desc.innerText = "Type: " + jarTypes[e.dropType] + getExtra(e) + "\nSize: " + e.size
     xp.innerText = 'N/A'
 
     document.querySelectorAll('.selected').forEach((el) => { el.classList.remove('selected') })
@@ -313,9 +371,9 @@ function updFilters() {
     filters_style.textContent = css;
 }
 
-function testFiltersEnemy(it) {
+function testFiltersEnemy(it, obj) {
     if(!filters.enemies) return false;
-    if(filters.e_name && !it.name.toLowerCase().includes(filters.e_name_text.toLowerCase())) return false;
+    if(filters.e_name && !obj.name.toLowerCase().includes(filters.e_name_text.toLowerCase())) return false;
     if(filters.e_size && it.size != filters.e_size_text) return false;
     if(filters.e_tier && it.tier != filters.e_tier_text) return false;
     return true;
@@ -323,17 +381,17 @@ function testFiltersEnemy(it) {
 
 function testFiltersJar(it) {
     if(!filters.jars) return false;
-    if(!filters['jars_t' + it.type]) return false
+    if(!filters['jars_t' + it.dropType]) return false
     return true
 }
 
 function clampScale(scale, old) {
     if(scale != scale) return old;
-    if(scale <= 0.35) {
+    if(scale <= 1) {
         if(scale >= 0.01) return scale
         else return 0.01
     }
-    else return 0.35
+    else return 1
 }
 
 function hypot2(xd, yd) {
@@ -343,21 +401,86 @@ function hypot2(xd, yd) {
 }
 
 ;(() => {
+    const svgNS = "http://www.w3.org/2000/svg"
+    const styles = {
+        4: "fill: #6a97dd20; stroke: #6a97dd40; stroke-width: 0.1", // water
+        6: "fill: #35009920; stroke: #35009940; stroke-width: 0.1", // deep water
+        14: "fill: #c14a0320; stroke: #c14a0340; stroke-width: 0.1", // wall
+        16: "fill: #00000020; stroke: #10101020; stroke-width: 0.1", // hole
+    }
+    for(let i = 0; i < envColliders.length; i++) {
+        let it = envColliders[i]
+        let obj = objects[it.objI]
+        if(!(obj.rz == 0 && obj.sx == 1 && obj.sy == 1)) {
+            console.error("Collider requires some transformation. NOT IMPLEMENTED", obj);
+            continue;
+        }
+
+        const polygons = it.polygons
+
+        let minx = 1/0, maxx = -1/0, miny = 1/0, maxy = -1/0
+        let hasPoints = false
+        for(let j = 0; j < polygons.length; j++) {
+            const points = polygons[j]
+            for(let k = 0; k < points.length; k++) {
+                const x = points[k][0]
+                const y = points[k][1]
+                minx = Math.min(minx, x)
+                maxx = Math.max(maxx, x)
+                miny = Math.min(miny, y)
+                maxy = Math.max(maxy, y)
+                hasPoints = true
+            }
+        }
+        if(!hasPoints) continue
+        const width = maxx - minx, height = maxy - miny
+
+        var el = document.createElement('span')
+        el.classList.add('collider')
+        el.style.left = cx(obj.x + minx + it.ox) + 'px'
+        el.style.top = cy(obj.y + miny + it.oy) + 'px'
+
+        const svg = document.createElementNS(svgNS, 'svg')
+        svg.setAttribute('width', '' + (width) * dd)
+        svg.setAttribute('height', '' + (height) * dd)
+        svg.setAttribute('viewBox', `${minx} ${miny} ${width} ${height}`); // Include padding in viewBox
+        el.appendChild(svg)
+
+        let pathData = ''
+        for(let j = 0; j < polygons.length; j++) {
+            const points = polygons[j]
+            pathData += 'M' + points[0][0] + ' ' + points[0][1] + ' '
+            for(let k = 1; k < points.length; k++) {
+                pathData += 'L' + points[k][0] + ' ' + points[k][1] + ' '
+            }
+
+        }
+        pathData += 'Z'
+
+        const polygon = document.createElementNS(svgNS, 'path')
+        polygon.setAttribute('d', pathData)
+        polygon.setAttribute('fill-rule', 'evenodd')
+        polygon.setAttribute('style', styles[it.layer])
+        svg.appendChild(polygon)
+
+        view.appendChild(el)
+    }
+
     for(let i = 0; i < enemies.length; i++) {
         let it = enemies[i]
+        let obj = objects[it.objI]
 
         var el = document.createElement('span')
         el.classList.add('enemy')
         el.setAttribute("data-enemy-index", i)
-        el.setAttribute("data-enemy-name", it.name)
+        el.setAttribute("data-enemy-name", obj.name)
         el.setAttribute("data-enemy-size", it.size)
         el.setAttribute("data-enemy-tier", it.tier)
-        el.style.left = cx(it.x) + 'px'
-        el.style.top = cy(it.y) + 'px'
+        el.style.left = cx(obj.x) + 'px'
+        el.style.top = cy(obj.y) + 'px'
 
         var img = document.createElement('img')
-        img.title = it.name + ' (' + it.hp + 'hp)';
-        img.src = 'sprites-dedup/' + it.dedup_name + '.png'
+        img.src = 'data/sprites/' + textures[it.spriteI] + '.png'
         img.draggable = "false"
         el.appendChild(img)
 
@@ -366,16 +489,22 @@ function hypot2(xd, yd) {
 
     for(let i = 0; i < jars.length; i++) {
         let it = jars[i]
+        let obj = objects[it.objI]
 
-        var dot = document.createElement('span')
-        dot.classList.add('dot')
-        dot.setAttribute("data-jar-index", i)
-        dot.setAttribute("data-jar-type", it.type)
-        dot.style.left = cx(it.x) + 'px'
-        dot.style.top = cy(it.y) + 'px'
-        view.appendChild(dot)
+        var el = document.createElement('span')
+        el.classList.add('enemy')
+        el.setAttribute("data-jar-index", i)
+        el.setAttribute("data-jar-type", it.dropType)
+        el.style.left = cx(obj.x) + 'px'
+        el.style.top = cy(obj.y) + 'px'
+
+        var img = document.createElement('img')
+        img.src = 'data/sprites/' + textures[jarTexture] + '.png'
+        img.draggable = "false"
+        el.appendChild(img)
+
+        view.appendChild(el)
     }
-
 
     container.addEventListener('wheel', (e) => {
         e.preventDefault();
