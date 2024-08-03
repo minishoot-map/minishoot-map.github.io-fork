@@ -7,20 +7,137 @@ using System.IO;
 using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 using UnityEngine.Tilemaps;
+using System.Runtime.InteropServices;
 
 // "Overworld", "Cave", "CaveExtra", "Dungeon1", "Dungeon2", "Dungeon3", "Dungeon4", "Dungeon5", "Temple1", "Temple2", "Temple3", "Tower", "CaveArena", "Snow"
 // SceneAsyncActivationGO (remove rate limit)
 // CameraManager (.basePath, .sceneNames)
 // GameManager (yield return this.LaunchGame(); from InitializeGame())
+// CrystalDestroyable (public dropXp)
+// ScarabDrop (public destroyable)
 
 public partial class GameManager : MonoBehaviour
 {
+	public static StreamWriter errorsSw, sw;
+
+    public class JsObject {
+        private Dictionary<string, JsObject> dictionary;
+        private List<JsObject> list;
+        private object val;
+        private int active = -1;
+
+        public JsObject(int expected) {
+            setActive(expected);
+        }
+
+        public static JsObject from(object value) {
+            if(value != null && value.GetType().IsArray) {
+                var o = new JsObject(1);
+                foreach(var value2 in (value as Array)) {
+                    o.add(value2);
+                }
+                return o;
+            }
+            else {
+                var o = new JsObject(2);
+                o.val = value;
+                return o;
+            }
+        }
+
+		public static JsObject arr(params object[] args) {
+			return from(args);
+		}
+
+		public JsObject this[string name] {
+			get {
+                setActive(0);
+				JsObject res;
+				if(!dictionary.TryGetValue(name, out res)) {
+					res = new JsObject(-1);
+					dictionary.Add(name, res);
+				}
+				return res;
+			}
+			set {
+                setActive(0);
+				dictionary[name] = value;
+			}
+		}
+
+        private void setActive(int expected) {
+            if(active == -1) {
+				active = expected;
+                if(expected == 0) dictionary = new Dictionary<string, JsObject>();
+                else if(expected == 1) list = new List<JsObject>();
+            }
+            else if(active != expected) throw new Exception("Different active: " + active + " for " + expected);
+        }
+
+		public void add(object value) {
+            setActive(1);
+            if(value is JsObject) {
+                list.Add(value as JsObject);
+            }
+			else {
+				list.Add(JsObject.from(value));
+			}
+		}
+
+        public JsObject addObj(params object[] value) {
+            setActive(1);
+            var jo = JsObject.from(value);
+            list.Add(jo);
+            return jo;
+        }
+
+		public void write(StreamWriter sw, int level) {
+			if(active == 0) {
+				if(level == 0) {
+					foreach(var kv in dictionary) {
+						sw.Write("var " + kv.Key + " = ");
+						kv.Value.write(sw, level + 1);
+						sw.WriteLine("");
+					}
+				}
+				else throw new NotImplementedException();
+			}
+			else if(active == 1) {
+				if(level == 0) throw new NotImplementedException();
+
+				if(level == 1) sw.WriteLine('[');
+				else sw.Write('[');
+
+				for(var i = 0; i < list.Count; i++) {
+					list[i].write(sw, level + 1);
+					if(i != list.Count-1) sw.Write(',');
+                    if(level == 1) sw.Write('\n');
+				}
+
+				sw.Write(']');
+			}
+			else if(active == 2) {
+				if(level == 0) throw new NotImplementedException();
+
+				if(val is bool) sw.Write((bool)val ? "true" : "false");
+				else if(val is int) sw.Write((int)val);
+				else if(val is float) sw.Write((float)val);
+				else if(val is string) sw.Write(System.Web.HttpUtility.JavaScriptStringEncode((string)val, true));
+				else if(val is Vector2) sw.Write("[" + ((Vector2)val).x + "," + ((Vector2)val).y + "]");
+				else throw new Exception("Unknown type: " + val.GetType().Name);
+			}
+            else {
+                sw.Write("[]");
+            }
+		}
+    }
+
     public static Dictionary<GameObject, int> objects;
     public static List<GameObject> objectList;
     public static Dictionary<String, int> locations;
     public static Dictionary<long, int> textureIndices;
     public static int objectCount, textureCount;
-    public static StreamWriter sw, senemies, sjars, serrors, stextures, scdestroyables, sscarabs, scolliders, stransitions;
+    public JsObject s;
 
     private Texture2D duplicateTexture(Texture2D source)
     {
@@ -42,14 +159,14 @@ public partial class GameManager : MonoBehaviour
 		try {
 			long key = sprite.sprite.texture.GetNativeTexturePtr().ToInt64();
 			int existingIndex;
-			if(GameManager.textureIndices.TryGetValue(key, out existingIndex)) {
+			if(textureIndices.TryGetValue(key, out existingIndex)) {
 				return existingIndex;
             }
 
             textureIndices.Add(key, textureCount);
             var spriteIndex = textureCount;
             textureCount++;
-            stextures.WriteLine("\"" + name + "\",");
+            s["textures"].add(name);
             byte[] array = this.duplicateTexture(sprite.sprite.texture).EncodeToPNG();
             using (FileStream fileStream = new FileStream(CameraManager.basePath + "sprites/" + name + ".png", FileMode.Create, FileAccess.Write)) {
 				fileStream.Write(array, 0, array.Length);
@@ -57,7 +174,9 @@ public partial class GameManager : MonoBehaviour
 			return spriteIndex;
         }
         catch (Exception e) {
-			GameManager.serrors.WriteLine(e.Message);
+            errorsSw.WriteLine(e.Message);
+            errorsSw.WriteLine(e.StackTrace);
+            errorsSw.WriteLine("");
         }
 
 		return -1;
@@ -67,7 +186,9 @@ public partial class GameManager : MonoBehaviour
         try {
             addObject0(parentI, o);
         } catch(Exception e) {
-            serrors.WriteLine(e.Message);
+            errorsSw.WriteLine(e.Message);
+            errorsSw.WriteLine(e.StackTrace);
+            errorsSw.WriteLine("");
         }
     }
 
@@ -78,17 +199,11 @@ public partial class GameManager : MonoBehaviour
         objectCount++;
         objectList.Add(o);
 
-        sw.Write(
-            "[\"" + o.name + "\", " + parentI
-             + ", " + o.transform.position.x + ", " + o.transform.position.y
-             + ", " + o.transform.rotation.z
-             + ", " + o.transform.localScale.x + ", " + o.transform.localScale.y
-             + ", ["
-        );
+        var comps = JsObject.arr();
         foreach(var c in o.GetComponents<Component>()) {
-            sw.Write("\"" + c.GetType().Name + "\", ");
+            comps.add(c.GetType().Name);
         }
-        sw.WriteLine("]],");
+		s["objects"].addObj(o.name, parentI, (Vector2)o.transform.position, o.transform.rotation.z, (Vector2)o.transform.localScale, comps);
 
         var cc = o.transform.GetChildCount();
         for(int i = 0; i < cc; i++) {
@@ -100,7 +215,9 @@ public partial class GameManager : MonoBehaviour
         try {
             addComponents0(index);
         } catch(Exception e) {
-            serrors.WriteLine(e.Message);
+            errorsSw.WriteLine(e.Message);
+            errorsSw.WriteLine(e.StackTrace);
+            errorsSw.WriteLine("");
         }
     }
 
@@ -114,113 +231,81 @@ public partial class GameManager : MonoBehaviour
     public void addComponents0(int index) {
         var o = objectList[index];
 
-        /*var jar = o.GetComponent<Jar>();
-        if(jar != null) {
-            sjars.WriteLine("[" + index + ", " + jar.Size + ", " + (int)jar.DropType + "],");
-        }
+        foreach(var comp in o.GetComponents<Component>()) {
+            switch(comp) {
+                case Jar jar: {
+                    s["jars"].addObj(index, jar.Size, (int)jar.DropType);
+                } break;
+                case Enemy enemy: {
+                    SpriteRenderer sprite = enemy.Sprite;
+                    int spriteIndex = tryAddSprite(sprite, o.name);
+                    s["enemies"].addObj(index, enemy.Size, enemy.Tier, enemy.Destroyable.HpMax, spriteIndex);
+                } break;
+                case CrystalDestroyable cDestroyable: {
+                    s["crystalDestroyables"].addObj(index, cDestroyable.dropXp, cDestroyable.Size);
+                } break;
+                case ScarabPickup scarab: {
+                    int oIndex;
+                    if(!objects.TryGetValue(scarab.destroyable.gameObject, out oIndex)) oIndex = -1;
+                    s["scarabs"].addObj(index, oIndex);
+                } break;
+                case Collider2D collider: {
+                    var coll = JsObject.arr(index, collider.isTrigger, collider.offset, o.layer, removeFromEndIfMatches(collider.GetType().Name, "Collider2D"));
+                    s["colliders"].add(coll);
 
-        var enemy = o.GetComponent<Enemy>();
-        if(enemy != null) {
-            SpriteRenderer sprite = enemy.Sprite;
-            int spriteIndex = tryAddSprite(sprite, o.name);
-            senemies.WriteLine("[" + index + ", " + enemy.Size + ", " + enemy.Tier + ", " + enemy.Destroyable.HpMax + ", " + spriteIndex + "],");
-        }
+                    if(collider is CompositeCollider2D) {
+                        var cd = JsObject.arr();
 
-        var cDestroyable = o.GetComponent<CrystalDestroyable>();
-        if(cDestroyable != null) {
-            scdestroyables.WriteLine("[" + index + ", " + (cDestroyable.dropXp ? "true" : "false") + ", " + cDestroyable.Size + "],");
-        }
+                        var c = collider as CompositeCollider2D;
+                        int pathCount = c.pathCount;
+                        for(int i = 0; i < pathCount; i++) {
+                            var points = new Vector2[c.GetPathPointCount(i)];
+                            c.GetPath(i, points);
+                            cd.add(points);
+                        }
 
-        var scarab = o.GetComponent<ScarabPickup>();
-        if(scarab != null) {
-            int oIndex;
-            if(!objects.TryGetValue(scarab.destroyable.gameObject, out oIndex)) oIndex = -1;
-            sscarabs.WriteLine("[" + index + ", " + oIndex + "],");
-        }
-
-        var cCollider = o.GetComponent<CompositeCollider2D>();
-        var tCollider = o.GetComponent<TilemapCollider2D>();
-        // for some reason world colliders have non-kinematic rigidbody...
-        if(cCollider != null && tCollider != null) {
-            // cannot guarantee that the layer is correct, there are some properties in tilemap and composite colliders that may or may not apply
-			// also there's tilemap collider offset. No idea what to do with it
-            senvcolliders.Write("[" + index + ", " + (cCollider.isTrigger ? "true" : "false") + ", " + cCollider.offset.x + ", " + cCollider.offset.y + ", " + o.layer + ", [");
-
-            int pathCount = cCollider.pathCount;
-            for(int i = 0; i < pathCount; i++) {
-                var points = new Vector2[cCollider.GetPathPointCount(i)];
-                cCollider.GetPath(i, points);
-                senvcolliders.Write("[");
-                foreach(var point in points) {
-                    senvcolliders.Write("[" + point.x + ", " + point.y + "], ");
-                }
-                senvcolliders.Write("],");
-            }
-
-            senvcolliders.WriteLine("]],");
-        }*/
-
-        foreach(var collider in o.GetComponents<Collider2D>()) {
-            scolliders.Write("[" + index + ", " + (collider.isTrigger ? "true" : "false") + ", " + collider.offset.x + ", " + collider.offset.y + ", " + o.layer + ", \"" + removeFromEndIfMatches(collider.GetType().Name, "Collider2D") + "\"");
-
-            if(collider is CompositeCollider2D) {
-                scolliders.Write(", [");
-
-                var c = collider as CompositeCollider2D;
-                int pathCount = c.pathCount;
-                for(int i = 0; i < pathCount; i++) {
-                    var points = new Vector2[c.GetPathPointCount(i)];
-                    c.GetPath(i, points);
-                    scolliders.Write("[");
-                    foreach(var point in points) {
-                        scolliders.Write("[" + point.x + ", " + point.y + "], ");
+                        coll.add(cd);
                     }
-                    scolliders.Write("],");
-                }
+                    else if(collider is BoxCollider2D) {
+                        var c = collider as BoxCollider2D;
+                        coll.add(c.size);
+                        coll.add(c.usedByComposite);
+                    }
+                    else if(collider is CapsuleCollider2D) {
+                        var c = collider as CapsuleCollider2D;
+                        coll.add(c.size);
+                        coll.add(c.direction == CapsuleDirection2D.Vertical);
+                    }
+                    else if(collider is CircleCollider2D) {
+                        var c = collider as CircleCollider2D;
+                        coll.add(c.radius);
+                    }
+                    else if(collider is PolygonCollider2D) {
+                        var c = collider as PolygonCollider2D;
+                        coll.add(c.usedByComposite);
+                        coll.add(c.points);
+                    }
+                } break;
+                case Transition transition: {
+                    string destLoc = transition.destinationLocation;
+                    int destLocIndex;
+                    if(!locations.TryGetValue(destLoc, out destLocIndex)) destLocIndex = -1;
 
-                scolliders.Write("]");
-            }
-            else if(collider is BoxCollider2D) {
-                var c = collider as BoxCollider2D;
-                scolliders.Write(", " + (c.usedByComposite ? "true" : "false") + ", [" + c.size.x + ", " + c.size.y + "]");
-            }
-            else if(collider is CapsuleCollider2D) {
-                var c = collider as CapsuleCollider2D;
-                scolliders.Write(", [" + c.size.x + ", " + c.size.y + ", " + (c.direction == CapsuleDirection2D.Vertical ? "true" : "false") + "]");
-            }
-            else if(collider is CircleCollider2D) {
-                var c = collider as CircleCollider2D;
-                scolliders.Write(", " + c.radius);
-            }
-            else if(collider is PolygonCollider2D) {
-                var c = collider as PolygonCollider2D;
-                scolliders.Write(", " + (c.usedByComposite ? "true" : "false") + ", [");
-                var p = c.points;
-                for(int i = 0; i < p.Length; i++) {
-                    scolliders.Write("[" + p[i].x + ", " + p[i].y + "], ");
-                }
-                scolliders.Write("]");
-            }
+                    bool sameLoc = true;
+                    Transition dest = transition.sameLocTransition;
+                    if (dest == null) {
+                        sameLoc = false;
+                        LocationManager.TransitionsLoaded.TryGetValue(transition.DestinationId, out dest);
+                    }
+                    int destIndex;
+                    if(!dest || !objects.TryGetValue(dest.gameObject, out destIndex)) destIndex = -1;
 
-            scolliders.WriteLine("],");
-        }
-
-        var transition = o.GetComponent<Transition>();
-        if(transition != null) {
-            string destLoc = transition.destinationLocation;
-            int destLocIndex;
-            if(!locations.TryGetValue(destLoc, out destLocIndex)) destLocIndex = -1;
-
-            bool sameLoc = true;
-            Transition dest = transition.sameLocTransition;
-            if (dest == null) {
-                sameLoc = false;
-                LocationManager.TransitionsLoaded.TryGetValue(transition.DestinationId, out dest);
-            }
-            int destIndex;
-            if(!dest || !objects.TryGetValue(dest.gameObject, out destIndex)) destIndex = -1;
-
-            stransitions.WriteLine("[" + index + ", " + (sameLoc ? "true" : "false") + ", " + destLocIndex + ", " + destIndex + "],");
+                    s["transitions"].addObj(index, sameLoc, destLocIndex, destIndex);
+                } break;
+                case Destroyable destroyable: {
+                    s["destroyables"].addObj(index, destroyable.Permanent);
+                } break;
+			}
         }
     }
 
@@ -283,64 +368,48 @@ public partial class GameManager : MonoBehaviour
             { "Snow", 13 }
         };
 
-        using(serrors = new StreamWriter(CameraManager.basePath + "errors", false)) {
-            using(sw = new StreamWriter(CameraManager.basePath + "objects.js", false)) {
-                sw.WriteLine("var objects = [");
-                for(int i = 0; i < SceneManager.sceneCount; i++) {
-                    Scene scene = SceneManager.GetSceneAt(i);
-                    foreach(var obj in scene.GetRootGameObjects()) {
-                        addObject(-1 - i, obj);
-                    }
+        s = new JsObject(0);
+
+        using(errorsSw = new StreamWriter(CameraManager.basePath + "errors.txt", false)) {
+            for(int i = 0; i < SceneManager.sceneCount; i++) {
+				Scene scene = SceneManager.GetSceneAt(i);
+				foreach(var obj in scene.GetRootGameObjects()) {
+					addObject(-1 - i, obj);
                 }
-                sw.WriteLine("]");
             }
 
-            using(senemies = new StreamWriter(CameraManager.basePath + "enemies.js", false)) {
-            using(sjars = new StreamWriter(CameraManager.basePath + "jars.js", false)) {
-            using(stextures = new StreamWriter(CameraManager.basePath + "textures.js", false)) {
-            using(scdestroyables = new StreamWriter(CameraManager.basePath + "cdestroyables.js", false)) {
-            using(sscarabs = new StreamWriter(CameraManager.basePath + "scarabs.js", false)) {
-            using(scolliders = new StreamWriter(CameraManager.basePath + "colliders.js", false)) {
-            using(stransitions = new StreamWriter(CameraManager.basePath + "transitions.js", false)) {
-                senemies.WriteLine("var enemies = [");
-                sjars.WriteLine("var jars = [");
+			for(int i = 0; i < objectList.Count; i++) {
+				addComponents(i);
+            }
 
-                stextures.WriteLine("var textures = [");
+			try {
+				using(sw = new StreamWriter(CameraManager.basePath + "objects.js", false)) {
+                    {
+                        int index = -1;
+                        var it = FindObjectOfType<Jar>(true);
+                        if(it != null) index = tryAddSprite(it.gameObject.GetComponentInChildren<SpriteRenderer>(), it.gameObject.name);
+                        s["jarTexture"] = JsObject.from(index);
+                    }
+                    {
+                        int index = -1;
+                        foreach(var it in FindObjectsOfType<CrystalDestroyable>(true)) {
+                            if(!it.dropXp) continue;
+                            if(it != null) index = tryAddSprite(it.gameObject.GetComponentInChildren<SpriteRenderer>(), it.gameObject.name);
+                            if(index != -1) break;
+                        }
+                        s["crystalDestroyableTexture"] = JsObject.from(index);
+                    }
+					s["xpForCrystalSize"] = JsObject.from(PlayerData.DestroyableCrystalValue);
 
-                scdestroyables.Write("var xpForCrystalSize = [");
-                for(int k = 0; k < PlayerData.DestroyableCrystalValue.Length; k++) {
-                    scdestroyables.Write(PlayerData.DestroyableCrystalValue[k] + ", ");
-                }
-                scdestroyables.WriteLine("]");
-                scdestroyables.WriteLine("var crystalDestroyables = [");
-
-                sscarabs.WriteLine("var scarabs = [");
-                scolliders.WriteLine("var envColliders = [");
-                stransitions.WriteLine("var transitions = [");
-
-                for(int i = 0; i < objectList.Count; i++) {
-                    addComponents(i);
-                }
-
-                senemies.WriteLine("]");
-                sjars.WriteLine("]");
-                scdestroyables.WriteLine("]");
-                sscarabs.WriteLine("]");
-                scolliders.WriteLine("]");
-                stransitions.WriteLine("]");
-
-                var j = FindObjectOfType<Jar>(true);
-                if(j == null) {
-                    stextures.WriteLine("]");
-                    stextures.WriteLine("var jarTexture = -1");
-                }
-                else {
-                    int index = tryAddSprite(j.gameObject.GetComponentInChildren<SpriteRenderer>(), "Jar");
-                    stextures.WriteLine("]");
-                    stextures.WriteLine("var jarTexture = " + index);
-                }
-            }}}}}}}
-        }
+					s.write(sw, 0);
+				}
+			}
+			catch(Exception e) {
+				errorsSw.WriteLine(e.Message);
+				errorsSw.WriteLine(e.StackTrace);
+				errorsSw.WriteLine("");
+			}
+		}
 
         Application.Quit();
         yield break;
