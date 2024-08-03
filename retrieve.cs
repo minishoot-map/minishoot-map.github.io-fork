@@ -20,7 +20,7 @@ public partial class GameManager : MonoBehaviour
     public static Dictionary<String, int> locations;
     public static Dictionary<long, int> textureIndices;
     public static int objectCount, textureCount;
-    public static StreamWriter sw, senemies, sjars, serrors, stextures, scdestroyables, sscarabs, senvcolliders, stransitions;
+    public static StreamWriter sw, senemies, sjars, serrors, stextures, scdestroyables, sscarabs, scolliders, stransitions;
 
     private Texture2D duplicateTexture(Texture2D source)
     {
@@ -104,11 +104,17 @@ public partial class GameManager : MonoBehaviour
         }
     }
 
+    static string removeFromEndIfMatches(string source, string valueToRemove) {
+        if (source.EndsWith(valueToRemove)) {
+            return source.Substring(0, source.Length - valueToRemove.Length);
+        }
+        return source;
+    }
 
     public void addComponents0(int index) {
         var o = objectList[index];
 
-        var jar = o.GetComponent<Jar>();
+        /*var jar = o.GetComponent<Jar>();
         if(jar != null) {
             sjars.WriteLine("[" + index + ", " + jar.Size + ", " + (int)jar.DropType + "],");
         }
@@ -152,6 +158,51 @@ public partial class GameManager : MonoBehaviour
             }
 
             senvcolliders.WriteLine("]],");
+        }*/
+
+        foreach(var collider in o.GetComponents<Collider2D>()) {
+            scolliders.Write("[" + index + ", " + (collider.isTrigger ? "true" : "false") + ", " + collider.offset.x + ", " + collider.offset.y + ", " + o.layer + ", \"" + removeFromEndIfMatches(collider.GetType().Name, "Collider2D") + "\"");
+
+            if(collider is CompositeCollider2D) {
+                scolliders.Write(", [");
+
+                var c = collider as CompositeCollider2D;
+                int pathCount = c.pathCount;
+                for(int i = 0; i < pathCount; i++) {
+                    var points = new Vector2[c.GetPathPointCount(i)];
+                    c.GetPath(i, points);
+                    scolliders.Write("[");
+                    foreach(var point in points) {
+                        scolliders.Write("[" + point.x + ", " + point.y + "], ");
+                    }
+                    scolliders.Write("],");
+                }
+
+                scolliders.Write("]");
+            }
+            else if(collider is BoxCollider2D) {
+                var c = collider as BoxCollider2D;
+                scolliders.Write(", " + (c.usedByComposite ? "true" : "false") + ", [" + c.size.x + ", " + c.size.y + "]");
+            }
+            else if(collider is CapsuleCollider2D) {
+                var c = collider as CapsuleCollider2D;
+                scolliders.Write(", [" + c.size.x + ", " + c.size.y + ", " + (c.direction == CapsuleDirection2D.Vertical ? "true" : "false") + "]");
+            }
+            else if(collider is CircleCollider2D) {
+                var c = collider as CircleCollider2D;
+                scolliders.Write(", " + c.radius);
+            }
+            else if(collider is PolygonCollider2D) {
+                var c = collider as PolygonCollider2D;
+                scolliders.Write(", " + (c.usedByComposite ? "true" : "false") + ", [");
+                var p = c.points;
+                for(int i = 0; i < p.Length; i++) {
+                    scolliders.Write("[" + p[i].x + ", " + p[i].y + "], ");
+                }
+                scolliders.Write("]");
+            }
+
+            scolliders.WriteLine("],");
         }
 
         var transition = o.GetComponent<Transition>();
@@ -249,7 +300,7 @@ public partial class GameManager : MonoBehaviour
             using(stextures = new StreamWriter(CameraManager.basePath + "textures.js", false)) {
             using(scdestroyables = new StreamWriter(CameraManager.basePath + "cdestroyables.js", false)) {
             using(sscarabs = new StreamWriter(CameraManager.basePath + "scarabs.js", false)) {
-            using(senvcolliders = new StreamWriter(CameraManager.basePath + "envcolliders.js", false)) {
+            using(scolliders = new StreamWriter(CameraManager.basePath + "colliders.js", false)) {
             using(stransitions = new StreamWriter(CameraManager.basePath + "transitions.js", false)) {
                 senemies.WriteLine("var enemies = [");
                 sjars.WriteLine("var jars = [");
@@ -264,7 +315,7 @@ public partial class GameManager : MonoBehaviour
                 scdestroyables.WriteLine("var crystalDestroyables = [");
 
                 sscarabs.WriteLine("var scarabs = [");
-                senvcolliders.WriteLine("var envColliders = [");
+                scolliders.WriteLine("var envColliders = [");
                 stransitions.WriteLine("var transitions = [");
 
                 for(int i = 0; i < objectList.Count; i++) {
@@ -273,18 +324,20 @@ public partial class GameManager : MonoBehaviour
 
                 senemies.WriteLine("]");
                 sjars.WriteLine("]");
-                stextures.WriteLine("]");
                 scdestroyables.WriteLine("]");
                 sscarabs.WriteLine("]");
-                senvcolliders.WriteLine("]");
+                scolliders.WriteLine("]");
                 stransitions.WriteLine("]");
 
-                stextures.Write("var jarTexture = ");
                 var j = FindObjectOfType<Jar>(true);
-                if(j == null) stextures.WriteLine("-1");
+                if(j == null) {
+                    stextures.WriteLine("]");
+                    stextures.WriteLine("var jarTexture = -1");
+                }
                 else {
                     int index = tryAddSprite(j.gameObject.GetComponentInChildren<SpriteRenderer>(), "Jar");
-                    stextures.WriteLine(index);
+                    stextures.WriteLine("]");
+                    stextures.WriteLine("var jarTexture = " + index);
                 }
             }}}}}}}
         }
