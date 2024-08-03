@@ -23,6 +23,7 @@ body {
     transform: translate(calc(-1 * var(--size2)), calc(-1 * var(--size2)));
 }
 .enemy > img {
+    user-select: none;
     display: block;
     width: 100%;
     height: 100%;
@@ -116,7 +117,7 @@ body {
             <div id="views">
                 <div id="map-cont">
                     <div id="view">
-                        <div id="maps">
+                        <div id="maps" style="user-select: none">
                             <img id="ow" src="overworld.png" class="overworld"  draggable="false">
                             <img id="d3" src="d3.png" class="d3"  draggable="false">
                         </div>
