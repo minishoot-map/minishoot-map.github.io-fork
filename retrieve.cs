@@ -243,7 +243,7 @@ public partial class GameManager : MonoBehaviour
                     s["enemies"].addObj(index, enemy.Size, enemy.Tier, enemy.Destroyable.HpMax, spriteIndex);
                 } break;
                 case CrystalDestroyable cDestroyable: {
-                    s["crystalDestroyables"].addObj(index, cDestroyable.dropXp, cDestroyable.Size);
+                    s["crystalDestroyables"].addObj(index, cDestroyable.dropXp, cDestroyable.size);
                 } break;
                 case ScarabPickup scarab: {
                     int oIndex;
@@ -406,13 +406,18 @@ public partial class GameManager : MonoBehaviour
                         s["jarTexture"] = JsObject.from(index);
                     }
                     {
-                        int index = -1;
+                        int yindex = -1, nindex = -1;
                         foreach(var it in FindObjectsOfType<CrystalDestroyable>(true)) {
-                            if(!it.dropXp) continue;
-                            if(it != null) index = tryAddSprite(it.gameObject.GetComponentInChildren<SpriteRenderer>(), it.gameObject.name);
-                            if(index != -1) break;
+                            if(it.dropXp) {
+                                if(yindex == -1) yindex = tryAddSprite(it.gameObject.GetComponentInChildren<SpriteRenderer>(), it.gameObject.name);
+                            }
+                            else {
+                                if(nindex == -1) nindex = tryAddSprite(it.gameObject.GetComponentInChildren<SpriteRenderer>(), it.gameObject.name);
+                            }
+                            if(yindex != -1 && nindex != -1) break;
                         }
-                        s["crystalDestroyableTexture"] = JsObject.from(index);
+                        s["crystalDestroyableTexture"] = JsObject.from(yindex);
+                        s["crystalDestroyableTexture2"] = JsObject.from(nindex);
                     }
 					s["xpForCrystalSize"] = JsObject.from(PlayerData.DestroyableCrystalValue);
 

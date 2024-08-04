@@ -1,5 +1,3 @@
-var dedup = /^(.+?) [0-9]+/
-
 var colliderTypes = { box: 0, capsule: 1, circle: 2, polygon: 3, composite: 4, tilemap: 5 }
 var colliderNames = ['BoxCollider2D', 'CapsuleCollider2D', 'CircleCollider2D', 'PolygonCollider2D', 'CompositeCollider2D', 'TilemapCollider2D']
 
@@ -13,7 +11,7 @@ var colliderNames = ['BoxCollider2D', 'CapsuleCollider2D', 'CircleCollider2D', '
         it.rz = it[4]
         it.scale = it[5]
         it.allComponents = it[6]
-        it.components = {}
+        it.components = {} // just hope that there wouldn't be 2 components of the same type
     }
 
     for(let i = 0; i < enemies.length; i++) {
@@ -40,7 +38,7 @@ var colliderNames = ['BoxCollider2D', 'CapsuleCollider2D', 'CircleCollider2D', '
         let it = crystalDestroyables[i]
         it.objI = it[0]
         it.dropXp = it[1]
-        it.size = it[2]
+        it.size = it[2] - 1 // HACK: turns out Size and size in CrystalDestroyable are different... why???
 
         objects[it.objI].components['CrystalDestroyable'] = it
     }
@@ -129,11 +127,11 @@ function construct(obj) {
 function updateTansform(i) {
     if(i == undefined || i < 0) return
     var obj = objects[i]
-    if(obj.matrix != undefined) return obj.matrix
+    if(obj.matrix) return obj.matrix
 
     var matrix = construct(obj)
     var pMatrix = updateTansform(obj.parentI)
-    if(pMatrix != undefined) multiply(matrix, pMatrix)
+    if(pMatrix) multiply(matrix, pMatrix)
 
     return obj.matrix = matrix
 }
@@ -145,10 +143,15 @@ for(let i = 0; i < objects.length; i++) {
 var view = document.getElementById('view')
 var container = document.getElementById('map-cont')
 var title = document.getElementById('name') // yay name is already taken
-var lvl = document.getElementById('lvl')
-var xp = document.getElementById('xp')
-var desc = document.getElementById('desc')
 var other = document.getElementById('other')
+var desc = document.getElementById('desc')
+var c_enemy = document.getElementById('c-enemy')
+var c_jar = document.getElementById('c-jar')
+var c_crd = document.getElementById('c-crd')
+
+c_enemy.querySelector('.lvl').addEventListener("change", () => {
+    updProp(curI)
+})
 
 var propsHidden = true
 window['prop-show-hide'].addEventListener('click', () => {
@@ -231,25 +234,22 @@ container.addEventListener('click', function(e) {
         ca[i] = [-1, 1/0, -1]
     }
 
-    for(let i = 0; i < enemies.length; i++) {
-        let it = enemies[i]
-        let obj = objects[it.objI]
-        if(!testFiltersEnemy(it, obj)) continue;
-        var v = [i, sqd(x, y, obj.pos[0], obj.pos[1]), 0]
-        for(let j = 0; j < ca.length; j++) {
-            if(v[1] < ca[j][1]) {
-                var t = ca[j]
-                ca[j] = v
-                v = t
-            }
-        }
-    }
 
-    for(let i = 0; i < jars.length; i++) {
-        let it = jars[i]
-        let obj = objects[it.objI]
-        if(!testFiltersJar(it)) continue;
-        var v = [i, sqd(x, y, obj.pos[0], obj.pos[1]), 1]
+    for(let i = 0; i < markers.length; i++) {
+        let objI = markers[i]
+        let obj = objects[objI]
+        let c = obj.components
+        if(c.Enemy) {
+            if(!testFiltersEnemy(c.Enemy, obj)) continue
+        }
+        if(c.Jar) {
+            if(!testFiltersJar(c.Jar)) continue
+        }
+        if(c.CrystalDestroyable) {
+            if(!testFiltersCrd(c.CrystalDestroyable)) continue
+        }
+
+        var v = [objI, sqd(x, y, obj.pos[0], obj.pos[1])]
         for(let j = 0; j < ca.length; j++) {
             if(v[1] < ca[j][1]) {
                 var t = ca[j]
@@ -272,47 +272,77 @@ container.addEventListener('click', function(e) {
 
     if(ca[0][0] !== -1) {
         other.innerText = s
-        if(ca[0][2] == 0) updProp(ca[0][0])
-        else updJar(ca[0][0])
+        updProp(ca[0][0])
     }
 });
 
 title.addEventListener("change", (e) => {
     var newName = name.value
     for(let i = 0; i < enemies.length; i++) {
-        if(enemies[i].name === newName) {
+        if(objects[i].name === newName) {
             updProp(i)
             break;
         }
     }
 });
 
-lvl.addEventListener("change", () => {
-    if(curJ == 0) updProp(curI)
-    else if(curJ == 1) updJar(curI)
-})
-
 function enemyLevel(e) {
     return 3 * (e.tier - 1) + e.size
 }
 
-var curI, curJ
+var curI
 function updProp(i) {
     curI = i
-    curJ = 0
-
-    var e = enemies[i]
-    var o = objects[e.objI]
-    title.value = o.name
-    desc.innerText = "HP: " + e.hp + "\nSize: " + e.size + "\nTier: " + e.tier
-    if(!lvl.value) lvl.value = "0"
-    var level = +lvl.value
-    xp.innerText = calcXp(e.size, enemyLevel(e), level)
 
     document.querySelectorAll('.selected').forEach((el) => { el.classList.remove('selected') })
-    var el = document.querySelector('[data-enemy-index="' + i + '"]')
+    var el = document.querySelector('[data-index="' + i + '"]')
     if(el) {
         el.classList.add('selected')
+    }
+
+    const o = objects[i]
+    title.value = o.name
+    let descText = 'Position: (' + o.pos[0] + ', ' + o.pos[1] + ')<br>Components:'
+    for(let i = 0; i < o.allComponents.length; i++) {
+        descText += '<br><span class="gap"></span>' + o.allComponents[i]
+    }
+    desc.innerHTML = descText
+
+    c_enemy.style.display = 'none'
+    c_jar.style.display = 'none'
+    c_crd.style.display = 'none'
+
+    const c = o.components
+    if(c.Enemy) {
+        c_enemy.style.display = ''
+        const xp = c_enemy.querySelector('.xp')
+        const lvl = c_enemy.querySelector('.lvl')
+        const desc = c_enemy.querySelector('.desc')
+
+        var it = c.Enemy
+        desc.innerText = 'HP: ' + it.hp + '\nSize: ' + it.size + '\nTier: ' + it.tier
+        if(!lvl.value) lvl.value = '0'
+        var level = +lvl.value
+        xp.innerText = calcXp(it.size, enemyLevel(it), level)
+        return
+    }
+
+    if(c.Jar) {
+        c_jar.style.display = ''
+        const desc = c_jar.querySelector('.desc')
+
+        var it = c.Jar
+        desc.innerText = 'Type: ' + jarTypes[it.dropType] + getExtra(it) + '\nSize: ' + it.size
+        return
+    }
+
+    if(c.CrystalDestroyable) {
+        c_crd.style.display = ''
+        const desc = c_crd.querySelector('.desc')
+
+        var it = c.CrystalDestroyable
+        desc.innerText = 'Drops xp: ' + it.dropXp + (it.dropXp ? '\nXp: ' + xpForCrystalSize[it.size] : '') + '\nSize: ' + it.size
+        return
     }
 }
 
@@ -327,22 +357,6 @@ function getExtra(e) {
     return extra !== undefined ? ' (' + extra + ')' : ''
 }
 
-function updJar(i) {
-    curI = i
-    curJ = 1
-
-    var e = jars[i]
-    title.value = "jar " + i
-    desc.innerText = "Type: " + jarTypes[e.dropType] + getExtra(e) + "\nSize: " + e.size
-    xp.innerText = 'N/A'
-
-    document.querySelectorAll('.selected').forEach((el) => { el.classList.remove('selected') })
-    var el = document.querySelector('[data-jar-index="' + i + '"]')
-    if(el) {
-        el.classList.add('selected')
-    }
-}
-
 function updTransform() {
     view.style.transform = `matrix(${scale}, 0, 0, ${scale}, ${originX}, ${originY})`
 }
@@ -352,13 +366,14 @@ document.body.style.setProperty('--size2', dd + "px")
 function updSize() { }
 
 var filters = {
-    enemies: false, e_name: false, e_name_text: "", e_size: false, e_size_text: 3, e_tier: false, e_tier_text: 1,
-    jars: false, jars_t0: true, jars_t1: true, jars_t2: true, jars_t3: true, jars_t4: true, jars_t5: true, jars_t6: true,
-    backg: true, coll: true, coll_0: false, coll_4: true, coll_6: true, coll_14: true, coll_16: true, coll_12: false, coll_13: false, coll_17: false, coll_23: false, coll_25: true, coll_26: false, coll_31: false,
+    enemies: true, e_name: false, e_name_text: "", e_size: false, e_size_text: 3, e_tier: false, e_tier_text: 1,
+    jars: true, jars_t0: true, jars_t1: true, jars_t2: true, jars_t3: true, jars_t4: true, jars_t5: true, jars_t6: true,
+    crd_y_f: true, crd_n_f: true,
+    backg: true, coll: true, coll_4: true, coll_6: true, coll_14: true, coll_16: true, coll_17: false, coll_25: true,
 
     coll_ui: false,
 }
-var coll_layers = [0, 4, 6, 14, 16, 12, 13, 17, 23, 25, 26, 31]
+var coll_layers = [4, 6, 14, 16, 17, 25]
 
 var filters_elements = {}
 
@@ -380,11 +395,14 @@ var filters_elements = {}
     fe.jars_t5 = window['j-f-5']
     fe.jars_t6 = window['j-f-6']
 
-    fe.backg = window['b-f']
+    fe.crd_y_f = window['crd-y-f']
+    fe.crd_n_f = window['crd-n-f']
+
     fe.coll = window['c-f']
     for(let coll_li of coll_layers) {
         fe['coll_' + coll_li] = window['c-f-' + coll_li]
     }
+    fe.backg = window['b-f']
 
     for(let key in filters_elements) {
         let el = filters_elements[key]
@@ -428,11 +446,14 @@ function updFilters() {
         if(!filters["jars_t" + i]) css += '[data-jar-type="' + i + '"] { display: none; }'
     }
 
-    if(!filters.backg) css += '#maps { display: none; }'
+    if(!filters.crd_y_f) css += '[data-crd-type="1"] { display: none; }'
+    if(!filters.crd_n_f) css += '[data-crd-type="0"] { display: none; }'
+
     if(!filters.coll) css += '[data-collider-layer] { display: none; }'
     for(let coll_li of coll_layers) {
         if(!filters['coll_' + coll_li]) css += '[data-collider-layer="' + coll_li + '"] { display: none; }'
     }
+    if(!filters.backg) css += '#maps { display: none; }'
 
 
     filters_style.textContent = css;
@@ -454,6 +475,11 @@ function testFiltersJar(it) {
     return true
 }
 
+function testFiltersCrd(it) {
+    if(it.dropXp) return filters.crd_y_f;
+    else return filters.crd_n_f;
+}
+
 var minScale = 0.1 / dd, maxScale = 100 / dd
 function clampScale(scale, old) {
     if(scale != scale) return old;
@@ -470,207 +496,95 @@ function hypot2(xd, yd) {
     else return 0.0001
 }
 
+var markers = []
 
-var Aall = {}
-
-const svgNS = "http://www.w3.org/2000/svg"
-const styles = {
-    0: "fill: #0a590360", // destroyable
-    4: "fill: #6a97dd20", // water
-    6: "fill: #35009920", // deep water
-    14: "fill: #c14a0320", // wall
-    16: "fill: #00000020", // hole
-    17: "fill: #6addd520", // trigger?
-    12: "fill: #f9000060", // enemy
-    13: "fill: #f9000060", // enemy
-    25: "fill: #4f3c0140", // bridge
-    26: "fill: #f9005060", // enemy (stationary)
-    23: "fill: #11656360", // static
-    31: "fill: #11656360", // static
-}
-const fallbackStyle = "fill: #9400f920"
-function addPath(it, obj, minx, miny, maxx, maxy, element) {
-    const m = obj.matrix
-    const width = maxx - minx, height = maxy - miny
-    data.push(obj.pos)
-
-    counts[it.type]++
-    counts2[it.layer]++
-
-    var el = document.createElement('span')
-    el.setAttribute('data-index', it.objI)
-    el.setAttribute('data-collider-layer', it.layer)
-    el.classList.add('collider')
-    el.style.transform = `matrix(${m[0]}, ${-m[3]}, ${m[1]}, ${-m[4]}, ${m[2] * dd}, ${-m[5] * dd})`
-
-    const svg = document.createElementNS(svgNS, 'svg')
-    svg.setAttribute('width', '' + width)
-    svg.setAttribute('height', '' + height)
-    svg.setAttribute('viewBox', `${minx} ${miny} ${width} ${height}`);
-    svg.style.left = minx + 'px'
-    svg.style.top = miny + 'px'
-    el.appendChild(svg)
-
-    svg.appendChild(element)
-
-    view.appendChild(el)
-}
-
-var data = []
-
-var counts = [0, 0, 0, 0, 0, 0, 0, 0, 0,]
-var counts2 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ]
 ;(() => {
-    for(let i = 0; i < colliders.length; i++) {
-        let it = colliders[i]
-        let obj = objects[it.objI]
+    for(let i = 0; i < objects.length; i++) {
+        const obj = objects[i]
+        const c = obj.components
 
-        Aall[it.layer] = true
+        if(c.Enemy) {
+            const it = c.Enemy
 
-        if(obj.allComponents.includes('SurfaceHandler')) continue;
-        if(obj.name.startsWith('SurfaceColliders')) continue;
-        //if(obj.name.startsWith('Debris')) continue;
-        //if(obj.name.startsWith('CrystalHp')) continue;
-        if(obj.name.endsWith('(Clone)')) continue
+            var el = document.createElement('span')
+            el.classList.add('mark')
+            el.setAttribute('data-index', it.objI)
+            el.setAttribute("data-enemy-index", i)
+            el.setAttribute("data-enemy-name", obj.name)
+            el.setAttribute("data-enemy-size", it.size)
+            el.setAttribute("data-enemy-tier", it.tier)
+            el.style.left = cx(obj.pos[0]) + 'px'
+            el.style.top = cy(obj.pos[1]) + 'px'
 
-        if(it.type == colliderTypes.composite) {
-            const polygons = it.polygons
+            var img = document.createElement('img')
+            img.src = 'data/sprites/' + textures[it.spriteI] + '.png'
+            img.draggable = "false"
+            el.appendChild(img)
 
-            let pathData = ''
-            let minx = 1/0, maxx = -1/0, miny = 1/0, maxy = -1/0
-            let hasPoints = false
-            for(let j = 0; j < polygons.length; j++) {
-                const points = polygons[j]
+            view.appendChild(el)
+            markers.push(i)
+            continue
+        }
 
-                for(let k = 0; k < points.length; k++) {
-                    const x = (points[k][0] + it.off[0]) * dd
-                    const y = (points[k][1] + it.off[1]) * dd
-                    minx = Math.min(minx, x)
-                    maxx = Math.max(maxx, x)
-                    miny = Math.min(miny, y)
-                    maxy = Math.max(maxy, y)
-                    hasPoints = true
-                    pathData += (k == 0 ? 'M' : 'L') + x + ' ' + y + ' '
-                }
+        if(c.Jar) {
+            const it = c.Jar
+
+            var el = document.createElement('span')
+            el.classList.add('mark')
+            el.setAttribute('data-index', it.objI)
+            el.setAttribute("data-jar-index", i)
+            el.setAttribute("data-jar-type", it.dropType)
+            el.style.left = cx(obj.pos[0]) + 'px'
+            el.style.top = cy(obj.pos[1]) + 'px'
+
+            var img = document.createElement('img')
+            img.src = 'data/sprites/' + textures[jarTexture] + '.png'
+            img.draggable = "false"
+            el.appendChild(img)
+
+            view.appendChild(el)
+            markers.push(i)
+            continue
+        }
+
+        if(c.CrystalDestroyable) {
+            const it = c.CrystalDestroyable
+
+            var el = document.createElement('span')
+            el.classList.add('mark', 'mark-crd')
+            el.setAttribute('data-index', it.objI)
+            el.setAttribute("data-crd-index", i)
+            el.setAttribute("data-crd-type", it.dropXp ? 1 : 0)
+            el.style.setProperty('--crystal-size', 1 + 0.5 * it.size)
+            el.style.left = cx(obj.pos[0]) + 'px'
+            el.style.top = cy(obj.pos[1]) + 'px'
+
+            var img = document.createElement('img')
+            img.src = 'data/sprites/' + (it.dropXp ? textures[crystalDestroyableTexture] : textures[crystalDestroyableTexture2]) + '.png'
+            img.draggable = "false"
+            el.appendChild(img)
+
+            view.appendChild(el)
+            markers.push(i)
+            continue
+        }
+
+        if(c.TilemapCollider2D && c.CompositeCollider2D) {
+            const it = c.CompositeCollider2D
+            addCollider(it, obj)
+            continue
+        }
+
+        {
+            const it = c.CompositeCollider2D ?? c.BoxCollider2D ?? c.CircleCollider2D ?? c.CapsuleCollider2D ?? c.PolygonCollider2D
+            if(it && (obj.name === 'Wall' || it.layer == 17 || it.layer == 25) && obj.name != 'Movable') {
+                addCollider(it, obj)
+                continue
             }
-            pathData += 'Z'
-            if(!hasPoints) continue
-
-            const path = document.createElementNS(svgNS, 'path')
-            path.setAttribute('d', pathData)
-            path.setAttribute('fill-rule', 'evenodd')
-            path.setAttribute('style', styles[it.layer] ?? fallbackStyle)
-
-            addPath(it, obj, minx, miny, maxx, maxy, path)
         }
-        else if(it.type == colliderTypes.polygon) {
-            const polygon = it.polygon
-
-            let pathData = ''
-            let minx = 1/0, maxx = -1/0, miny = 1/0, maxy = -1/0
-            let hasPoints = false
-            for(let k = 0; k < polygon.length; k++) {
-                const x = (polygon[k][0] + it.off[0]) * dd
-                const y = (polygon[k][1] + it.off[1]) * dd
-                minx = Math.min(minx, x)
-                maxx = Math.max(maxx, x)
-                miny = Math.min(miny, y)
-                maxy = Math.max(maxy, y)
-                hasPoints = true
-                pathData += (k == 0 ? 'M' : 'L') + x + ' ' + y + ' '
-            }
-            pathData += 'Z'
-            if(!hasPoints) continue
-
-            const path = document.createElementNS(svgNS, 'path')
-            path.setAttribute('d', pathData)
-            path.setAttribute('fill-rule', 'evenodd')
-            path.setAttribute('style', styles[it.layer] ?? fallbackStyle)
-
-            addPath(it, obj, minx, miny, maxx, maxy, path)
-        }
-        else if(it.type == colliderTypes.box) {
-            var width = it.size[0] * dd, height = it.size[1] * dd
-            var w2 = width * 0.5, h2 = height * 0.5
-
-            const rect = document.createElementNS(svgNS, "rect");
-            rect.setAttribute("x", -w2 + it.off[0] * dd);
-            rect.setAttribute("y", -h2 + it.off[1] * dd);
-            rect.setAttribute("width", width);
-            rect.setAttribute("height", height);
-            rect.setAttribute('style', styles[it.layer] ?? fallbackStyle)
-
-            addPath(it, obj, -w2 + it.off[0] * dd, -h2 + it.off[1] * dd, w2 + it.off[0] * dd, h2 + it.off[1] * dd, rect)
-        }
-        else if(it.type == colliderTypes.capsule) {
-            var width = it.size[0] * dd, height = it.size[1] * dd
-            var w2 = width * 0.5, h2 = height * 0.5
-            var m = Math.max(width, height)
-
-            const rect = document.createElementNS(svgNS, "rect");
-            rect.setAttribute("x", -w2 + it.off[0] * dd);
-            rect.setAttribute("y", -h2 + it.off[1] * dd);
-            rect.setAttribute("width", width);
-            rect.setAttribute("height", height);
-            rect.setAttribute('style', styles[it.layer] ?? fallbackStyle)
-            rect.setAttribute('rx', m);
-            rect.setAttribute('ry', m);
-
-            addPath(it, obj, -w2 + it.off[0] * dd, -h2 + it.off[1] * dd, w2 + it.off[0] * dd, h2 + it.off[1] * dd, rect)
-        }
-        else if(it.type == colliderTypes.circle) {
-            var r = it.radius * dd
-
-            const circle = document.createElementNS(svgNS, 'circle')
-            circle.setAttribute('cx', it.off[0] * dd)
-            circle.setAttribute('cy', it.off[1] * dd)
-            circle.setAttribute('r', r)
-            circle.setAttribute('style', styles[it.layer] ?? fallbackStyle)
-
-            addPath(it, obj, it.off[0] * dd - r, it.off[1] * dd - r, it.off[0] * dd + r, it.off[1] * dd + r, circle)
-        }
-    }
-
-    for(let i = 0; i < enemies.length; i++) {
-        let it = enemies[i]
-        let obj = objects[it.objI]
-
-        var el = document.createElement('span')
-        el.classList.add('enemy')
-        el.setAttribute('data-index', it.objI)
-        el.setAttribute("data-enemy-index", i)
-        el.setAttribute("data-enemy-name", obj.name)
-        el.setAttribute("data-enemy-size", it.size)
-        el.setAttribute("data-enemy-tier", it.tier)
-        el.style.left = cx(obj.pos[0]) + 'px'
-        el.style.top = cy(obj.pos[1]) + 'px'
-
-        var img = document.createElement('img')
-        img.src = 'data/sprites/' + textures[it.spriteI] + '.png'
-        img.draggable = "false"
-        el.appendChild(img)
-
-        view.appendChild(el)
     }
 
     for(let i = 0; i < jars.length; i++) {
-        let it = jars[i]
-        let obj = objects[it.objI]
-
-        var el = document.createElement('span')
-        el.classList.add('enemy')
-        el.setAttribute('data-index', it.objI)
-        el.setAttribute("data-jar-index", i)
-        el.setAttribute("data-jar-type", it.dropType)
-        el.style.left = cx(obj.pos[0]) + 'px'
-        el.style.top = cy(obj.pos[1]) + 'px'
-
-        var img = document.createElement('img')
-        img.src = 'data/sprites/' + textures[jarTexture] + '.png'
-        img.draggable = "false"
-        el.appendChild(img)
-
-        view.appendChild(el)
     }
 
     container.addEventListener('wheel', (e) => {
