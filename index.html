@@ -18,8 +18,9 @@ body {
 .mark {
     display: inline-block;
     position: absolute;
-    width: calc(var(--size2) * 2);
-    height: calc(var(--size2) * 2);
+    --size-fac: 1;
+    width: calc(var(--size2) * var(--size-fac));
+    height: calc(var(--size2) * var(--size-fac));
     transform: translate(-50%, -50%);
 }
 .mark > img {
@@ -31,7 +32,7 @@ body {
 .dot {
     display: inline-block;
     position: absolute;
-    --size-fact: 1;
+    --size-fac: 1;
     width: calc(var(--size2) * var(--size-fac));
     height: calc(var(--size2) * var(--size-fac));
     transform: translate(-50%, -50%);
@@ -172,7 +173,10 @@ body {
                                 <div class="desc"></div>
                             </div>
                         </div>
-                        <div id="other"></div>
+                        <div>
+                            Other markers nearby:<br>
+                            <div id="other" class="off"></div>
+                        </div>
                     </div>
                     <div>
                         <hr>

@@ -40,7 +40,7 @@ var locations = ["Overworld", "Cave", "CaveExtra", "Dungeon1", "Dungeon2", "Dung
         let it = crystalDestroyables[i]
         it.objI = it[0]
         it.dropXp = it[1]
-        it.size = it[2] - 1 // HACK: turns out Size and size in CrystalDestroyable are different... why???
+        it.size = it[2]
 
         objects[it.objI].components['CrystalDestroyable'] = it
     }
@@ -265,19 +265,14 @@ container.addEventListener('click', function(e) {
         }
     }
 
-    var s = "Other markers nearby:\n"
+    other.innerHTML = ''
     for(let i = 1; i < ca.length; i++) {
-        let c = ca[i]
-        if(c[2] == 0) {
-            s += enemies[ca[i][0]].name + ` (away ${Math.round(Math.sqrt(ca[i][1]))})\n`
-        }
-        else {
-            s += "jar " + c[0] + ` (away ${Math.round(Math.sqrt(ca[i][1]))})\n`
-        }
+        other.appendChild(createObjectUrl(ca[i][0]))
+        other.appendChild(document.createTextNode(` (away ${Math.round(Math.sqrt(ca[i][1]))})`))
+        other.appendChild(document.createElement('br'))
     }
 
     if(ca[0][0] !== -1) {
-        other.innerText = s
         updProp(ca[0][0])
     }
 });
@@ -294,6 +289,24 @@ title.addEventListener("change", (e) => {
 
 function enemyLevel(e) {
     return 3 * (e.tier - 1) + e.size
+}
+
+function createObjectUrl(i) {
+    const obj = objects[i]
+    if(obj) {
+        const url = document.createElement('a')
+        url.href = 'javascript:void(0);'
+        url.innerText = obj.name || '<No name>'
+        url.addEventListener('click', () => {
+            console.log('!!!!!' + i)
+            other.innerHTML = ''
+            updProp(i)
+        })
+        return url
+    }
+    else {
+        return document.createTextNode('<Unknown>')
+    }
 }
 
 var curI
@@ -355,21 +368,7 @@ function updProp(i) {
 
         var it = c.Transition
         desc.innerText = 'Destination location: ' + (locations[it.destLocation] ?? '<Unknown>') + (it.isSameLoc ? ' (same location)' : '') + '\nDestination: '
-        const dest = objects[it.destObjectI]
-        if(dest) {
-            const di = it.destObjectI
-            const url = document.createElement('a')
-            url.href = 'javascript:void(0);'
-            url.addEventListener('click', () => {
-                other.innerText = ''
-                updProp(di)
-            })
-            url.innerText = dest.name || '<No name>'
-            desc.appendChild(url)
-        }
-        else {
-            dest.innerText += '<Unknown>'
-        }
+        desc.appendChild(createObjectUrl(it.destObjectI))
     }
 }
 
