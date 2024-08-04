@@ -151,6 +151,7 @@ var c_enemy = document.getElementById('c-enemy')
 var c_jar = document.getElementById('c-jar')
 var c_crd = document.getElementById('c-crd')
 var c_tran = document.getElementById('c-tran')
+var c_scarab = document.getElementById('c-scarab')
 
 c_enemy.querySelector('.lvl').addEventListener("change", () => {
     updProp(curI)
@@ -242,6 +243,7 @@ container.addEventListener('click', function(e) {
         let objI = markers[i]
         let obj = objects[objI]
         let c = obj.components
+
         if(c.Enemy) {
             if(!testFiltersEnemy(c.Enemy, obj)) continue
         }
@@ -253,6 +255,9 @@ container.addEventListener('click', function(e) {
         }
         if(c.Transition) {
             if(!testFiltersTran(c.Transition)) continue
+        }
+        if(c.Scarab) {
+            if(!testFiltersScarab(c.Scarab)) continue
         }
 
         var v = [objI, sqd(x, y, obj.pos[0], obj.pos[1])]
@@ -331,6 +336,7 @@ function updProp(i) {
     c_jar.style.display = 'none'
     c_crd.style.display = 'none'
     c_tran.style.display = 'none'
+    c_scarab.style.display = 'none'
 
     const c = o.components
     if(c.Enemy) {
@@ -370,6 +376,14 @@ function updProp(i) {
         desc.innerText = 'Destination location: ' + (locations[it.destLocation] ?? '<Unknown>') + (it.isSameLoc ? ' (same location)' : '') + '\nDestination: '
         desc.appendChild(createObjectUrl(it.destObjectI))
     }
+
+    if(c.Scarab) {
+        c_scarab.style.display = ''
+        const dest = c_scarab.querySelector('.dest')
+
+        var it = c.Scarab
+        dest.appendChild(createObjectUrl(it.destrI))
+    }
 }
 
 var jarTypes = ["nothing", "hp", "random", "big crystal", "energy", "full energy", "big srystals (65)"]
@@ -395,8 +409,9 @@ var filters = {
     enemies: true, e_name: false, e_name_text: "", e_size: false, e_size_text: 3, e_tier: false, e_tier_text: 1,
     jars: true, jars_t0: true, jars_t1: true, jars_t2: true, jars_t3: true, jars_t4: true, jars_t5: true, jars_t6: true,
     crd_y_f: true, crd_n_f: true,
-    backg: true, coll: true, coll_4: true, coll_6: true, coll_14: true, coll_16: true, coll_17: false, coll_25: true,
     tran: true, tran_l: false,
+    scarab: true,
+    backg: true, coll: true, coll_4: true, coll_6: true, coll_14: true, coll_16: true, coll_17: false, coll_25: true,
     coll_ui: false,
 }
 var coll_layers = [4, 6, 14, 16, 17, 25]
@@ -426,6 +441,8 @@ var filters_elements = {}
 
     fe.tran = window['tran-f']
     fe.tran_l = window['tran-f-l']
+
+    fe.scarab = window['scarab-f']
 
     fe.coll = window['c-f']
     for(let coll_li of coll_layers) {
@@ -481,6 +498,8 @@ function updFilters() {
     if(!filters.tran) css += '[data-transition] { display: none; }'
     if(!filters.tran_l) css += '[data-transition-line] { display: none; }'
 
+    if(!filters.scarab) css += '[data-scarab] { display: none; }'
+
     if(!filters.coll) css += '[data-collider-layer] { display: none; }'
     for(let coll_li of coll_layers) {
         if(!filters['coll_' + coll_li]) css += '[data-collider-layer="' + coll_li + '"] { display: none; }'
@@ -514,6 +533,10 @@ function testFiltersCrd(it) {
 
 function testFiltersTran(it) {
     return filters.tran
+}
+
+function testFiltersScarab(it) {
+    return filters.scarab
 }
 
 var minScale = 0.1 / dd, maxScale = 100 / dd
@@ -653,7 +676,6 @@ var markers = []
             el.classList.add('mark')
             el.setAttribute('data-index', i)
             el.setAttribute("data-scarab", '')
-            el.style.setProperty('--size-fac', 0.3)
             el.style.left = cx(obj.pos[0]) + 'px'
             el.style.top = cy(obj.pos[1]) + 'px'
 
