@@ -354,7 +354,22 @@ function updProp(i) {
         const desc = c_tran.querySelector('.desc')
 
         var it = c.Transition
-        desc.innerText = 'Destination location: ' + (locations[it.destLocation] ?? '<Unknown>') + (it.isSameLoc ? ' (same location)' : '') + '\nDestination: ' + (objects[it.destObjectI].name ?? '<Unknown>')
+        desc.innerText = 'Destination location: ' + (locations[it.destLocation] ?? '<Unknown>') + (it.isSameLoc ? ' (same location)' : '') + '\nDestination: '
+        const dest = objects[it.destObjectI]
+        if(dest) {
+            const di = it.destObjectI
+            const url = document.createElement('a')
+            url.href = 'javascript:void(0);'
+            url.addEventListener('click', () => {
+                other.innerText = ''
+                updProp(di)
+            })
+            url.innerText = dest.name || '<No name>'
+            desc.appendChild(url)
+        }
+        else {
+            dest.innerText += '<Unknown>'
+        }
     }
 }
 
@@ -619,6 +634,13 @@ var markers = []
                 el.setAttribute('data-transition', '')
                 el.appendChild(coll)
                 if(line) el.appendChild(line)
+                {
+                    const mark = document.createElement('span');
+                    mark.classList.add('mark')
+                    mark.style.left = obj.pos[0] * dd + 'px'
+                    mark.style.top = obj.pos[1] * -dd + 'px'
+                    el.appendChild(mark)
+                }
 
                 view.appendChild(el)
                 markers.push(i)

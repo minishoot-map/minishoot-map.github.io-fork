@@ -54,10 +54,10 @@ body {
     position: absolute;
     transform-origin: top left;
 }
-.selected {
+.selected.mark, .selected .mark {
     z-index: 2;
 }
-.selected::before {
+.selected.mark::before, .selected .mark {
     content: "";
     position: absolute;
     top: 0px;
