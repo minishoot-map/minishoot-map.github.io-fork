@@ -134,6 +134,7 @@ public partial class GameManager : MonoBehaviour
 
     public static Dictionary<GameObject, int> objects;
     public static List<GameObject> objectList;
+    public static Dictionary<string, int> knownColliders;
     public static Dictionary<String, int> locations;
     public static Dictionary<long, int> textureIndices;
     public static int objectCount, textureCount;
@@ -203,7 +204,7 @@ public partial class GameManager : MonoBehaviour
         foreach(var c in o.GetComponents<Component>()) {
             comps.add(c.GetType().Name);
         }
-		s["objects"].addObj(o.name, parentI, (Vector2)o.transform.position, o.transform.rotation.z, (Vector2)o.transform.localScale, comps);
+		s["objects"].addObj(o.name, parentI, (Vector2)o.transform.localPosition, (Vector2)o.transform.position, o.transform.localRotation.eulerAngles.z, (Vector2)o.transform.localScale, comps);
 
         var cc = o.transform.GetChildCount();
         for(int i = 0; i < cc; i++) {
@@ -250,23 +251,16 @@ public partial class GameManager : MonoBehaviour
                     s["scarabs"].addObj(index, oIndex);
                 } break;
                 case Collider2D collider: {
-                    var coll = JsObject.arr(index, collider.isTrigger, collider.offset, o.layer, removeFromEndIfMatches(collider.GetType().Name, "Collider2D"));
+                    object colliderName;
+                    var name = collider.GetType().Name;
+                    int colliderId;
+                    if(knownColliders.TryGetValue(name, out colliderId)) colliderName = colliderId;
+                    else colliderName = name;
+
+                    var coll = JsObject.arr(index, collider.isTrigger, collider.offset, o.layer, colliderName);
                     s["colliders"].add(coll);
 
-                    if(collider is CompositeCollider2D) {
-                        var cd = JsObject.arr();
-
-                        var c = collider as CompositeCollider2D;
-                        int pathCount = c.pathCount;
-                        for(int i = 0; i < pathCount; i++) {
-                            var points = new Vector2[c.GetPathPointCount(i)];
-                            c.GetPath(i, points);
-                            cd.add(points);
-                        }
-
-                        coll.add(cd);
-                    }
-                    else if(collider is BoxCollider2D) {
+                    if(collider is BoxCollider2D) {
                         var c = collider as BoxCollider2D;
                         coll.add(c.size);
                         coll.add(c.usedByComposite);
@@ -284,6 +278,19 @@ public partial class GameManager : MonoBehaviour
                         var c = collider as PolygonCollider2D;
                         coll.add(c.usedByComposite);
                         coll.add(c.points);
+                    }
+                    else if(collider is CompositeCollider2D) {
+                        var cd = JsObject.arr();
+
+                        var c = collider as CompositeCollider2D;
+                        int pathCount = c.pathCount;
+                        for(int i = 0; i < pathCount; i++) {
+                            var points = new Vector2[c.GetPathPointCount(i)];
+                            c.GetPath(i, points);
+                            cd.add(points);
+                        }
+
+                        coll.add(cd);
                     }
                 } break;
                 case Transition transition: {
@@ -366,6 +373,14 @@ public partial class GameManager : MonoBehaviour
             { "Tower", 11 },
             { "CaveArena", 12 },
             { "Snow", 13 }
+        };
+        knownColliders = new Dictionary<string, int>{
+            { "BoxCollider2D", 0 },
+            { "CapsuleCollider2D", 1 },
+            { "CircleCollider2D", 2 },
+            { "PolygonCollider2D", 3 },
+            { "CompositeCollider2D", 4 },
+            { "TilemapCollider2D", 5 }
         };
 
         s = new JsObject(0);

@@ -1,22 +1,19 @@
-var minx = 1/0, maxx = -1/0, miny = 1/0, maxy = -1/0
-
 var dedup = /^(.+?) [0-9]+/
+
+var colliderTypes = { box: 0, capsule: 1, circle: 2, polygon: 3, composite: 4, tilemap: 5 }
+var colliderNames = ['BoxCollider2D', 'CapsuleCollider2D', 'CircleCollider2D', 'PolygonCollider2D', 'CompositeCollider2D', 'TilemapCollider2D']
 
 ;(() => {
     for(let i = 0; i < objects.length; i++) {
         let it = objects[i]
         it.name = it[0]
         it.parentI = it[1]
-        it.pos = it[2]
-        it.rz = it[3]
-        it.scale = it[4]
-        it.allComponents = it[5]
+        it.localPos = it[2]
+        it.pos = it[3]
+        it.rz = it[4]
+        it.scale = it[5]
+        it.allComponents = it[6]
         it.components = {}
-
-        minx = Math.min(minx, it.pos[0])
-        maxx = Math.max(maxx, it.pos[0])
-        miny = Math.min(miny, it.pos[1])
-        maxy = Math.max(maxy, it.pos[1])
     }
 
     for(let i = 0; i < enemies.length; i++) {
@@ -63,26 +60,26 @@ var dedup = /^(.+?) [0-9]+/
         it.off = it[2]
         it.layer = it[3]
         it.type = it[4]
-        if(it.type == 'Box') {
+        if(it.type == colliderTypes.box) {
             it.size = it[5]
             it.usedByComposite = it[6]
         }
-        else if(it.type == 'Capsule') {
+        else if(it.type == colliderTypes.capsule) {
             it.size = it[5]
             it.vertical = it[6]
         }
-        else if(it.type == 'Circle') {
+        else if(it.type == colliderTypes.circle) {
             it.radius = it[5]
         }
-        else if(it.type == 'Polygon') {
+        else if(it.type == colliderTypes.polygon) {
             it.usedByComposite = it[5]
             it.polygon = it[6]
         }
-        else if(it.type == 'Composite') {
+        else if(it.type == colliderTypes.composite) {
             it.polygons = it[5]
         }
 
-        objects[it.objI].components[it.type + 'Collider2D'] = it
+        objects[it.objI].components[colliderNames[it.type] ?? it.type] = it
     }
 
     for(let i = 0; i < transitions.length; i++) {
@@ -95,6 +92,55 @@ var dedup = /^(.+?) [0-9]+/
         objects[it.objI].components['Transition'] = it
     }
 })()
+
+function multiply(n, m) {
+    var a = m[0] * n[0] + m[1] * n[3]
+    var b = m[0] * n[1] + m[1] * n[4]
+    var c = m[0] * n[2] + m[1] * n[5] + m[2]
+    var d = m[3] * n[0] + m[4] * n[3]
+    var e = m[3] * n[1] + m[4] * n[4]
+    var f = m[3] * n[2] + m[4] * n[5] + m[5]
+
+    n[0] = a
+    n[1] = b
+    n[2] = c
+    n[3] = d
+    n[4] = e
+    n[5] = f
+
+    return n
+}
+
+var deg2rad = (Math.PI / 180)
+// Note: rotation is counter-clockwise in both Unity and css (right?)
+function construct(obj) {
+    var sin = Math.sin(obj.rz * deg2rad)
+    var cos = Math.cos(obj.rz * deg2rad)
+    var matrix = new Float32Array(6);
+    matrix[0] = cos * obj.scale[0]
+    matrix[1] = -sin * obj.scale[1]
+    matrix[2] = obj.localPos[0]
+    matrix[3] = sin * obj.scale[0]
+    matrix[4] = cos * obj.scale[1]
+    matrix[5] = obj.localPos[1]
+    return matrix
+}
+
+function updateTansform(i) {
+    if(i == undefined || i < 0) return
+    var obj = objects[i]
+    if(obj.matrix != undefined) return obj.matrix
+
+    var matrix = construct(obj)
+    var pMatrix = updateTansform(obj.parentI)
+    if(pMatrix != undefined) multiply(matrix, pMatrix)
+
+    return obj.matrix = matrix
+}
+
+for(let i = 0; i < objects.length; i++) {
+    updateTansform(i);
+}
 
 var view = document.getElementById('view')
 var container = document.getElementById('map-cont')
@@ -114,24 +160,12 @@ function updPropsHidden() {
 }
 updPropsHidden()
 
-var mx = (maxx - minx)
-var my = (maxy - miny)
-var mm = Math.max(mx, my)
-var dd = 99000 / mm
+var dd = 100
 
-function cx(i) {
-    return 5 + (i - minx) * dd
-}
-function cy(i) {
-    return 5 + (maxy - i) * dd
-}
-
-function icx(i) {
-    return (i - 5) / dd + minx;
-}
-function icy(i) {
-    return maxy - (i - 5) / dd;
-}
+function cx(i) { return i * dd }
+function cy(i) { return -i * dd }
+function icx(i) { return i / dd }
+function icy(i) { return -i / dd }
 
 function sqd(x, y, a, b) {
     return Math.abs(x - a) * Math.abs(x - a) + Math.abs(y - b) * Math.abs(y - b)
@@ -310,19 +344,22 @@ function updJar(i) {
 }
 
 function updTransform() {
-    view.style.transform = `matrix(${scale}, 0, 0, ${scale}, ${originX}, ${originY}`
+    view.style.transform = `matrix(${scale}, 0, 0, ${scale}, ${originX}, ${originY})`
 }
 
 function updSize() {
-    document.body.style.setProperty('--size2', 1000 / Math.max(scale * 100, 9900 / mm) + "px")
+    document.body.style.setProperty('--size2', dd + "px")
 }
 
 var filters = {
     enemies: false, e_name: false, e_name_text: "", e_size: false, e_size_text: 3, e_tier: false, e_tier_text: 1,
     jars: false, jars_t0: true, jars_t1: true, jars_t2: true, jars_t3: true, jars_t4: true, jars_t5: true, jars_t6: true,
-    backg: true, coll: true, coll_hole: true, coll_water: true, coll_deep_water: true, coll_walls: true, coll_trigger: false,
+    backg: true, coll: true, coll_0: true, coll_4: true, coll_6: true, coll_14: true, coll_16: true, coll_12: true, coll_13: true, coll_17: true, coll_23: true, coll_26: true, coll_31: true,
+
     coll_ui: false,
 }
+var coll_layers = [0, 4, 6, 14, 16, 12, 13, 17, 23, 26, 31]
+
 var filters_elements = {}
 
 ;((fe) => {
@@ -345,12 +382,9 @@ var filters_elements = {}
 
     fe.backg = window['b-f']
     fe.coll = window['c-f']
-    fe.coll_hole = window['c-f-16']
-    fe.coll_water = window['c-f-4']
-    fe.coll_deep_water = window['c-f-6']
-    fe.coll_walls = window['c-f-14']
-    fe.coll_trigger = window['c-f-17']
-    fe.coll_ui = window['c-f-29']
+    for(let coll_li of coll_layers) {
+        fe['coll_' + coll_li] = window['c-f-' + coll_li]
+    }
 
     for(let key in filters_elements) {
         let el = filters_elements[key]
@@ -396,12 +430,10 @@ function updFilters() {
 
     if(!filters.backg) css += '#maps { display: none; }'
     if(!filters.coll) css += '[data-collider-layer] { display: none; }'
-    if(!filters.coll_water) css += '[data-collider-layer="4"] { display: none; }'
-    if(!filters.coll_deep_water) css += '[data-collider-layer="6"] { display: none; }'
-    if(!filters.coll_walls) css += '[data-collider-layer="14"] { display: none; }'
-    if(!filters.coll_hole) css += '[data-collider-layer="16"] { display: none; }'
-    if(!filters.coll_trigger) css += '[data-collider-layer="17"] { display: none; }'
-    if(!filters.coll_ui) css += '[data-collider-layer="29"] { display: none; }'
+    for(let coll_li of coll_layers) {
+        if(!filters['coll_' + coll_li]) css += '[data-collider-layer="' + coll_li + '"] { display: none; }'
+    }
+
 
     filters_style.textContent = css;
 }
@@ -422,13 +454,14 @@ function testFiltersJar(it) {
     return true
 }
 
+var minScale = 0.1 / dd, maxScale = 100 / dd
 function clampScale(scale, old) {
     if(scale != scale) return old;
-    if(scale <= 100) {
-        if(scale >= 0.01) return scale
-        else return 0.01
+    if(scale <= maxScale) {
+        if(scale >= minScale) return scale
+        else return minScale
     }
-    else return 100
+    else return maxScale
 }
 
 function hypot2(xd, yd) {
@@ -440,92 +473,103 @@ function hypot2(xd, yd) {
 
 var Aall = {}
 
+const svgNS = "http://www.w3.org/2000/svg"
+const styles = {
+    0: "fill: #0a590360", // destroyable
+    4: "fill: #6a97dd20", // water
+    6: "fill: #35009920", // deep water
+    14: "fill: #c14a0320", // wall
+    16: "fill: #00000020", // hole
+    17: "fill: #6addd520", // trigger?
+    12: "fill: #f9000060", // enemy
+    13: "fill: #f9000060", // enemy
+    26: "fill: #f9005060", // enemy (stationary)
+    23: "fill: #11656360", // static
+    31: "fill: #11656360", // static
+}
+const fallbackStyle = "fill: #9400f920"
+function addPath(it, obj, minx, miny, maxx, maxy, pathData) {
+    const m = obj.matrix
+    const width = maxx - minx, height = maxy - miny
+
+    var el = document.createElement('span')
+    el.setAttribute('data-index', it.objI)
+    el.setAttribute('data-collider-layer', it.layer)
+    el.classList.add('collider')
+    el.style.transform = `matrix(${m[0]}, ${-m[3]}, ${m[1]}, ${-m[4]}, ${m[2] * 100}, ${-m[5] * 100})`
+
+    const svg = document.createElementNS(svgNS, 'svg')
+    svg.setAttribute('widrh', '' + width)
+    svg.setAttribute('height', '' + height)
+    svg.setAttribute('viewBox', `${minx} ${miny} ${width} ${height}`);
+    svg.style.left = minx + 'px'
+    svg.style.top = miny + 'px'
+    el.appendChild(svg)
+
+    const path = document.createElementNS(svgNS, 'path')
+    path.setAttribute('d', pathData)
+    path.setAttribute('fill-rule', 'evenodd')
+    path.setAttribute('style', styles[it.layer] ?? fallbackStyle)
+    svg.appendChild(path)
+
+    view.appendChild(el)
+}
+
 ;(() => {
-    const svgNS = "http://www.w3.org/2000/svg"
-    const styles = {
-        4: "fill: #6a97dd20;", // water
-        6: "fill: #35009920;", // deep water
-        14: "fill: #c14a0320;", // wall
-        16: "fill: #00000020;", // hole
-        17: "fill: #6addd520;", // triger?
-    }
     for(let i = 0; i < colliders.length; i++) {
         let it = colliders[i]
         let obj = objects[it.objI]
-        if(!(obj.rz == 0 && obj.scale[0] == 1 && obj.scale[1] == 1)) {
-            console.error("Collider requires some transformation. NOT IMPLEMENTED", obj);
-            continue;
-        }
 
-        if(it.type == 'Composite') {
+        Aall[it.layer] = true
+
+        if(it.type == colliderTypes.composite) {
             const polygons = it.polygons
 
+            let pathData = ''
             let minx = 1/0, maxx = -1/0, miny = 1/0, maxy = -1/0
             let hasPoints = false
             for(let j = 0; j < polygons.length; j++) {
                 const points = polygons[j]
+
                 for(let k = 0; k < points.length; k++) {
-                    const x = points[k][0]
-                    const y = points[k][1]
+                    const x = (points[k][0] + it.off[0]) * 100
+                    const y = (points[k][1] + it.off[1]) * 100
                     minx = Math.min(minx, x)
                     maxx = Math.max(maxx, x)
                     miny = Math.min(miny, y)
                     maxy = Math.max(maxy, y)
                     hasPoints = true
+                    pathData += (k == 0 ? 'M' : 'L') + x + ' ' + y + ' '
                 }
-            }
-            if(!hasPoints) continue
-            const width = maxx - minx, height = maxy - miny
-
-            var el = document.createElement('span')
-            el.setAttribute('data-index', it.objI)
-            el.setAttribute('data-coll-collider-layer', it.layer)
-            el.classList.add('collider')
-            el.style.left = cx(obj.pos[0] + minx + it.off[0]) + 'px'
-            el.style.top = cy(obj.pos[1] + miny + it.off[1]) + 'px'
-
-            const svg = document.createElementNS(svgNS, 'svg')
-            svg.setAttribute('width', '' + width * dd)
-            svg.setAttribute('height', '' + height * dd)
-            svg.setAttribute('viewBox', `${minx} ${miny} ${width} ${height}`);
-            el.appendChild(svg)
-
-            let pathData = ''
-            for(let j = 0; j < polygons.length; j++) {
-                const points = polygons[j]
-                pathData += 'M' + points[0][0] + ' ' + points[0][1] + ' '
-                for(let k = 1; k < points.length; k++) {
-                    pathData += 'L' + points[k][0] + ' ' + points[k][1] + ' '
-                }
-
             }
             pathData += 'Z'
+            if(!hasPoints) continue
 
-            const path = document.createElementNS(svgNS, 'path')
-            path.setAttribute('d', pathData)
-            path.setAttribute('fill-rule', 'evenodd')
-            path.setAttribute('style', styles[it.layer])
-            Aall[it.layer] = true
-            svg.appendChild(path)
-
-            view.appendChild(el)
+            addPath(it, obj, minx, miny, maxx, maxy, pathData)
         }
-        else if(it.type == 'Polygon') {
+        else if(it.type == colliderTypes.polygon) {
             const polygon = it.polygon
 
+            let pathData = ''
             let minx = 1/0, maxx = -1/0, miny = 1/0, maxy = -1/0
             let hasPoints = false
             for(let k = 0; k < polygon.length; k++) {
-                const x = polygon[k][0]
-                const y = polygon[k][1]
+                const x = (polygon[k][0] + it.off[0]) * 100
+                const y = (polygon[k][1] + it.off[1]) * 100
                 minx = Math.min(minx, x)
                 maxx = Math.max(maxx, x)
                 miny = Math.min(miny, y)
                 maxy = Math.max(maxy, y)
                 hasPoints = true
+                pathData += (k == 0 ? 'M' : 'L') + x + ' ' + y + ' '
             }
+            pathData += 'Z'
             if(!hasPoints) continue
-            const width = maxx - minx, height = maxy - miny
+
+            addPath(it, obj, minx, miny, maxx, maxy, pathData)
+        }
+        else if(false && it.type == colliderTypes.box) {
+            var width = it.size[0], height = it.size[1]
 
             var el = document.createElement('span')
             el.setAttribute('data-index', it.objI)
@@ -537,21 +581,16 @@ var Aall = {}
             const svg = document.createElementNS(svgNS, 'svg')
             svg.setAttribute('width', '' + width * dd)
             svg.setAttribute('height', '' + height * dd)
-            svg.setAttribute('viewBox', `${minx} ${miny} ${width} ${height}`);
+            svg.setAttribute('viewBox', `${-width*0.5} ${-height*0.5} ${width} ${height}`);
             el.appendChild(svg)
 
-            let pathData = 'M' + polygon[0][0] + ' ' + polygon[0][1] + ' '
-            for(let k = 1; k < polygon.length; k++) {
-                pathData += 'L' + polygon[k][0] + ' ' + polygon[k][1] + ' '
-            }
-            pathData += 'Z'
-
-            const path = document.createElementNS(svgNS, 'path')
-            path.setAttribute('d', pathData)
-            path.setAttribute('fill-rule', 'evenodd')
-            Aall[it.layer] = true
-            path.setAttribute('style', styles[it.layer])
-            svg.appendChild(path)
+            const rect = document.createElementNS(svgNS, "rect");
+            rect.setAttribute("x", -width*0.5);
+            rect.setAttribute("y", -height*0.5);
+            rect.setAttribute("width", width);
+            rect.setAttribute("height", height);
+            rect.setAttribute('style', styles[it.layer])
+            svg.appendChild(rect)
 
             view.appendChild(el)
         }
