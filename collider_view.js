@@ -20,19 +20,8 @@ const styles = {
 }
 const fallbackStyle = "fill: #9400f920"
 
-function addPath(it, obj, minx, miny, maxx, maxy, element) {
-    const m = obj.matrix
+function createSvg(minx, miny, maxx, maxy) {
     const width = maxx - minx, height = maxy - miny
-    data.push(obj.pos)
-
-    counts[it.type]++
-    counts2[it.layer]++
-
-    var el = document.createElement('span')
-    el.setAttribute('data-index', it.objI)
-    el.setAttribute('data-collider-layer', it.layer)
-    el.classList.add('collider')
-    el.style.transform = `matrix(${m[0]}, ${-m[3]}, ${m[1]}, ${-m[4]}, ${m[2] * dd}, ${-m[5] * dd})`
 
     const svg = document.createElementNS(svgNS, 'svg')
     svg.setAttribute('width', '' + width)
@@ -40,20 +29,34 @@ function addPath(it, obj, minx, miny, maxx, maxy, element) {
     svg.setAttribute('viewBox', `${minx} ${miny} ${width} ${height}`);
     svg.style.left = minx + 'px'
     svg.style.top = miny + 'px'
-    el.appendChild(svg)
 
-    svg.appendChild(element)
-
-    view.appendChild(el)
+    return svg
 }
 
-function addCollider(it, obj) {
+function addPath(it, obj, minx, miny, maxx, maxy, element) {
+    const m = obj.matrix
+    data.push(obj.pos)
+
+    counts[it.type]++
+    counts2[it.layer]++
+
+    var el = document.createElement('span')
+    el.classList.add('collider')
+    el.style.transform = `matrix(${m[0]}, ${-m[3]}, ${m[1]}, ${-m[4]}, ${m[2] * dd}, ${-m[5] * dd})`
+    const svg = createSvg(minx, miny, maxx, maxy)
+    svg.appendChild(element)
+    el.appendChild(svg)
+
+    return el
+}
+
+function createCollider(it, obj, linefrom, lineto) {
     if(it.type == colliderTypes.composite) {
         const polygons = it.polygons
 
+        let hasPoints = false
         let pathData = ''
         let minx = 1/0, maxx = -1/0, miny = 1/0, maxy = -1/0
-        let hasPoints = false
         for(let j = 0; j < polygons.length; j++) {
             const points = polygons[j]
 
@@ -76,7 +79,7 @@ function addCollider(it, obj) {
         path.setAttribute('fill-rule', 'evenodd')
         path.setAttribute('style', styles[it.layer] ?? fallbackStyle)
 
-        addPath(it, obj, minx, miny, maxx, maxy, path)
+        return addPath(it, obj, minx, miny, maxx, maxy, path)
     }
     else if(it.type == colliderTypes.polygon) {
         const polygon = it.polygon
@@ -102,7 +105,7 @@ function addCollider(it, obj) {
         path.setAttribute('fill-rule', 'evenodd')
         path.setAttribute('style', styles[it.layer] ?? fallbackStyle)
 
-        addPath(it, obj, minx, miny, maxx, maxy, path)
+        return addPath(it, obj, minx, miny, maxx, maxy, path)
     }
     else if(it.type == colliderTypes.box) {
         var width = it.size[0] * dd, height = it.size[1] * dd
@@ -115,7 +118,7 @@ function addCollider(it, obj) {
         rect.setAttribute("height", height);
         rect.setAttribute('style', styles[it.layer] ?? fallbackStyle)
 
-        addPath(it, obj, -w2 + it.off[0] * dd, -h2 + it.off[1] * dd, w2 + it.off[0] * dd, h2 + it.off[1] * dd, rect)
+        return addPath(it, obj, -w2 + it.off[0] * dd, -h2 + it.off[1] * dd, w2 + it.off[0] * dd, h2 + it.off[1] * dd, rect)
     }
     else if(it.type == colliderTypes.capsule) {
         var width = it.size[0] * dd, height = it.size[1] * dd
@@ -131,7 +134,7 @@ function addCollider(it, obj) {
         rect.setAttribute('rx', m);
         rect.setAttribute('ry', m);
 
-        addPath(it, obj, -w2 + it.off[0] * dd, -h2 + it.off[1] * dd, w2 + it.off[0] * dd, h2 + it.off[1] * dd, rect)
+        return addPath(it, obj, -w2 + it.off[0] * dd, -h2 + it.off[1] * dd, w2 + it.off[0] * dd, h2 + it.off[1] * dd, rect)
     }
     else if(it.type == colliderTypes.circle) {
         var r = it.radius * dd
@@ -142,8 +145,29 @@ function addCollider(it, obj) {
         circle.setAttribute('r', r)
         circle.setAttribute('style', styles[it.layer] ?? fallbackStyle)
 
-        addPath(it, obj, it.off[0] * dd - r, it.off[1] * dd - r, it.off[0] * dd + r, it.off[1] * dd + r, circle)
+        return addPath(it, obj, it.off[0] * dd - r, it.off[1] * dd - r, it.off[0] * dd + r, it.off[1] * dd + r, circle)
     }
+}
+
+function createSvgLine(from, to) {
+    const thk = 0.2 * dd
+
+    const line = document.createElementNS(svgNS, "line")
+    line.setAttribute("x1", from[0] * dd)
+    line.setAttribute("y1", from[1] * dd)
+    line.setAttribute("x2", to[0] * dd)
+    line.setAttribute("y2", to[1] * dd)
+    line.setAttribute("style", "stroke: #00ff00; stroke-width: " + thk)
+
+    var minx = Math.min(from[0], to[0]) * dd - thk
+    var maxx = Math.max(from[0], to[0]) * dd + thk
+    var miny = Math.min(from[1], to[1]) * dd - thk
+    var maxy = Math.max(from[1], to[1]) * dd + thk
+
+    var svg = createSvg(minx, miny, maxx, maxy)
+    svg.appendChild(line)
+
+    return svg
 }
 
 /* if(obj.name == 'Movable') continue;

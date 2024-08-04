@@ -1,6 +1,8 @@
 var colliderTypes = { box: 0, capsule: 1, circle: 2, polygon: 3, composite: 4, tilemap: 5 }
 var colliderNames = ['BoxCollider2D', 'CapsuleCollider2D', 'CircleCollider2D', 'PolygonCollider2D', 'CompositeCollider2D', 'TilemapCollider2D']
 
+var locations = ["Overworld", "Cave", "CaveExtra", "Dungeon1", "Dungeon2", "Dungeon3", "Dungeon4", "Dungeon5", "Temple1", "Temple2", "Temple3", "Tower", "CaveArena", "Snow"]
+
 ;(() => {
     for(let i = 0; i < objects.length; i++) {
         let it = objects[i]
@@ -85,7 +87,7 @@ var colliderNames = ['BoxCollider2D', 'CapsuleCollider2D', 'CircleCollider2D', '
         it.objI = it[0]
         it.isSameLoc = it[1]
         it.destLocation = it[2]
-        it.destObject = it[3]
+        it.destObjectI = it[3]
 
         objects[it.objI].components['Transition'] = it
     }
@@ -148,6 +150,7 @@ var desc = document.getElementById('desc')
 var c_enemy = document.getElementById('c-enemy')
 var c_jar = document.getElementById('c-jar')
 var c_crd = document.getElementById('c-crd')
+var c_tran = document.getElementById('c-tran')
 
 c_enemy.querySelector('.lvl').addEventListener("change", () => {
     updProp(curI)
@@ -248,6 +251,9 @@ container.addEventListener('click', function(e) {
         if(c.CrystalDestroyable) {
             if(!testFiltersCrd(c.CrystalDestroyable)) continue
         }
+        if(c.Transition) {
+            if(!testFiltersTran(c.Transition)) continue
+        }
 
         var v = [objI, sqd(x, y, obj.pos[0], obj.pos[1])]
         for(let j = 0; j < ca.length; j++) {
@@ -311,6 +317,7 @@ function updProp(i) {
     c_enemy.style.display = 'none'
     c_jar.style.display = 'none'
     c_crd.style.display = 'none'
+    c_tran.style.display = 'none'
 
     const c = o.components
     if(c.Enemy) {
@@ -324,7 +331,6 @@ function updProp(i) {
         if(!lvl.value) lvl.value = '0'
         var level = +lvl.value
         xp.innerText = calcXp(it.size, enemyLevel(it), level)
-        return
     }
 
     if(c.Jar) {
@@ -333,7 +339,6 @@ function updProp(i) {
 
         var it = c.Jar
         desc.innerText = 'Type: ' + jarTypes[it.dropType] + getExtra(it) + '\nSize: ' + it.size
-        return
     }
 
     if(c.CrystalDestroyable) {
@@ -342,7 +347,14 @@ function updProp(i) {
 
         var it = c.CrystalDestroyable
         desc.innerText = 'Drops xp: ' + it.dropXp + (it.dropXp ? '\nXp: ' + xpForCrystalSize[it.size] : '') + '\nSize: ' + it.size
-        return
+    }
+
+    if(c.Transition) {
+        c_tran.style.display = ''
+        const desc = c_tran.querySelector('.desc')
+
+        var it = c.Transition
+        desc.innerText = 'Destination location: ' + (locations[it.destLocation] ?? '<Unknown>') + (it.isSameLoc ? ' (same location)' : '') + '\nDestination: ' + (objects[it.destObjectI].name ?? '<Unknown>')
     }
 }
 
@@ -370,7 +382,7 @@ var filters = {
     jars: true, jars_t0: true, jars_t1: true, jars_t2: true, jars_t3: true, jars_t4: true, jars_t5: true, jars_t6: true,
     crd_y_f: true, crd_n_f: true,
     backg: true, coll: true, coll_4: true, coll_6: true, coll_14: true, coll_16: true, coll_17: false, coll_25: true,
-
+    tran: true, tran_l: false,
     coll_ui: false,
 }
 var coll_layers = [4, 6, 14, 16, 17, 25]
@@ -397,6 +409,9 @@ var filters_elements = {}
 
     fe.crd_y_f = window['crd-y-f']
     fe.crd_n_f = window['crd-n-f']
+
+    fe.tran = window['tran-f']
+    fe.tran_l = window['tran-f-l']
 
     fe.coll = window['c-f']
     for(let coll_li of coll_layers) {
@@ -449,6 +464,9 @@ function updFilters() {
     if(!filters.crd_y_f) css += '[data-crd-type="1"] { display: none; }'
     if(!filters.crd_n_f) css += '[data-crd-type="0"] { display: none; }'
 
+    if(!filters.tran) css += '[data-transition] { display: none; }'
+    if(!filters.tran_l) css += '[data-transition-line] { display: none; }'
+
     if(!filters.coll) css += '[data-collider-layer] { display: none; }'
     for(let coll_li of coll_layers) {
         if(!filters['coll_' + coll_li]) css += '[data-collider-layer="' + coll_li + '"] { display: none; }'
@@ -480,6 +498,10 @@ function testFiltersCrd(it) {
     else return filters.crd_n_f;
 }
 
+function testFiltersTran(it) {
+    return filters.tran
+}
+
 var minScale = 0.1 / dd, maxScale = 100 / dd
 function clampScale(scale, old) {
     if(scale != scale) return old;
@@ -508,7 +530,7 @@ var markers = []
 
             var el = document.createElement('span')
             el.classList.add('mark')
-            el.setAttribute('data-index', it.objI)
+            el.setAttribute('data-index', i)
             el.setAttribute("data-enemy-index", i)
             el.setAttribute("data-enemy-name", obj.name)
             el.setAttribute("data-enemy-size", it.size)
@@ -531,7 +553,7 @@ var markers = []
 
             var el = document.createElement('span')
             el.classList.add('mark')
-            el.setAttribute('data-index', it.objI)
+            el.setAttribute('data-index', i)
             el.setAttribute("data-jar-index", i)
             el.setAttribute("data-jar-type", it.dropType)
             el.style.left = cx(obj.pos[0]) + 'px'
@@ -552,7 +574,7 @@ var markers = []
 
             var el = document.createElement('span')
             el.classList.add('mark', 'mark-crd')
-            el.setAttribute('data-index', it.objI)
+            el.setAttribute('data-index', i)
             el.setAttribute("data-crd-index", i)
             el.setAttribute("data-crd-type", it.dropXp ? 1 : 0)
             el.style.setProperty('--crystal-size', 1 + 0.5 * it.size)
@@ -569,16 +591,60 @@ var markers = []
             continue
         }
 
+        if(c.Transition) {
+            const it = c.Transition
+
+            const itc = c.CompositeCollider2D ?? c.BoxCollider2D ?? c.CircleCollider2D ?? c.CapsuleCollider2D ?? c.PolygonCollider2D
+            if(itc) {
+                let coll = createCollider(itc, obj)
+                if(!coll) {
+                    coll = document.createElement('span')
+                    coll.classList.add('dot')
+                    coll.classList.add('collider')
+                }
+
+                let line
+                if(it.destObjectI >= 0) {
+                    const iline = createSvgLine(obj.pos, objects[it.destObjectI].pos)
+                    line = document.createElement('span')
+                    line.classList.add('collider')
+                    line.style.transform = `matrix(1, 0, 0, -1, 0, 0)`
+                    line.appendChild(iline)
+                    line.setAttribute('data-transition-line', '')
+                }
+
+                const el = document.createElement('span');
+                el.classList.add('collider')
+                el.setAttribute('data-index', i)
+                el.setAttribute('data-transition', '')
+                el.appendChild(coll)
+                if(line) el.appendChild(line)
+
+                view.appendChild(el)
+                markers.push(i)
+            }
+        }
+
         if(c.TilemapCollider2D && c.CompositeCollider2D) {
             const it = c.CompositeCollider2D
-            addCollider(it, obj)
+            const el = createCollider(it, obj)
+            if(el) {
+                el.setAttribute('data-index', i)
+                el.setAttribute('data-collider-layer', it.layer)
+                view.appendChild(el)
+            }
             continue
         }
 
         {
             const it = c.CompositeCollider2D ?? c.BoxCollider2D ?? c.CircleCollider2D ?? c.CapsuleCollider2D ?? c.PolygonCollider2D
             if(it && (obj.name === 'Wall' || it.layer == 17 || it.layer == 25) && obj.name != 'Movable') {
-                addCollider(it, obj)
+                const el = createCollider(it, obj)
+                if(el) {
+                    el.setAttribute('data-index', i)
+                    el.setAttribute('data-collider-layer', it.layer)
+                    view.appendChild(el)
+                }
                 continue
             }
         }
