@@ -31,19 +31,14 @@ body {
 .dot {
     display: inline-block;
     position: absolute;
-    width: calc(var(--size2) * 2);
-    height: calc(var(--size2) * 2);
+    --size-fact: 1;
+    width: calc(var(--size2) * var(--size-fac));
+    height: calc(var(--size2) * var(--size-fac));
     transform: translate(-50%, -50%);
 
     background: #ff00ff;
     border-color: #ff00ff;
     border-radius: 50%;
-}
-
-.mark-crd {
-    --crystal-size: 1;
-    width: calc(var(--size2) * 1 * var(--crystal-size));
-    height: calc(var(--size2) * 1 * var(--crystal-size));
 }
 
 .overworld {

@@ -13,7 +13,7 @@ using System.Runtime.InteropServices;
 // SceneAsyncActivationGO (remove rate limit)
 // CameraManager (.basePath, .sceneNames)
 // GameManager (yield return this.LaunchGame(); from InitializeGame())
-// CrystalDestroyable (public dropXp)
+// CrystalDestroyable (public dropXp, public size)
 // ScarabDrop (public destroyable)
 
 public partial class GameManager : MonoBehaviour
@@ -243,7 +243,7 @@ public partial class GameManager : MonoBehaviour
                     s["enemies"].addObj(index, enemy.Size, enemy.Tier, enemy.Destroyable.HpMax, spriteIndex);
                 } break;
                 case CrystalDestroyable cDestroyable: {
-                    s["crystalDestroyables"].addObj(index, cDestroyable.dropXp, cDestroyable.size);
+                    s["crystalDestroyables"].addObj(index, cDestroyable.dropXp, (int)cDestroyable.size);
                 } break;
                 case ScarabPickup scarab: {
                     int oIndex;
@@ -385,6 +385,8 @@ public partial class GameManager : MonoBehaviour
 
         s = new JsObject(0);
 
+        Directory.CreateDirectory(CameraManager.basePath);
+        Directory.CreateDirectory(CameraManager.basePath + "sprites/");
         using(errorsSw = new StreamWriter(CameraManager.basePath + "errors.txt", false)) {
             for(int i = 0; i < SceneManager.sceneCount; i++) {
 				Scene scene = SceneManager.GetSceneAt(i);
@@ -418,6 +420,12 @@ public partial class GameManager : MonoBehaviour
                         }
                         s["crystalDestroyableTexture"] = JsObject.from(yindex);
                         s["crystalDestroyableTexture2"] = JsObject.from(nindex);
+                    }
+                    {
+                        int index = -1;
+                        var it = FindObjectOfType<ScarabPickup>(true);
+                        if(it != null) index = tryAddSprite(it.gameObject.GetComponentNamed<SpriteRenderer>("FullImage", true), it.gameObject.name);
+                        s["scarabTexture"] = JsObject.from(index);
                     }
 					s["xpForCrystalSize"] = JsObject.from(PlayerData.DestroyableCrystalValue);
 

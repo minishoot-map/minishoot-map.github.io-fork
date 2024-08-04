@@ -588,11 +588,11 @@ var markers = []
             const it = c.CrystalDestroyable
 
             var el = document.createElement('span')
-            el.classList.add('mark', 'mark-crd')
+            el.classList.add('mark')
             el.setAttribute('data-index', i)
             el.setAttribute("data-crd-index", i)
             el.setAttribute("data-crd-type", it.dropXp ? 1 : 0)
-            el.style.setProperty('--crystal-size', 1 + 0.5 * it.size)
+            el.style.setProperty('--size-fac', 1 + 0.5 * it.size)
             el.style.left = cx(obj.pos[0]) + 'px'
             el.style.top = cy(obj.pos[1]) + 'px'
 
@@ -647,6 +647,27 @@ var markers = []
             }
         }
 
+        if(c.Scarab) {
+            const it = c.Scarab
+
+            var el = document.createElement('span')
+            el.classList.add('mark')
+            el.setAttribute('data-index', i)
+            el.setAttribute("data-scarab", '')
+            el.style.setProperty('--size-fac', 0.3)
+            el.style.left = cx(obj.pos[0]) + 'px'
+            el.style.top = cy(obj.pos[1]) + 'px'
+
+            var img = document.createElement('img')
+            img.src = 'data/sprites/' + textures[scarabTexture] + '.png'
+            img.draggable = "false"
+            el.appendChild(img)
+
+            view.appendChild(el)
+            markers.push(i)
+            continue
+        }
+
         if(c.TilemapCollider2D && c.CompositeCollider2D) {
             const it = c.CompositeCollider2D
             const el = createCollider(it, obj)
@@ -670,9 +691,6 @@ var markers = []
                 continue
             }
         }
-    }
-
-    for(let i = 0; i < jars.length; i++) {
     }
 
     container.addEventListener('wheel', (e) => {
