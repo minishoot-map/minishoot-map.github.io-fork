@@ -347,18 +347,18 @@ function updTransform() {
     view.style.transform = `matrix(${scale}, 0, 0, ${scale}, ${originX}, ${originY})`
 }
 
-function updSize() {
-    document.body.style.setProperty('--size2', dd + "px")
-}
+document.body.style.setProperty('--size2', dd + "px")
+
+function updSize() { }
 
 var filters = {
     enemies: false, e_name: false, e_name_text: "", e_size: false, e_size_text: 3, e_tier: false, e_tier_text: 1,
     jars: false, jars_t0: true, jars_t1: true, jars_t2: true, jars_t3: true, jars_t4: true, jars_t5: true, jars_t6: true,
-    backg: true, coll: true, coll_0: true, coll_4: true, coll_6: true, coll_14: true, coll_16: true, coll_12: true, coll_13: true, coll_17: true, coll_23: true, coll_26: true, coll_31: true,
+    backg: true, coll: true, coll_0: false, coll_4: true, coll_6: true, coll_14: true, coll_16: true, coll_12: false, coll_13: false, coll_17: false, coll_23: false, coll_25: true, coll_26: false, coll_31: false,
 
     coll_ui: false,
 }
-var coll_layers = [0, 4, 6, 14, 16, 12, 13, 17, 23, 26, 31]
+var coll_layers = [0, 4, 6, 14, 16, 12, 13, 17, 23, 25, 26, 31]
 
 var filters_elements = {}
 
@@ -483,44 +483,55 @@ const styles = {
     17: "fill: #6addd520", // trigger?
     12: "fill: #f9000060", // enemy
     13: "fill: #f9000060", // enemy
+    25: "fill: #4f3c0140", // bridge
     26: "fill: #f9005060", // enemy (stationary)
     23: "fill: #11656360", // static
     31: "fill: #11656360", // static
 }
 const fallbackStyle = "fill: #9400f920"
-function addPath(it, obj, minx, miny, maxx, maxy, pathData) {
+function addPath(it, obj, minx, miny, maxx, maxy, element) {
     const m = obj.matrix
     const width = maxx - minx, height = maxy - miny
+    data.push(obj.pos)
+
+    counts[it.type]++
+    counts2[it.layer]++
 
     var el = document.createElement('span')
     el.setAttribute('data-index', it.objI)
     el.setAttribute('data-collider-layer', it.layer)
     el.classList.add('collider')
-    el.style.transform = `matrix(${m[0]}, ${-m[3]}, ${m[1]}, ${-m[4]}, ${m[2] * 100}, ${-m[5] * 100})`
+    el.style.transform = `matrix(${m[0]}, ${-m[3]}, ${m[1]}, ${-m[4]}, ${m[2] * dd}, ${-m[5] * dd})`
 
     const svg = document.createElementNS(svgNS, 'svg')
-    svg.setAttribute('widrh', '' + width)
+    svg.setAttribute('width', '' + width)
     svg.setAttribute('height', '' + height)
     svg.setAttribute('viewBox', `${minx} ${miny} ${width} ${height}`);
     svg.style.left = minx + 'px'
     svg.style.top = miny + 'px'
     el.appendChild(svg)
 
-    const path = document.createElementNS(svgNS, 'path')
-    path.setAttribute('d', pathData)
-    path.setAttribute('fill-rule', 'evenodd')
-    path.setAttribute('style', styles[it.layer] ?? fallbackStyle)
-    svg.appendChild(path)
+    svg.appendChild(element)
 
     view.appendChild(el)
 }
 
+var data = []
+
+var counts = [0, 0, 0, 0, 0, 0, 0, 0, 0,]
+var counts2 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ]
 ;(() => {
     for(let i = 0; i < colliders.length; i++) {
         let it = colliders[i]
         let obj = objects[it.objI]
 
         Aall[it.layer] = true
+
+        if(obj.allComponents.includes('SurfaceHandler')) continue;
+        if(obj.name.startsWith('SurfaceColliders')) continue;
+        //if(obj.name.startsWith('Debris')) continue;
+        //if(obj.name.startsWith('CrystalHp')) continue;
+        if(obj.name.endsWith('(Clone)')) continue
 
         if(it.type == colliderTypes.composite) {
             const polygons = it.polygons
@@ -532,8 +543,8 @@ function addPath(it, obj, minx, miny, maxx, maxy, pathData) {
                 const points = polygons[j]
 
                 for(let k = 0; k < points.length; k++) {
-                    const x = (points[k][0] + it.off[0]) * 100
-                    const y = (points[k][1] + it.off[1]) * 100
+                    const x = (points[k][0] + it.off[0]) * dd
+                    const y = (points[k][1] + it.off[1]) * dd
                     minx = Math.min(minx, x)
                     maxx = Math.max(maxx, x)
                     miny = Math.min(miny, y)
@@ -545,7 +556,12 @@ function addPath(it, obj, minx, miny, maxx, maxy, pathData) {
             pathData += 'Z'
             if(!hasPoints) continue
 
-            addPath(it, obj, minx, miny, maxx, maxy, pathData)
+            const path = document.createElementNS(svgNS, 'path')
+            path.setAttribute('d', pathData)
+            path.setAttribute('fill-rule', 'evenodd')
+            path.setAttribute('style', styles[it.layer] ?? fallbackStyle)
+
+            addPath(it, obj, minx, miny, maxx, maxy, path)
         }
         else if(it.type == colliderTypes.polygon) {
             const polygon = it.polygon
@@ -554,8 +570,8 @@ function addPath(it, obj, minx, miny, maxx, maxy, pathData) {
             let minx = 1/0, maxx = -1/0, miny = 1/0, maxy = -1/0
             let hasPoints = false
             for(let k = 0; k < polygon.length; k++) {
-                const x = (polygon[k][0] + it.off[0]) * 100
-                const y = (polygon[k][1] + it.off[1]) * 100
+                const x = (polygon[k][0] + it.off[0]) * dd
+                const y = (polygon[k][1] + it.off[1]) * dd
                 minx = Math.min(minx, x)
                 maxx = Math.max(maxx, x)
                 miny = Math.min(miny, y)
@@ -566,33 +582,52 @@ function addPath(it, obj, minx, miny, maxx, maxy, pathData) {
             pathData += 'Z'
             if(!hasPoints) continue
 
-            addPath(it, obj, minx, miny, maxx, maxy, pathData)
+            const path = document.createElementNS(svgNS, 'path')
+            path.setAttribute('d', pathData)
+            path.setAttribute('fill-rule', 'evenodd')
+            path.setAttribute('style', styles[it.layer] ?? fallbackStyle)
+
+            addPath(it, obj, minx, miny, maxx, maxy, path)
         }
-        else if(false && it.type == colliderTypes.box) {
-            var width = it.size[0], height = it.size[1]
-
-            var el = document.createElement('span')
-            el.setAttribute('data-index', it.objI)
-            el.setAttribute('data-collider-layer', it.layer)
-            el.classList.add('collider')
-            el.style.left = cx(obj.pos[0] + minx + it.off[0]) + 'px'
-            el.style.top = cy(obj.pos[1] + miny + it.off[1]) + 'px'
-
-            const svg = document.createElementNS(svgNS, 'svg')
-            svg.setAttribute('width', '' + width * dd)
-            svg.setAttribute('height', '' + height * dd)
-            svg.setAttribute('viewBox', `${-width*0.5} ${-height*0.5} ${width} ${height}`);
-            el.appendChild(svg)
+        else if(it.type == colliderTypes.box) {
+            var width = it.size[0] * dd, height = it.size[1] * dd
+            var w2 = width * 0.5, h2 = height * 0.5
 
             const rect = document.createElementNS(svgNS, "rect");
-            rect.setAttribute("x", -width*0.5);
-            rect.setAttribute("y", -height*0.5);
+            rect.setAttribute("x", -w2 + it.off[0] * dd);
+            rect.setAttribute("y", -h2 + it.off[1] * dd);
             rect.setAttribute("width", width);
             rect.setAttribute("height", height);
-            rect.setAttribute('style', styles[it.layer])
-            svg.appendChild(rect)
+            rect.setAttribute('style', styles[it.layer] ?? fallbackStyle)
 
-            view.appendChild(el)
+            addPath(it, obj, -w2 + it.off[0] * dd, -h2 + it.off[1] * dd, w2 + it.off[0] * dd, h2 + it.off[1] * dd, rect)
+        }
+        else if(it.type == colliderTypes.capsule) {
+            var width = it.size[0] * dd, height = it.size[1] * dd
+            var w2 = width * 0.5, h2 = height * 0.5
+            var m = Math.max(width, height)
+
+            const rect = document.createElementNS(svgNS, "rect");
+            rect.setAttribute("x", -w2 + it.off[0] * dd);
+            rect.setAttribute("y", -h2 + it.off[1] * dd);
+            rect.setAttribute("width", width);
+            rect.setAttribute("height", height);
+            rect.setAttribute('style', styles[it.layer] ?? fallbackStyle)
+            rect.setAttribute('rx', m);
+            rect.setAttribute('ry', m);
+
+            addPath(it, obj, -w2 + it.off[0] * dd, -h2 + it.off[1] * dd, w2 + it.off[0] * dd, h2 + it.off[1] * dd, rect)
+        }
+        else if(it.type == colliderTypes.circle) {
+            var r = it.radius * dd
+
+            const circle = document.createElementNS(svgNS, 'circle')
+            circle.setAttribute('cx', it.off[0] * dd)
+            circle.setAttribute('cy', it.off[1] * dd)
+            circle.setAttribute('r', r)
+            circle.setAttribute('style', styles[it.layer] ?? fallbackStyle)
+
+            addPath(it, obj, it.off[0] * dd - r, it.off[1] * dd - r, it.off[0] * dd + r, it.off[1] * dd + r, circle)
         }
     }
 
