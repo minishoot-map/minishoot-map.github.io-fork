@@ -53,6 +53,14 @@ var locations = ["Overworld", "Cave", "CaveExtra", "Dungeon1", "Dungeon2", "Dung
         objects[it.objI].components['Scarab'] = it
     }
 
+    for(let i = 0; i < destroyables.length; i++) {
+        let it = destroyables[i]
+        it.objI = it[0]
+        it.isPermanent = it[1]
+
+        objects[it.objI].components['Destroyable'] = it
+    }
+
     for(let i = 0; i < colliders.length; i++) {
         let it = colliders[i]
         it.objI = it[0]
@@ -152,6 +160,7 @@ var c_jar = document.getElementById('c-jar')
 var c_crd = document.getElementById('c-crd')
 var c_tran = document.getElementById('c-tran')
 var c_scarab = document.getElementById('c-scarab')
+var c_destr = document.getElementById('c-destr')
 
 c_enemy.querySelector('.lvl').addEventListener("change", () => {
     updProp(curI)
@@ -184,7 +193,7 @@ function sqd(x, y, a, b) {
 // 0.7926341072858286
 
 var map_details = {
-    "ow": [ -313.66262626262625, 288.7287878787879, 0.3206 / 0.7926341072858286 ],
+    "ow": [ -313.66262626262625, 290.1, 0.405 ],
     "d3": [ 739.7868686868687, 94.43989898989898, 0.13 / 0.7926341072858286 ]
 }
 
@@ -283,8 +292,8 @@ container.addEventListener('click', function(e) {
 });
 
 title.addEventListener("change", (e) => {
-    var newName = name.value
-    for(let i = 0; i < enemies.length; i++) {
+    var newName = title.value
+    for(let i = 0; i < objects.length; i++) {
         if(objects[i].name === newName) {
             updProp(i)
             break;
@@ -382,7 +391,16 @@ function updProp(i) {
         const dest = c_scarab.querySelector('.dest')
 
         var it = c.Scarab
+        dest.innerHTML = ''
         dest.appendChild(createObjectUrl(it.destrI))
+    }
+
+    if(c.Destroyable) {
+        c_destr.style.display = ''
+        const perm = c_destr.querySelector('[data-perm]')
+
+        var it = c.Destroyable
+        perm.innerText = it.isPermanent
     }
 }
 

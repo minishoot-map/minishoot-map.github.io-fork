@@ -85,10 +85,16 @@ body {
 }
 #views {
     flex-grow: 1;
+    max-width: 100%;
+    max-height: 100%;
 }
 
 #views > * {
     background: white;
+}
+
+#prop {
+    overflow-y: scroll;
 }
 
 .off {
@@ -177,6 +183,12 @@ body {
                             Scarab:
                             <div class="off">
                                 Destroyable: <span class="dest"></span>
+                            </div>
+                        </div>
+                        <div id="c-destr" style="display: none">
+                            Destroyable:
+                            <div class="off">
+                                Permanent: <span data-perm></span>
                             </div>
                         </div>
                         <div>
