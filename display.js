@@ -418,9 +418,58 @@ function updTransform() {
     view.style.transform = `matrix(${scale}, 0, 0, ${scale}, ${originX}, ${originY})`
 }
 
+function updDisplaySize(i, marks) {
+    return function() {
+        console.log('updating at ' + i)
+    }
+}
+
+var sizeDisplayUpdate = {
+    update() {
+        var sizeS = this.size + "px"
+        var marks = this.marks
+        var i = this.i
+        var max = Math.min(marks.length, i + 100)
+        for(; i < max; i++) {
+            var it = marks[i]
+            if(!it) continue
+            it.style.setProperty('--size2', sizeS)
+        }
+        this.i = i
+    },
+    updateAll() {
+        var sizeS = this.size + "px"
+        var marks = this.marks
+        var i = this.i
+        for(; i < marks.length; i++) {
+            var it = marks[i]
+            if(!it) continue
+            it.style.setProperty('--size2', sizeS)
+        }
+        this.i = i
+    },
+    set(newSize) {
+        this.size = newSize
+        this.i = 0
+    },
+}
+
 function updSize() {
     const minScale = 0.1
-    document.body.style.setProperty('--size2', minScale * dd / Math.min(scale, minScale) + "px")
+    const newSize2 = minScale * dd / Math.min(scale, minScale)
+    if(newSize2 != sizeDisplayUpdate.size) {
+        sizeDisplayUpdate.set(newSize2)
+    }
+}
+
+function update() {
+    console.log('update')
+    try {
+        sizeDisplayUpdate.update()
+    }
+    catch(e) { console.error(e) }
+
+    requestAnimationFrame(update)
 }
 
 var filters = {
@@ -870,5 +919,8 @@ var markers = []
     });
 })()
 
+sizeDisplayUpdate.marks = view.querySelectorAll('.mark')
 updTransform()
 updSize()
+sizeDisplayUpdate.updateAll()
+requestAnimationFrame(update)
