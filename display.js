@@ -312,7 +312,6 @@ function createObjectUrl(i) {
         url.href = 'javascript:void(0);'
         url.innerText = obj.name || '<No name>'
         url.addEventListener('click', () => {
-            console.log('!!!!!' + i)
             other.innerHTML = ''
             updProp(i)
         })
@@ -427,7 +426,7 @@ function updSize() {
 var filters = {
     enemies: true, e_name: false, e_name_text: "", e_size: false, e_size_text: 3, e_tier: false, e_tier_text: 1,
     jars: true, jars_t0: true, jars_t1: true, jars_t2: true, jars_t3: true, jars_t4: true, jars_t5: true, jars_t6: true,
-    crd_y_f: true, crd_n_f: true,
+    crd_y_f: true, crd_n_f: true, crd_f_s: false, crd_f_s_text: 3,
     tran: true, tran_l: false,
     scarab: true,
     backg: true, coll: true, coll_4: true, coll_6: true, coll_14: true, coll_16: true, coll_17: false, coll_25: true,
@@ -457,6 +456,8 @@ var filters_elements = {}
 
     fe.crd_y_f = window['crd-y-f']
     fe.crd_n_f = window['crd-n-f']
+    fe.crd_f_s = window['crd-f-s']
+    fe.crd_f_s_text = window['crd-f-s-text']
 
     fe.tran = window['tran-f']
     fe.tran_l = window['tran-f-l']
@@ -513,6 +514,7 @@ function updFilters() {
 
     if(!filters.crd_y_f) css += '[data-crd-type="1"] { display: none; }'
     if(!filters.crd_n_f) css += '[data-crd-type="0"] { display: none; }'
+    if(filters.crd_f_s) css += '[data-crd-size]:not([data-crd-size="' + filters.crd_f_s_text + '"]) { display: none; }'
 
     if(!filters.tran) css += '[data-transition] { display: none; }'
     if(!filters.tran_l) css += '[data-transition-line] { display: none; }'
@@ -546,8 +548,9 @@ function testFiltersJar(it) {
 }
 
 function testFiltersCrd(it) {
-    if(it.dropXp) return filters.crd_y_f;
-    else return filters.crd_n_f;
+    if(!(it.dropXp ? filters.crd_y_f : filters.crd_n_f)) return false
+    if(filters.crd_f_s && it.size != filters.crd_f_s_text) return false
+    return true
 }
 
 function testFiltersTran(it) {
@@ -631,7 +634,7 @@ var markers = []
             var el = document.createElement('span')
             el.classList.add('mark')
             el.setAttribute('data-index', i)
-            el.setAttribute("data-crd-index", i)
+            el.setAttribute("data-crd-size", it.size)
             el.setAttribute("data-crd-type", it.dropXp ? 1 : 0)
             el.style.setProperty('--size-fac', 1 + 0.5 * it.size)
             el.style.left = cx(obj.pos[0]) + 'px'
