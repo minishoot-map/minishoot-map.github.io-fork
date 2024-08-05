@@ -418,31 +418,27 @@ function updTransform() {
     view.style.transform = `matrix(${scale}, 0, 0, ${scale}, ${originX}, ${originY})`
 }
 
-function updDisplaySize(i, marks) {
-    return function() {
-        console.log('updating at ' + i)
-    }
-}
+var batchSize = 1024
 
 var sizeDisplayUpdate = {
     update() {
-        var sizeS = this.size + "px"
-        var marks = this.marks
+        var sizeS = this.size + ''
+        var elements = this.elements
         var i = this.i
-        var max = Math.min(marks.length, i + 100)
-        for(; i < max; i++) {
-            var it = marks[i]
+        while(i < elements.length) {
+            var it = elements[i]
             if(!it) continue
             it.style.setProperty('--size2', sizeS)
+            this.i = i + 1
+            break
         }
-        this.i = i
     },
     updateAll() {
-        var sizeS = this.size + "px"
-        var marks = this.marks
+        var sizeS = this.size + ""
+        var elements = this.elements
         var i = this.i
-        for(; i < marks.length; i++) {
-            var it = marks[i]
+        for(; i < elements.length; i++) {
+            var it = elements[i]
             if(!it) continue
             it.style.setProperty('--size2', sizeS)
         }
@@ -454,22 +450,54 @@ var sizeDisplayUpdate = {
     },
 }
 
+document.body.style.setProperty('--dd', dd)
 function updSize() {
     const minScale = 0.1
-    const newSize2 = minScale * dd / Math.min(scale, minScale)
+    const newSize2 = minScale / Math.min(scale, minScale)
     if(newSize2 != sizeDisplayUpdate.size) {
         sizeDisplayUpdate.set(newSize2)
     }
 }
 
 function update() {
-    console.log('update')
     try {
         sizeDisplayUpdate.update()
     }
     catch(e) { console.error(e) }
 
     requestAnimationFrame(update)
+}
+
+var curMarkBatch, curMarkBatchI
+function addMark(it) {
+    if(curMarkBatch == null) {
+        curMarkBatchI = 0
+        curMarkBatch = document.createElement('div')
+        curMarkBatch.classList.add('batch', 'mark-batch')
+    }
+
+    curMarkBatch.appendChild(it)
+    curMarkBatchI++
+    if(curMarkBatchI == batchSize) {
+        view.appendChild(curMarkBatch)
+        curMarkBatch = null
+    }
+}
+
+var curColliderBatch, curColliderBatchI
+function addCollider(it) {
+    if(curColliderBatch == null) {
+        curColliderBatchI = 0
+        curColliderBatch = document.createElement('div')
+        curColliderBatch.classList.add('batch', 'collider-batch')
+    }
+
+    curColliderBatch.appendChild(it)
+    curColliderBatchI++
+    if(curColliderBatchI == batchSize) {
+        view.appendChild(curColliderBatch)
+        curColliderBatch = null
+    }
 }
 
 var filters = {
@@ -651,7 +679,7 @@ var markers = []
             img.draggable = false
             el.appendChild(img)
 
-            view.appendChild(el)
+            addMark(el)
             markers.push(i)
             continue
         }
@@ -672,7 +700,7 @@ var markers = []
             img.draggable = false
             el.appendChild(img)
 
-            view.appendChild(el)
+            addMark(el)
             markers.push(i)
             continue
         }
@@ -694,7 +722,7 @@ var markers = []
             img.draggable = false
             el.appendChild(img)
 
-            view.appendChild(el)
+            addMark(el)
             markers.push(i)
             continue
         }
@@ -735,8 +763,9 @@ var markers = []
                     el.appendChild(mark)
                 }
 
-                view.appendChild(el)
+                addMark(el)
                 markers.push(i)
+                continue
             }
         }
 
@@ -755,7 +784,7 @@ var markers = []
             img.draggable = false
             el.appendChild(img)
 
-            view.appendChild(el)
+            addMark(el)
             markers.push(i)
             continue
         }
@@ -766,7 +795,7 @@ var markers = []
             if(el) {
                 el.setAttribute('data-index', i)
                 el.setAttribute('data-collider-layer', it.layer)
-                view.appendChild(el)
+                addCollider(el)
             }
             continue
         }
@@ -778,12 +807,15 @@ var markers = []
                 if(el) {
                     el.setAttribute('data-index', i)
                     el.setAttribute('data-collider-layer', it.layer)
-                    view.appendChild(el)
+                    addCollider(el)
                 }
                 continue
             }
         }
     }
+
+    if(curColliderBatch) view.appendChild(curColliderBatch)
+    if(curMarkBatch) view.appendChild(curMarkBatch)
 
     container.addEventListener('wheel', (e) => {
         e.preventDefault();
@@ -919,7 +951,7 @@ var markers = []
     });
 })()
 
-sizeDisplayUpdate.marks = view.querySelectorAll('.mark')
+sizeDisplayUpdate.elements = view.querySelectorAll('.mark-batch')
 updTransform()
 updSize()
 sizeDisplayUpdate.updateAll()

@@ -13,21 +13,18 @@
     position: relative;
 }
 body {
-    --size2: 2px;
+    --size: calc(var(--dd) * 1px);
 }
 .mark {
-    display: inline-block;
     position: absolute;
     --size-fac: 1;
-    width: calc(var(--size2) * var(--size-fac));
-    height: calc(var(--size2) * var(--size-fac));
-    transform: translate(-50%, -50%);
 }
 .mark > img {
     user-select: none;
     display: block;
-    width: 100%;
-    height: 100%;
+    width: var(--size);
+    height: var(--size);
+    transform: translate(-50%, -50%) scale(calc(var(--size2) * var(--size-fac)));
 }
 .dot {
     display: inline-block;
@@ -52,11 +49,10 @@ body {
 .selected.mark::before, .selected .mark {
     content: "";
     position: absolute;
-    top: 0px;
-    left: 0px;
-    right: 0px;
-    bottom: 0px;
-    outline: calc(0.3 * var(--size2)) solid red;
+    width: var(--size);
+    height: var(--size);
+    transform: translate(-50%, -50%) scale(calc(var(--size2) * var(--size-fac)));
+    outline: calc(30px / var(--size-fac)) solid red;
 }
 .collider {
     display: inline-block;
@@ -95,6 +91,10 @@ body {
 
 .off {
     margin-left: 0.5rem;
+}
+
+.batch {
+    position: absolute;
 }
 
 @media not (orientation: portrait) {
