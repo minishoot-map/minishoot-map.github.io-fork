@@ -419,9 +419,10 @@ function updTransform() {
     view.style.transform = `matrix(${scale}, 0, 0, ${scale}, ${originX}, ${originY})`
 }
 
-document.body.style.setProperty('--size2', dd + "px")
-
-function updSize() { }
+function updSize() {
+    const minScale = 0.1
+    document.body.style.setProperty('--size2', minScale * dd / Math.min(scale, minScale) + "px")
+}
 
 var filters = {
     enemies: true, e_name: false, e_name_text: "", e_size: false, e_size_text: 3, e_tier: false, e_tier_text: 1,
@@ -595,7 +596,7 @@ var markers = []
 
             var img = document.createElement('img')
             img.src = 'data/sprites/' + textures[it.spriteI] + '.png'
-            img.draggable = "false"
+            img.draggable = false
             el.appendChild(img)
 
             view.appendChild(el)
@@ -616,7 +617,7 @@ var markers = []
 
             var img = document.createElement('img')
             img.src = 'data/sprites/' + textures[jarTexture] + '.png'
-            img.draggable = "false"
+            img.draggable = false
             el.appendChild(img)
 
             view.appendChild(el)
@@ -638,7 +639,7 @@ var markers = []
 
             var img = document.createElement('img')
             img.src = 'data/sprites/' + (it.dropXp ? textures[crystalDestroyableTexture] : textures[crystalDestroyableTexture2]) + '.png'
-            img.draggable = "false"
+            img.draggable = false
             el.appendChild(img)
 
             view.appendChild(el)
@@ -699,7 +700,7 @@ var markers = []
 
             var img = document.createElement('img')
             img.src = 'data/sprites/' + textures[scarabTexture] + '.png'
-            img.draggable = "false"
+            img.draggable = false
             el.appendChild(img)
 
             view.appendChild(el)
