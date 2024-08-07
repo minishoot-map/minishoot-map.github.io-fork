@@ -281,6 +281,7 @@ container.addEventListener('click', function(e) {
 
     other.innerHTML = ''
     for(let i = 1; i < ca.length; i++) {
+        if(ca[i][0] < 0) break
         other.appendChild(createObjectUrl(ca[i][0]))
         other.appendChild(document.createTextNode(` (away ${Math.round(Math.sqrt(ca[i][1]))})`))
         other.appendChild(document.createElement('br'))
