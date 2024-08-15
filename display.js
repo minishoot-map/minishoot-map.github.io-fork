@@ -1,105 +1,9 @@
+'use strict';
+
 var colliderTypes = { box: 0, capsule: 1, circle: 2, polygon: 3, composite: 4, tilemap: 5 }
 var colliderNames = ['BoxCollider2D', 'CapsuleCollider2D', 'CircleCollider2D', 'PolygonCollider2D', 'CompositeCollider2D', 'TilemapCollider2D']
 
 var locations = ["Overworld", "Cave", "CaveExtra", "Dungeon1", "Dungeon2", "Dungeon3", "Dungeon4", "Dungeon5", "Temple1", "Temple2", "Temple3", "Tower", "CaveArena", "Snow"]
-
-;(() => {
-    for(let i = 0; i < objects.length; i++) {
-        let it = objects[i]
-        it.name = it[0]
-        it.parentI = it[1]
-        it.localPos = it[2]
-        it.pos = it[3]
-        it.rz = it[4]
-        it.scale = it[5]
-        it.allComponents = it[6]
-        it.components = {} // just hope that there wouldn't be 2 components of the same type
-    }
-
-    for(let i = 0; i < enemies.length; i++) {
-        let it = enemies[i]
-        it.objI = it[0]
-        it.size = it[1]
-        it.tier = it[2]
-        it.hp = it[3]
-        it.spriteI = it[4]
-
-        objects[it.objI].components['Enemy'] = it
-    }
-
-    for(let i = 0; i < jars.length; i++) {
-        let it = jars[i]
-        it.objI = it[0]
-        it.size = it[1]
-        it.dropType = it[2]
-
-        objects[it.objI].components['Jar'] = it
-    }
-
-    for(let i = 0; i < crystalDestroyables.length; i++) {
-        let it = crystalDestroyables[i]
-        it.objI = it[0]
-        it.dropXp = it[1]
-        it.size = it[2]
-
-        objects[it.objI].components['CrystalDestroyable'] = it
-    }
-
-    for(let i = 0; i < scarabs.length; i++) {
-        let it = scarabs[i]
-        it.objI = it[0]
-        it.destrI = it[1]
-
-        objects[it.objI].components['Scarab'] = it
-    }
-
-    for(let i = 0; i < destroyables.length; i++) {
-        let it = destroyables[i]
-        it.objI = it[0]
-        it.isPermanent = it[1]
-
-        objects[it.objI].components['Destroyable'] = it
-    }
-
-    for(let i = 0; i < colliders.length; i++) {
-        let it = colliders[i]
-        it.objI = it[0]
-        it.isTrigger = it[1]
-        it.off = it[2]
-        it.layer = it[3]
-        it.type = it[4]
-        if(it.type == colliderTypes.box) {
-            it.size = it[5]
-            it.usedByComposite = it[6]
-        }
-        else if(it.type == colliderTypes.capsule) {
-            it.size = it[5]
-            it.vertical = it[6]
-        }
-        else if(it.type == colliderTypes.circle) {
-            it.radius = it[5]
-        }
-        else if(it.type == colliderTypes.polygon) {
-            it.usedByComposite = it[5]
-            it.polygon = it[6]
-        }
-        else if(it.type == colliderTypes.composite) {
-            it.polygons = it[5]
-        }
-
-        objects[it.objI].components[colliderNames[it.type] ?? it.type] = it
-    }
-
-    for(let i = 0; i < transitions.length; i++) {
-        let it = transitions[i]
-        it.objI = it[0]
-        it.isSameLoc = it[1]
-        it.destLocation = it[2]
-        it.destObjectI = it[3]
-
-        objects[it.objI].components['Transition'] = it
-    }
-})()
 
 function multiply(n, m) {
     var a = m[0] * n[0] + m[1] * n[3]
@@ -144,10 +48,6 @@ function updateTansform(i) {
     if(pMatrix) multiply(matrix, pMatrix)
 
     return obj.matrix = matrix
-}
-
-for(let i = 0; i < objects.length; i++) {
-    updateTansform(i);
 }
 
 var view = document.getElementById('view')
@@ -237,71 +137,6 @@ var scale = 1
 var panning = { is: false, prevX: undefined, prevY: undefined }
 var touches = { order: [/*id*/], touches: {/*id: { prevX, prevY }*/} }
 
-container.addEventListener('click', function(e) {
-    const rect = view.getBoundingClientRect()
-    const x = icx((e.clientX - rect.left) / scale)
-    const y = icy((e.clientY - rect.top) / scale)
-
-    ca = new Array()
-    for(let i = 0; i < 5; i++) {
-        ca[i] = [-1, 1/0, -1]
-    }
-
-
-    for(let i = 0; i < markers.length; i++) {
-        let objI = markers[i]
-        let obj = objects[objI]
-        let c = obj.components
-
-        if(c.Enemy) {
-            if(!testFiltersEnemy(c.Enemy, obj)) continue
-        }
-        if(c.Jar) {
-            if(!testFiltersJar(c.Jar)) continue
-        }
-        if(c.CrystalDestroyable) {
-            if(!testFiltersCrd(c.CrystalDestroyable)) continue
-        }
-        if(c.Transition) {
-            if(!testFiltersTran(c.Transition)) continue
-        }
-        if(c.Scarab) {
-            if(!testFiltersScarab(c.Scarab)) continue
-        }
-
-        var v = [objI, sqd(x, y, obj.pos[0], obj.pos[1])]
-        for(let j = 0; j < ca.length; j++) {
-            if(v[1] < ca[j][1]) {
-                var t = ca[j]
-                ca[j] = v
-                v = t
-            }
-        }
-    }
-
-    other.innerHTML = ''
-    for(let i = 1; i < ca.length; i++) {
-        if(ca[i][0] < 0) break
-        other.appendChild(createObjectUrl(ca[i][0]))
-        other.appendChild(document.createTextNode(` (away ${Math.round(Math.sqrt(ca[i][1]))})`))
-        other.appendChild(document.createElement('br'))
-    }
-
-    if(ca[0][0] !== -1) {
-        updProp(ca[0][0])
-    }
-});
-
-title.addEventListener("change", (e) => {
-    var newName = title.value
-    for(let i = 0; i < objects.length; i++) {
-        if(objects[i].name === newName) {
-            updProp(i)
-            break;
-        }
-    }
-});
-
 function enemyLevel(e) {
     return 3 * (e.tier - 1) + e.size
 }
@@ -325,6 +160,7 @@ function createObjectUrl(i) {
 
 var curI
 function updProp(i) {
+    if(!wereObjectsLoaded) return
     curI = i
 
     document.querySelectorAll('.selected').forEach((el) => { el.classList.remove('selected') })
@@ -615,8 +451,6 @@ function updFilters() {
     filters_style.textContent = css;
 }
 
-updFilters()
-
 function testFiltersEnemy(it, obj) {
     if(!filters.enemies) return false;
     if(filters.e_name && !obj.name.toLowerCase().includes(filters.e_name_text.toLowerCase())) return false;
@@ -661,9 +495,243 @@ function hypot2(xd, yd) {
     else return 0.0001
 }
 
+
+container.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const rect = view.getBoundingClientRect();
+    const offsetX = originX + e.clientX - rect.left;
+    const offsetY = originY + e.clientY - rect.top;
+
+    const zoomFactor = 0.004;
+    var delta = 1 + Math.abs(e.deltaY) * -zoomFactor;
+    if(e.deltaY < 0) delta = 1 / delta
+
+    const newScale = clampScale(scale * delta, scale)
+
+    const tx = offsetX + (originX - offsetX) * (newScale / scale)
+    const ty = offsetY + (originY - offsetY) * (newScale / scale)
+
+    scale = newScale;
+    originX = tx;
+    originY = ty;
+    updTransform()
+    updSize()
+});
+
+container.addEventListener('mousedown', (e) => {
+    panning.is = true
+    panning.prevX = e.clientX
+    panning.prevY = e.clientY
+});
+
+container.addEventListener('mouseup', () => {
+    panning.is = false
+});
+
+container.addEventListener('mousemove', (e) => {
+    if(!panning.is) return;
+
+    var curX = e.clientX
+    var curY = e.clientY
+
+    originX += curX - panning.prevX
+    originY += curY - panning.prevY
+    updTransform()
+
+    panning.prevX = curX
+    panning.prevY = curY
+});
+
+container.addEventListener('touchstart', function (e) {
+    for(var i = 0; i < e.changedTouches.length; i++) {
+        var t = e.changedTouches[i]
+        if(touches.touches[t.identifier]) continue;
+        touches.order.push(t.identifier)
+        touches.touches[t.identifier] = { prevX: t.clientX, prevY: t.clientY }
+    }
+});
+
+container.addEventListener('touchmove', function (e) {
+    const firstId = touches.order[0]
+    if(firstId == undefined) return
+    const secondId = touches.order[1]
+
+    let t1, t2
+    for(let i = 0; i < e.touches.length; i++) {
+        const t = e.touches[i]
+        if(t.identifier == firstId) {
+            t1 = t
+        }
+        else if(t.identifier == secondId) {
+            t2 = t
+        }
+    }
+    if(t1 == undefined) return
+
+    const touch1 = touches.touches[firstId]
+    if(t2 == undefined) { // pan
+        const curX = t1.clientX
+        const curY = t1.clientY
+
+        originX += curX - touch1.prevX
+        originY += curY - touch1.prevY
+        updTransform()
+    }
+    else {
+        const touch2 = touches.touches[secondId]
+
+        const curX = t1.clientX
+        const curY = t1.clientY
+        const curX2 = t2.clientX
+        const curY2 = t2.clientY
+
+        const preX = touch1.prevX
+        const preY = touch1.prevY
+        const preX2 = touch2.prevX
+        const preY2 = touch2.prevY
+
+        const delta = hypot2(curX - curX2, curY - curY2) / hypot2(preX - preX2, preY - preY2)
+        const newScale = clampScale(scale * delta, scale)
+
+        const tx = curX - (preX - originX) * (newScale / scale)
+        const ty = curY - (preY - originY) * (newScale / scale)
+
+        scale = newScale
+        originX = tx
+        originY = ty
+
+        updTransform()
+        updSize()
+    }
+
+    for(let i = 0; i < e.changedTouches.length; i++) {
+        const t = e.changedTouches[i]
+        const touch = touches.touches[t.identifier]
+        if(!touch) continue
+
+        touch.prevX = t.clientX
+        touch.prevY = t.clientY
+    }
+
+    e.preventDefault()
+});
+
+container.addEventListener('touchend', function (e) {
+    for(let i = 0; i < e.changedTouches.length; i++) {
+        const t = e.changedTouches[i]
+        for(let j = 0; j < touches.order.length; j++) {
+            if(touches.order[j] === t.identifier) {
+                delete touches.touches[t.identifier]
+                touches.order.splice(j, 1)
+                break;
+            }
+        }
+    }
+})
+
 var markers = []
 
-;(() => {
+objectsLoaded.then(() => {
+    for(let i = 0; i < objects.length; i++) {
+        let it = objects[i]
+        it.name = it[0]
+        it.parentI = it[1]
+        it.localPos = it[2]
+        it.pos = it[3]
+        it.rz = it[4]
+        it.scale = it[5]
+        it.allComponents = it[6]
+        it.components = {} // just hope that there wouldn't be 2 components of the same type
+    }
+
+    for(let i = 0; i < enemies.length; i++) {
+        let it = enemies[i]
+        it.objI = it[0]
+        it.size = it[1]
+        it.tier = it[2]
+        it.hp = it[3]
+        it.spriteI = it[4]
+
+        objects[it.objI].components['Enemy'] = it
+    }
+
+    for(let i = 0; i < jars.length; i++) {
+        let it = jars[i]
+        it.objI = it[0]
+        it.size = it[1]
+        it.dropType = it[2]
+
+        objects[it.objI].components['Jar'] = it
+    }
+
+    for(let i = 0; i < crystalDestroyables.length; i++) {
+        let it = crystalDestroyables[i]
+        it.objI = it[0]
+        it.dropXp = it[1]
+        it.size = it[2]
+
+        objects[it.objI].components['CrystalDestroyable'] = it
+    }
+
+    for(let i = 0; i < scarabs.length; i++) {
+        let it = scarabs[i]
+        it.objI = it[0]
+        it.destrI = it[1]
+
+        objects[it.objI].components['Scarab'] = it
+    }
+
+    for(let i = 0; i < destroyables.length; i++) {
+        let it = destroyables[i]
+        it.objI = it[0]
+        it.isPermanent = it[1]
+
+        objects[it.objI].components['Destroyable'] = it
+    }
+
+    for(let i = 0; i < colliders.length; i++) {
+        let it = colliders[i]
+        it.objI = it[0]
+        it.isTrigger = it[1]
+        it.off = it[2]
+        it.layer = it[3]
+        it.type = it[4]
+        if(it.type == colliderTypes.box) {
+            it.size = it[5]
+            it.usedByComposite = it[6]
+        }
+        else if(it.type == colliderTypes.capsule) {
+            it.size = it[5]
+            it.vertical = it[6]
+        }
+        else if(it.type == colliderTypes.circle) {
+            it.radius = it[5]
+        }
+        else if(it.type == colliderTypes.polygon) {
+            it.usedByComposite = it[5]
+            it.polygon = it[6]
+        }
+        else if(it.type == colliderTypes.composite) {
+            it.polygons = it[5]
+        }
+
+        objects[it.objI].components[colliderNames[it.type] ?? it.type] = it
+    }
+
+    for(let i = 0; i < transitions.length; i++) {
+        let it = transitions[i]
+        it.objI = it[0]
+        it.isSameLoc = it[1]
+        it.destLocation = it[2]
+        it.destObjectI = it[3]
+
+        objects[it.objI].components['Transition'] = it
+    }
+
+    for(let i = 0; i < objects.length; i++) {
+        updateTansform(i);
+    }
+
     for(let i = 0; i < objects.length; i++) {
         const obj = objects[i]
         const c = obj.components
@@ -824,142 +892,76 @@ var markers = []
     if(curColliderBatch) view.appendChild(curColliderBatch)
     if(curMarkBatch) view.appendChild(curMarkBatch)
 
-    container.addEventListener('wheel', (e) => {
-        e.preventDefault();
-        const rect = view.getBoundingClientRect();
-        const offsetX = originX + e.clientX - rect.left;
-        const offsetY = originY + e.clientY - rect.top;
+    container.addEventListener('click', function(e) {
+        const rect = view.getBoundingClientRect()
+        const x = icx((e.clientX - rect.left) / scale)
+        const y = icy((e.clientY - rect.top) / scale)
 
-        const zoomFactor = 0.004;
-        var delta = 1 + Math.abs(e.deltaY) * -zoomFactor;
-        if(e.deltaY < 0) delta = 1 / delta
-
-        const newScale = clampScale(scale * delta, scale)
-
-        const tx = offsetX + (originX - offsetX) * (newScale / scale)
-        const ty = offsetY + (originY - offsetY) * (newScale / scale)
-
-        scale = newScale;
-        originX = tx;
-        originY = ty;
-        updTransform()
-        updSize()
-    });
-
-    container.addEventListener('mousedown', (e) => {
-        panning.is = true
-        panning.prevX = e.clientX
-        panning.prevY = e.clientY
-    });
-
-    container.addEventListener('mouseup', () => {
-        panning.is = false
-    });
-
-    container.addEventListener('mousemove', (e) => {
-        if(!panning.is) return;
-
-        var curX = e.clientX
-        var curY = e.clientY
-
-        originX += curX - panning.prevX
-        originY += curY - panning.prevY
-        updTransform()
-
-        panning.prevX = curX
-        panning.prevY = curY
-    });
-
-    container.addEventListener('touchstart', function (e) {
-        for(var i = 0; i < e.changedTouches.length; i++) {
-            var t = e.changedTouches[i]
-            if(touches.touches[t.identifier]) continue;
-            touches.order.push(t.identifier)
-            touches.touches[t.identifier] = { prevX: t.clientX, prevY: t.clientY }
+        var ca = new Array()
+        for(let i = 0; i < 5; i++) {
+            ca[i] = [-1, 1/0, -1]
         }
-    });
 
-    container.addEventListener('touchmove', function (e) {
-        const firstId = touches.order[0]
-        if(firstId == undefined) return
-        const secondId = touches.order[1]
 
-        let t1, t2
-        for(let i = 0; i < e.touches.length; i++) {
-            const t = e.touches[i]
-            if(t.identifier == firstId) {
-                t1 = t
+        for(let i = 0; i < markers.length; i++) {
+            let objI = markers[i]
+            let obj = objects[objI]
+            let c = obj.components
+
+            if(c.Enemy) {
+                if(!testFiltersEnemy(c.Enemy, obj)) continue
             }
-            else if(t.identifier == secondId) {
-                t2 = t
+            if(c.Jar) {
+                if(!testFiltersJar(c.Jar)) continue
             }
-        }
-        if(t1 == undefined) return
+            if(c.CrystalDestroyable) {
+                if(!testFiltersCrd(c.CrystalDestroyable)) continue
+            }
+            if(c.Transition) {
+                if(!testFiltersTran(c.Transition)) continue
+            }
+            if(c.Scarab) {
+                if(!testFiltersScarab(c.Scarab)) continue
+            }
 
-        const touch1 = touches.touches[firstId]
-        if(t2 == undefined) { // pan
-            const curX = t1.clientX
-            const curY = t1.clientY
-
-            originX += curX - touch1.prevX
-            originY += curY - touch1.prevY
-            updTransform()
-        }
-        else {
-            const touch2 = touches.touches[secondId]
-
-            const curX = t1.clientX
-            const curY = t1.clientY
-            const curX2 = t2.clientX
-            const curY2 = t2.clientY
-
-            const preX = touch1.prevX
-            const preY = touch1.prevY
-            const preX2 = touch2.prevX
-            const preY2 = touch2.prevY
-
-            const delta = hypot2(curX - curX2, curY - curY2) / hypot2(preX - preX2, preY - preY2)
-            const newScale = clampScale(scale * delta, scale)
-
-            const tx = curX - (preX - originX) * (newScale / scale)
-            const ty = curY - (preY - originY) * (newScale / scale)
-
-            scale = newScale
-            originX = tx
-            originY = ty
-
-            updTransform()
-            updSize()
-        }
-
-        for(let i = 0; i < e.changedTouches.length; i++) {
-            const t = e.changedTouches[i]
-            const touch = touches.touches[t.identifier]
-            if(!touch) continue
-
-            touch.prevX = t.clientX
-            touch.prevY = t.clientY
-        }
-
-        e.preventDefault()
-    });
-
-    container.addEventListener('touchend', function (e) {
-        for(let i = 0; i < e.changedTouches.length; i++) {
-            const t = e.changedTouches[i]
-            for(let j = 0; j < touches.order.length; j++) {
-                if(touches.order[j] === t.identifier) {
-                    delete touches.touches[t.identifier]
-                    touches.order.splice(j, 1)
-                    break;
+            var v = [objI, sqd(x, y, obj.pos[0], obj.pos[1])]
+            for(let j = 0; j < ca.length; j++) {
+                if(v[1] < ca[j][1]) {
+                    var t = ca[j]
+                    ca[j] = v
+                    v = t
                 }
             }
         }
-    });
-})()
 
-sizeDisplayUpdate.elements = view.querySelectorAll('.mark-batch')
+        other.innerHTML = ''
+        for(let i = 1; i < ca.length; i++) {
+            if(ca[i][0] < 0) break
+            other.appendChild(createObjectUrl(ca[i][0]))
+            other.appendChild(document.createTextNode(` (away ${Math.round(Math.sqrt(ca[i][1]))})`))
+            other.appendChild(document.createElement('br'))
+        }
+
+        if(ca[0][0] !== -1) {
+            updProp(ca[0][0])
+        }
+    })
+
+    title.addEventListener("change", (e) => {
+        var newName = title.value
+        for(let i = 0; i < objects.length; i++) {
+            if(objects[i].name === newName) {
+                updProp(i)
+                break
+            }
+        }
+    })
+
+    sizeDisplayUpdate.elements = view.querySelectorAll('.mark-batch')
+    sizeDisplayUpdate.updateAll()
+    requestAnimationFrame(update)
+})
+
+updFilters()
 updTransform()
 updSize()
-sizeDisplayUpdate.updateAll()
-requestAnimationFrame(update)
