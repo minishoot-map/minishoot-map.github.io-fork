@@ -422,32 +422,38 @@ function updTransform() {
 var batchSize = 1024
 
 var sizeDisplayUpdate = {
+    i: 0, updatedCount: 0,
     update() {
-        var sizeS = this.size + ''
         var elements = this.elements
+        var updatedCount = this.updatedCount
+        if(updatedCount >= elements.length) return
         var i = this.i
-        while(i < elements.length) {
-            var it = elements[i]
-            if(!it) continue
-            it.style.setProperty('--size2', sizeS)
-            this.i = i + 1
-            break
-        }
+
+        elements[i].style.setProperty('--size2', this.size)
+        i++
+        if(i === elements.length) i = 0
+        updatedCount++
+
+        this.i = i
+        this.updatedCount = updatedCount
     },
     updateAll() {
-        var sizeS = this.size + ""
         var elements = this.elements
-        var i = this.i
-        for(; i < elements.length; i++) {
-            var it = elements[i]
-            if(!it) continue
-            it.style.setProperty('--size2', sizeS)
+        var updatedCount = this.updatedCount
+        if(updatedCount >= elements.length) return
+        var sizeS = '' + this.size
+
+        for(var i = 0; i < elements.length; i++) {
+            elements[i].style.setProperty('--size2', sizeS)
         }
-        this.i = i
+
+        // note: do not reset `i` so that all marks periodicly update
+        this.updatedCount = elements.length
     },
     set(newSize) {
         this.size = newSize
-        this.i = 0
+        this.updatedCount = 0
+        // note: do not reset `i` so that all marks periodicly update
     },
 }
 
