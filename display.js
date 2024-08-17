@@ -599,11 +599,13 @@ container.addEventListener('mousemove', (e) => {
 });
 
 container.addEventListener('touchstart', function (e) {
+    const rect = window['center-view'].getBoundingClientRect()
+
     for(var i = 0; i < e.changedTouches.length; i++) {
         var t = e.changedTouches[i]
         if(touches.touches[t.identifier]) continue;
         touches.order.push(t.identifier)
-        touches.touches[t.identifier] = { prevX: t.clientX, prevY: t.clientY }
+        touches.touches[t.identifier] = { prevX: t.clientX - rect.x, prevY: t.clientY - rect.y }
     }
 });
 
@@ -624,10 +626,12 @@ container.addEventListener('touchmove', function (e) {
     }
     if(t1 == undefined) return
 
+    const rect = window['center-view'].getBoundingClientRect()
+
     const touch1 = touches.touches[firstId]
     if(t2 == undefined) { // pan
-        const curX = t1.clientX
-        const curY = t1.clientY
+        const curX = t1.clientX - rect.x
+        const curY = t1.clientY - rect.y
 
         originX += curX - touch1.prevX
         originY += curY - touch1.prevY
@@ -636,10 +640,10 @@ container.addEventListener('touchmove', function (e) {
     else {
         const touch2 = touches.touches[secondId]
 
-        const curX = t1.clientX
-        const curY = t1.clientY
-        const curX2 = t2.clientX
-        const curY2 = t2.clientY
+        const curX = t1.clientX - rect.x
+        const curY = t1.clientY - rect.y
+        const curX2 = t2.clientX - rect.x
+        const curY2 = t2.clientY - rect.y
 
         const preX = touch1.prevX
         const preY = touch1.prevY
@@ -665,8 +669,8 @@ container.addEventListener('touchmove', function (e) {
         const touch = touches.touches[t.identifier]
         if(!touch) continue
 
-        touch.prevX = t.clientX
-        touch.prevY = t.clientY
+        touch.prevX = t.clientX - rect.x
+        touch.prevY = t.clientY - rect.y
     }
 
     e.preventDefault()
