@@ -173,6 +173,32 @@ function createObjectUrl(i) {
     }
 }
 
+function getCurUrlI(url) {
+    if(!url) url = new URL(window.location.href)
+
+    const name = url.searchParams.get('obj')
+    var i = 0
+    for(; i < objects.length; i++) {
+        if(objects[i].name === name) break
+    }
+    if(i === objects.length) i = -1
+
+    return i
+}
+
+function updUrl() {
+    if(!wereObjectsLoaded) return
+
+    const url = new URL(window.location.href)
+    const prevI = getCurUrlI(url)
+
+    if(prevI === curI) return
+    const o = objects[curI]
+
+    url.searchParams.set('obj', o.name)
+    window.history.pushState({}, '', url);
+}
+
 var curI
 function updProp(i) {
     curI = i
@@ -183,9 +209,6 @@ function updProp(i) {
         el.classList.add('selected')
     }
 
-    gotoMark.setAttribute('disabled', '')
-    desc.innerHTML = ''
-    other.innerHTML = ''
     c_enemy.style.display = 'none'
     c_jar.style.display = 'none'
     c_crd.style.display = 'none'
@@ -193,7 +216,14 @@ function updProp(i) {
     c_scarab.style.display = 'none'
     c_destr.style.display = 'none'
 
-    if(i == -1) return
+    updUrl()
+
+    if(i === -1) {
+        gotoMark.setAttribute('disabled', '')
+        desc.innerHTML = ''
+        other.innerHTML = ''
+        return
+    }
     if(!wereObjectsLoaded) return
 
     gotoMark.removeAttribute('disabled')
@@ -335,12 +365,16 @@ function update() {
 }
 
 function gotoObject() {
+    if(curI == -1) return
     if(!wereObjectsLoaded) return
 
     const o = objects[curI]
     if(o == null) return
 
-
+    console.log(o.pos)
+    originX = -cx(o.pos[0]) * scale
+    originY = -cy(o.pos[1]) * scale
+    updTransform()
 }
 
 const gotoMark = window['goto-mark']
@@ -978,8 +1012,13 @@ objectsLoaded.then(() => {
     sizeDisplayUpdate.elements = view.querySelectorAll('.mark-batch')
     sizeDisplayUpdate.updateAll()
     requestAnimationFrame(update)
+
+    const newI = getCurUrlI()
+    updProp(newI)
+    gotoObject()
 })
 
 updFilters()
 updTransform()
 updSize()
+updProp(-1)
