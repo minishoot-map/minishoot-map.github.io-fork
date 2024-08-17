@@ -141,14 +141,16 @@ body {
                     <div id="view">
                         <div id="maps" style="user-select: none">
                             <img id="ow" src="overworld.png" class="overworld"  draggable="false">
-                            <img id="d3" src="d3.png" class="d3"  draggable="false">
+                            <img id="d3" src="d3.png" class="d3" draggable="false">
                         </div>
                     </div>
                 </div>
                 <div id="prop" style="border-left: 1px solid gray; padding: 0.2rem; min-width: 15rem">
                     <div style="display: flex; flex-direction: column; gap: 1rem">
                         <div>
-                            Selected: <input id="name" type="text" style="display: inline-block; min-width: 5rem"></input><br>
+                            Selected: <input id="name" type="text" style="display: inline-block; min-width: 5rem"></input>
+                            <button id="goto-mark">focus</button>
+                            <br>
                             <div id="desc"></div>
                         </div>
                         <div id="c-enemy" style="display: none">

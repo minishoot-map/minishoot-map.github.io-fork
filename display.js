@@ -160,7 +160,6 @@ function createObjectUrl(i) {
 
 var curI
 function updProp(i) {
-    if(!wereObjectsLoaded) return
     curI = i
 
     document.querySelectorAll('.selected').forEach((el) => { el.classList.remove('selected') })
@@ -169,6 +168,21 @@ function updProp(i) {
         el.classList.add('selected')
     }
 
+    gotoMark.setAttribute('disabled', '')
+    desc.innerHTML = ''
+    other.innerHTML = ''
+    c_enemy.style.display = 'none'
+    c_jar.style.display = 'none'
+    c_crd.style.display = 'none'
+    c_tran.style.display = 'none'
+    c_scarab.style.display = 'none'
+    c_destr.style.display = 'none'
+
+    if(i == -1) return
+    if(!wereObjectsLoaded) return
+
+    gotoMark.removeAttribute('disabled')
+
     const o = objects[i]
     title.value = o.name
     let descText = 'Position: (' + o.pos[0] + ', ' + o.pos[1] + ')<br>Components:'
@@ -176,12 +190,6 @@ function updProp(i) {
         descText += '<br><span class="gap"></span>' + o.allComponents[i]
     }
     desc.innerHTML = descText
-
-    c_enemy.style.display = 'none'
-    c_jar.style.display = 'none'
-    c_crd.style.display = 'none'
-    c_tran.style.display = 'none'
-    c_scarab.style.display = 'none'
 
     const c = o.components
     if(c.Enemy) {
@@ -309,6 +317,21 @@ function update() {
     catch(e) { console.error(e) }
 
     requestAnimationFrame(update)
+}
+
+function gotoObject() {
+    if(!wereObjectsLoaded) return
+
+    const o = objects[curI]
+    if(o == null) return
+
+
+}
+
+const gotoMark = window['goto-mark']
+gotoMark.setAttribute('disabled', '')
+gotoMark.onclick = () => {
+    gotoObject()
 }
 
 var curMarkBatch, curMarkBatchI
@@ -952,9 +975,10 @@ objectsLoaded.then(() => {
         for(let i = 0; i < objects.length; i++) {
             if(objects[i].name === newName) {
                 updProp(i)
-                break
+                return
             }
         }
+        updProp(-1)
     })
 
     sizeDisplayUpdate.elements = view.querySelectorAll('.mark-batch')
