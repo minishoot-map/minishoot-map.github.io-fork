@@ -59,6 +59,7 @@ public partial class GameManager : MonoBehaviour
         public Func<object, object> ser;
         public Type outType;
         Serializer[] sers;
+        Serializer baseSerializer;
 
         public override void prepare() {
             if(sers != null) return;
@@ -69,14 +70,19 @@ public partial class GameManager : MonoBehaviour
             for(var i = 0; i < len; i++) {
                 sers[i] = getSerializer(elementTypes[i]);
             }
+            var bt = schema.itType.BaseType;
+            if(bt != null) baseSerializer = getSerializer(bt);
         }
 
         public override object serialize(object it) {
             prepare();
             var result = (ITuple)ser(it);
-            var props = new object[sers.Length];
+            var props = new object[sers.Length + (baseSerializer != null ? 1 : 0)];
             for(var i = 0; i < sers.Length; i++) {
                 props[i] = sers[i].serialize(result[i]);
+            }
+            if(baseSerializer != null) {
+                props[props.Length-1] = baseSerializer.serialize(it);
             }
             return props;
         }
@@ -117,17 +123,7 @@ public partial class GameManager : MonoBehaviour
         Serializer it;
         if(typeSerializers.TryGetValue(type, out it)) return it;
         else if(type.IsArray) return addarr(type);
-
-        // consider base classes
-        // note: not array at this point
-        for(var bt = type.BaseType; bt != null; bt = bt.BaseType) {
-            if(typeSerializers.TryGetValue(bt, out it)) {
-                typeSerializers.Add(type, it);
-                return it;
-            }
-        }
-
-        return addrec(new string[]{}, (object input) => new ValueTuple(), type, typeof(ValueTuple));
+        else return addrec(new string[]{}, (object input) => new ValueTuple(), type, typeof(ValueTuple));
     }
 
     static void setupSerializer(Serializer ser, Type type, Schema schema) {
@@ -331,9 +327,13 @@ public partial class GameManager : MonoBehaviour
             if(s.type == 0) s.primitiveWriter(w, v);
             else if(s.type == 1) {
                 var props = v as object[];
-                if(props.Length != s.memberTypes.Length) throw new Exception("#props = " + props.Length + ", #members = " + s.memberTypes.Length);
-                for(var i = 0; i < props.Length; i++) {
+                var bt = s.itType.BaseType;
+                if(props.Length != s.memberTypes.Length + (bt != null ? 1 : 0)) throw new Exception("#props = " + props.Length + ", #members = " + s.memberTypes.Length);
+                for(var i = 0; i < s.memberTypes.Length; i++) {
                     writeDynamic(w, props[i], getSchemaI(s.memberTypes[i]));
+                }
+                if(bt != null) {
+                    writeDynamic(w, props[props.Length-1], getSchemaI(bt));
                 }
             }
             else if(s.type == 2) {
@@ -565,23 +565,24 @@ public partial class GameManager : MonoBehaviour
             for(var i = 0; i < serializers.Count; i++) {
                 var it = serializers[i].schema;
                 var name = jsStr(it.itType.FullName);
-                if(it.type == 1 && it.memberTypes.Length == 0) {
-                    schemasS.WriteLine(name + ",");
+                schemasS.Write("[" + it.type + "," + name + ",{");
+                if(it.textureIndex != null) {
+                    schemasS.Write("textureI: " + it.textureIndex + ",");
                 }
-                else {
-                    schemasS.Write("{ type: " + it.type + ", name: " + name);
-                    if(it.textureIndex != null) {
-                        schemasS.Write(", textureI: " + it.textureIndex);
-                    }
-                    if(it.type == 1) {
-                        schemasS.Write(", members: [" + string.Join(", ", it.memberNames.Select(t => jsStr(t))) + "]");
-                        schemasS.Write(", membersT: [" + string.Join(", ", it.memberTypes.Select(t => typeSerializers[t].index)) + "]");
-                    }
-                    if(it.type == 2) {
-                        schemasS.Write(", elementT: " + typeSerializers[it.elementType].index);
-                    }
-                    schemasS.WriteLine(" },");
+                if(it.type == 1 && it.memberNames.Length > 0) {
+                    schemasS.Write(
+                        "members:[" + string.Join(',', it.memberNames.Select(t => jsStr(t))) + "],"
+                        +"membersT:[" + string.Join(',', it.memberTypes.Select(t => getSchemaI(t))) + "],"
+                    );
                 }
+                var bt = it.itType.BaseType;
+                if(it.type == 1 && bt != null) {
+                    schemasS.Write("base:" + getSchemaI(bt) + ",");
+                }
+                if(it.type == 2) {
+                    schemasS.Write("elementT:" + getSchemaI(it.elementType) + ",");
+                }
+                schemasS.WriteLine("}],");
             }
             schemasS.WriteLine("]");
 
