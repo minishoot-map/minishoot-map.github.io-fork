@@ -22,7 +22,7 @@ public partial class GameManager : MonoBehaviour
 {
 	static StreamWriter errorsSw;
 
-    delegate void Writer(BinaryWriter w, Dynamic v);
+    delegate void Writer(BinaryWriter w, object v);
     struct Schema {
         public int type; // 0 - prim, 1 - record, 2 - array
         public Type itType;
@@ -39,15 +39,10 @@ public partial class GameManager : MonoBehaviour
     struct None {};
     struct Sprite { public int sprite; }
     struct Reference { public int reference; }
-    struct Any { public int schema; public Dynamic value; }
+    struct Any { public int schema; public object value; }
 
     static Sprite toSprite(int number) { return new Sprite{ sprite = number }; }
     static Reference toReference(int number) { return new Reference{ reference = number }; }
-
-    struct Dynamic {
-        public object prop;
-        public int schemaI;
-    }
 
     static List<Serializer> serializers;
     static Dictionary<Type, Serializer> typeSerializers;
@@ -57,7 +52,7 @@ public partial class GameManager : MonoBehaviour
         public Schema schema;
         public virtual void prepare() {}
         // returns one of: some primitive (+ string, Vector2), Record, Sprite, Reference, Any, Array
-        public abstract Dynamic serialize(object it);
+        public abstract object serialize(object it);
     }
 
     class RecordSerializer : Serializer {
@@ -76,14 +71,14 @@ public partial class GameManager : MonoBehaviour
             }
         }
 
-        public override Dynamic serialize(object it) {
+        public override object serialize(object it) {
             prepare();
             var result = (ITuple)ser(it);
-            var props = new Dynamic[sers.Length];
+            var props = new object[sers.Length];
             for(var i = 0; i < sers.Length; i++) {
                 props[i] = sers[i].serialize(result[i]);
             }
-            return new Dynamic{ prop = props, schemaI = index };
+            return props;
         }
     }
 
@@ -96,30 +91,26 @@ public partial class GameManager : MonoBehaviour
             elementSerializer = getSerializer(elementType);
         }
 
-        public override Dynamic serialize(object it) {
+        public override object serialize(object it) {
             prepare();
             var arr = (Array)it;
-            var result = new Dynamic[arr.Length];
+            var result = new object[arr.Length];
             for(var i = 0; i < arr.Length; i++) {
                 result[i] = elementSerializer.serialize(arr.GetValue(i));
             }
-            return new Dynamic{ prop = result, schemaI = index };
+            return result;
         }
     }
 
     class PrimSerializer : Serializer {
-        public override Dynamic serialize(object it) {
-            return new Dynamic{ prop = it, schemaI = index };
+        public override object serialize(object it) {
+            return it;
         }
     }
 
     static Any serialized(object it) {
         var s = getSerializer(it.GetType()); // Exact match required!
         return new Any{ schema = s.index, value = s.serialize(it) };
-    }
-
-    static Dynamic serialize(object v) {
-        return getSerializer(typeof(Any)).serialize(serialized(v));
     }
 
     static Serializer getSerializer(Type type) {
@@ -178,7 +169,7 @@ public partial class GameManager : MonoBehaviour
     }
     delegate void TWriter<T>(BinaryWriter bw, T it);
     static Serializer addprim<T>(TWriter<T> w) {
-        return addprim(typeof(T), (bw, it) => w(bw, (T)it.prop));
+        return addprim(typeof(T), (bw, it) => w(bw, (T)it));
     }
 
     struct Scenes {};
@@ -327,29 +318,37 @@ public partial class GameManager : MonoBehaviour
         return bytes.ToArray();
     }
 
-    void writeDynamic(BinaryWriter w, Dynamic v) {
+    static int getSchemaI(Type t) {
+        return typeSerializers[t].index;
+    }
+    static Schema getSchema(int i) {
+        return serializers[i].schema;
+    }
+
+    void writeDynamic(BinaryWriter w, object v, int schemaI) {
         try {
-            var s = serializers[v.schemaI].schema;
+			var s = getSchema(schemaI);
             if(s.type == 0) s.primitiveWriter(w, v);
             else if(s.type == 1) {
-                var props = v.prop as Dynamic[];
+                var props = v as object[];
                 if(props.Length != s.memberTypes.Length) throw new Exception("#props = " + props.Length + ", #members = " + s.memberTypes.Length);
                 for(var i = 0; i < props.Length; i++) {
-                    writeDynamic(w, props[i]);
+                    writeDynamic(w, props[i], getSchemaI(s.memberTypes[i]));
                 }
             }
             else if(s.type == 2) {
-                var props = v.prop as Dynamic[];
+                var props = v as object[];
+                var elSchema = getSchemaI(s.elementType);
                 w.Write(compactInt(props.Length));
                 for(var i = 0; i < props.Length; i++) {
-                    writeDynamic(w, props[i]);
+                    writeDynamic(w, props[i], elSchema);
                 }
             }
             else {
                 throw new Exception("type = " + s.type);
             }
         } catch(Exception e) {
-            throw new Exception("Dynamic = " + v.prop.GetType().FullName + ", " + v.schemaI, e);
+            throw new Exception("Dynamic = " + v.GetType().FullName + ", " + schemaI, e);
         }
     }
 
@@ -462,9 +461,9 @@ public partial class GameManager : MonoBehaviour
         });
         addprim<Reference>((w, v) => w.Write(compactInt(v.reference)));
         addprim<Sprite>((w, v) => w.Write(compactInt(v.sprite)));
-        addprim<Any>((w, v) => {
+        var anySerializer = addprim<Any>((w, v) => {
             w.Write(compactInt(v.schema));
-            writeDynamic(w, v.value);
+            writeDynamic(w, v.value, v.schema);
         });
         addprim<Vector2>((w, v) => w.Write(compactVector2(v)));
 
@@ -525,7 +524,7 @@ public partial class GameManager : MonoBehaviour
 
         Directory.CreateDirectory(CameraManager.basePath);
         Directory.CreateDirectory(CameraManager.basePath + "sprites/");
-        var result = serialize(new Scenes());
+        var result = serialized(new Scenes());
 
         using(var schemasS = new StreamWriter(CameraManager.basePath + "schemas.js", false)) {
             {
@@ -590,7 +589,7 @@ public partial class GameManager : MonoBehaviour
 
         using (FileStream fs = new FileStream(CameraManager.basePath + "objects.bp", FileMode.Create, FileAccess.Write))
         using (BinaryWriter bw = new BinaryWriter(fs)) {
-            writeDynamic(bw, result);
+            writeDynamic(bw, result, anySerializer.index);
         }
     }
 }
