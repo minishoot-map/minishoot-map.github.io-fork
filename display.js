@@ -2,9 +2,6 @@
 
 var wereObjectsLoaded = false
 
-var colliderTypes = { box: 0, capsule: 1, circle: 2, polygon: 3, composite: 4, tilemap: 5 }
-var colliderNames = ['BoxCollider2D', 'CapsuleCollider2D', 'CircleCollider2D', 'PolygonCollider2D', 'CompositeCollider2D', 'TilemapCollider2D']
-
 var locations = ["Overworld", "Cave", "CaveExtra", "Dungeon1", "Dungeon2", "Dungeon3", "Dungeon4", "Dungeon5", "Temple1", "Temple2", "Temple3", "Tower", "CaveArena", "Snow"]
 
 function multiply(n, m) {
@@ -633,110 +630,23 @@ container.addEventListener('touchend', function (e) {
 
 var markers = []
 
-if(false) (() => {
-    for(let i = 0; i < objects.length; i++) {
-        let it = objects[i]
-        it.name = it[0]
-        it.parentI = it[1]
-        it.localPos = it[2]
-        it.pos = it[3]
-        it.rz = it[4]
-        it.scale = it[5]
-        it.allComponents = it[6]
-        it.components = {} // just hope that there wouldn't be 2 components of the same type
-    }
-
-    for(let i = 0; i < enemies.length; i++) {
-        let it = enemies[i]
-        it.objI = it[0]
-        it.size = it[1]
-        it.tier = it[2]
-        it.hp = it[3]
-        it.spriteI = it[4]
-
-        objects[it.objI].components['Enemy'] = it
-    }
-
-    for(let i = 0; i < jars.length; i++) {
-        let it = jars[i]
-        it.objI = it[0]
-        it.size = it[1]
-        it.dropType = it[2]
-
-        objects[it.objI].components['Jar'] = it
-    }
-
-    for(let i = 0; i < crystalDestroyables.length; i++) {
-        let it = crystalDestroyables[i]
-        it.objI = it[0]
-        it.dropXp = it[1]
-        it.size = it[2]
-
-        objects[it.objI].components['CrystalDestroyable'] = it
-    }
-
-    for(let i = 0; i < scarabs.length; i++) {
-        let it = scarabs[i]
-        it.objI = it[0]
-        it.destrI = it[1]
-
-        objects[it.objI].components['Scarab'] = it
-    }
-
-    for(let i = 0; i < destroyables.length; i++) {
-        let it = destroyables[i]
-        it.objI = it[0]
-        it.isPermanent = it[1]
-
-        objects[it.objI].components['Destroyable'] = it
-    }
-
-    for(let i = 0; i < colliders.length; i++) {
-        let it = colliders[i]
-        it.objI = it[0]
-        it.isTrigger = it[1]
-        it.off = it[2]
-        it.layer = it[3]
-        it.type = it[4]
-        if(it.type == colliderTypes.box) {
-            it.size = it[5]
-            it.usedByComposite = it[6]
-        }
-        else if(it.type == colliderTypes.capsule) {
-            it.size = it[5]
-            it.vertical = it[6]
-        }
-        else if(it.type == colliderTypes.circle) {
-            it.radius = it[5]
-        }
-        else if(it.type == colliderTypes.polygon) {
-            it.usedByComposite = it[5]
-            it.polygon = it[6]
-        }
-        else if(it.type == colliderTypes.composite) {
-            it.polygons = it[5]
-        }
-
-        objects[it.objI].components[colliderNames[it.type] ?? it.type] = it
-    }
-
-    for(let i = 0; i < transitions.length; i++) {
-        let it = transitions[i]
-        it.objI = it[0]
-        it.isSameLoc = it[1]
-        it.destLocation = it[2]
-        it.destObjectI = it[3]
-
-        objects[it.objI].components['Transition'] = it
-    }
-
+objectsLoaded.then(() => {
+    return
     for(let i = 0; i < objects.length; i++) {
         updateTansform(i);
     }
 
     for(let i = 0; i < objects.length; i++) {
         const obj = objects[i]
-        const c = obj.components
+        const components = obj.components
+
+        var displayable = {}
+        for(let j = 0; j < components.length; i++) {
+            const c = components[j]
+            if(c._schema === typeSchemaI.Enemy) {
+                displayable.Enemy = c
+            }
+        }
 
         if(c.Enemy) {
             const it = c.Enemy
@@ -962,7 +872,7 @@ if(false) (() => {
     sizeDisplayUpdate.elements = view.querySelectorAll('.mark-batch')
     sizeDisplayUpdate.updateAll()
     requestAnimationFrame(update)
-})()
+})
 
 updFilters()
 updTransform()

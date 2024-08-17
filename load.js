@@ -1,8 +1,14 @@
-var gameObjectSchemaI
-(() => {
+const typeSchemaI = {}
+const shortenName = /[.+](.+)$/
+
+;(() => {
     for(var i = 0; i < schemas.length; i++) {
         if(typeof(schemas[i]) == 'string') schemas[i] = { type: 1, name: schemas[i], members: [], membersT: [] }
-        if(schemas[i][1] === 'UnityEngine.GameObject') gameObjectSchemaI = i
+        const match = shortenName.exec(schemas[i].name)
+        if(match && !typeSchemaI.hasOwnProperty(match[1])) {
+            typeSchemaI[match[1]] = i
+        }
+        typeSchemaI[schemas[i].name] = i
     }
 })()
 
@@ -42,11 +48,12 @@ class Src {
 var scenes
 var objects
 
-(async() => {
+var objectsLoaded = (async() => {
     const response = await fetch('./data/objects.bp')
     const reader = response.body.getReader()
     objects = []
     scenes = await parseAny(new Src(reader))
+    wereObjectsLoaded = true
 })()
 
 async function parseCompressedInt(src) {
@@ -138,7 +145,7 @@ async function parseRecord(schemaI, src) {
         res[names[i]] = await parseBySchema(types[i], src)
     }
     res._schema = schemaI
-    if(schemaI === gameObjectSchemaI) objects.push(res)
+    if(schemaI === typeSchemaI.GameObject) objects.push(res)
 
     return res
 }
