@@ -146,7 +146,7 @@ function calcXp(size, level, playerL) {
     return Round(Math.fround(Math.max(minimumGain, b) * num3))
 }
 
-var originX = -cx(-1) + 500, originY = -cy(34.44) - 500
+var originX = -cx(-1), originY = -cy(34.44)
 var scale = 1
 
 var panning = { is: false, prevX: undefined, prevY: undefined }
