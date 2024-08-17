@@ -226,19 +226,8 @@ body {
             </div>
         </div>
 
-        <script>
-            var wereObjectsLoaded = false
-            var objectsLoadedS, objectsLoadedJ
-            var objectsLoaded = new Promise((s, j) => {
-                objectsLoadedS = () => {
-                    wereObjectsLoaded = true
-                    s()
-                }
-                objectsLoadedJ = j
-            })
-        </script>
-        <script async src="data/objects.js" onload="objectsLoadedS()" onerror="objectsLoadedJ()"></script>
-
+        <script src="data/schemas.js"></script>
+        <script src="load.js"></script>
         <script src="collider_view.js"></script>
         <script src="display.js"></script>
     </body>

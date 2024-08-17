@@ -1,5 +1,7 @@
 'use strict';
 
+var wereObjectsLoaded = false
+
 var colliderTypes = { box: 0, capsule: 1, circle: 2, polygon: 3, composite: 4, tilemap: 5 }
 var colliderNames = ['BoxCollider2D', 'CapsuleCollider2D', 'CircleCollider2D', 'PolygonCollider2D', 'CompositeCollider2D', 'TilemapCollider2D']
 
@@ -631,7 +633,7 @@ container.addEventListener('touchend', function (e) {
 
 var markers = []
 
-objectsLoaded.then(() => {
+if(false) (() => {
     for(let i = 0; i < objects.length; i++) {
         let it = objects[i]
         it.name = it[0]
@@ -960,7 +962,7 @@ objectsLoaded.then(() => {
     sizeDisplayUpdate.elements = view.querySelectorAll('.mark-batch')
     sizeDisplayUpdate.updateAll()
     requestAnimationFrame(update)
-})
+})()
 
 updFilters()
 updTransform()
