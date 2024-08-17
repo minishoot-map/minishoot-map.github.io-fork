@@ -126,7 +126,17 @@ public partial class GameManager : MonoBehaviour
         Serializer it;
         if(typeSerializers.TryGetValue(type, out it)) return it;
         else if(type.IsArray) return addarr(type);
-        else return addrec(new string[]{}, (object input) => new ValueTuple(), type, typeof(ValueTuple));
+
+        // consider base classes
+        // note: not array at this point
+        for(var bt = type.BaseType; bt != null; bt = bt.BaseType) {
+            if(typeSerializers.TryGetValue(bt, out it)) {
+                typeSerializers.Add(type, it);
+                return it;
+            }
+        }
+
+        return addrec(new string[]{}, (object input) => new ValueTuple(), type, typeof(ValueTuple));
     }
 
     static void setupSerializer(Serializer ser, Type type, Schema schema) {
@@ -149,12 +159,6 @@ public partial class GameManager : MonoBehaviour
     }
     static Serializer addrec<T, R>(Func<T, R> it, params string[] names) {
         return addrec(names, (input) => (object)it((T)input), typeof(T), typeof(R));
-    }
-    static Serializer addSubclass(Serializer o, Type t) {
-        // TODO: use proper subtype check and don't include itself as subtype?
-        if(!o.schema.itType.IsAssignableFrom(t)) throw new Exception("Type " + t.FullName + " is not subtype of " + o.schema.itType.FullName);
-        typeSerializers.Add(t, o);
-		return o;
     }
 
     static Serializer addarr(Type arrType) {
@@ -465,8 +469,7 @@ public partial class GameManager : MonoBehaviour
         addprim<Vector2>((w, v) => w.Write(compactVector2(v)));
 
         addrec<Jar, (int, int)>(v => ((int)prop(v, "size"), Convert.ToInt32(prop(v, "drop"))), "size", "dropType");
-        var es = addrec<Enemy, (Sprite, int, int, int)>(v => (toSprite(tryAddSprite(v.Sprite, v.gameObject.name)), v.Size, v.Tier, v.Destroyable.HpMax), "spriteI", "size", "tier", "hp");
-        addSubclass(es, typeof(Boss));
+        addrec<Enemy, (Sprite, int, int, int)>(v => (toSprite(tryAddSprite(v.Sprite, v.gameObject.name)), v.Size, v.Tier, v.Destroyable.HpMax), "spriteI", "size", "tier", "hp");
         addrec<CrystalDestroyable, (bool, int)>(v => ((bool)prop(v, "dropXp"), Convert.ToInt32(prop(v, "size"))), "dropXp", "size");
         addrec<ScarabPickup, ValueTuple<Reference>>(v => {
             int oIndex;
