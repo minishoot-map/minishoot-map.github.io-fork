@@ -168,8 +168,6 @@ public partial class GameManager : MonoBehaviour
         return addprim(typeof(T), (bw, it) => w(bw, (T)it));
     }
 
-    struct Scenes {};
-
     public static Dictionary<GameObject, int> objects;
     public static List<GameObject> objectList;
     public static List<string> textureNames;
@@ -421,6 +419,8 @@ public partial class GameManager : MonoBehaviour
             { "TilemapCollider2D", 5 }
         };*/
 
+        Directory.CreateDirectory(CameraManager.basePath);
+        Directory.CreateDirectory(CameraManager.basePath + "sprites/");
         using(errorsSw = new StreamWriter(CameraManager.basePath + "errors.txt", false)) try {
             Write();
         }
@@ -514,17 +514,13 @@ public partial class GameManager : MonoBehaviour
             return (v.name, v.layer, components, children);
         }, "name", "layer", "components", "children");
         addrec<Scene, (string, GameObject[])>(v => (v.name, v.GetRootGameObjects()), "name", "roots");
-        addrec<Scenes, ValueTuple<Scene[]>>(v => {
-            var scenes = new Scene[SceneManager.sceneCount];
-            for(int i = 0; i < SceneManager.sceneCount; i++) {
-                scenes[i] = SceneManager.GetSceneAt(i);
-            }
-            return new ValueTuple<Scene[]>(scenes);
-        }, "scenes");
 
-        Directory.CreateDirectory(CameraManager.basePath);
-        Directory.CreateDirectory(CameraManager.basePath + "sprites/");
-        var result = serialized(new Scenes());
+        var scenes = new Scene[SceneManager.sceneCount];
+        for(int i = 0; i < SceneManager.sceneCount; i++) {
+            scenes[i] = SceneManager.GetSceneAt(i);
+        }
+        var result = serialized(scenes);
+
 
         using(var schemasS = new StreamWriter(CameraManager.basePath + "schemas.js", false)) {
             {
@@ -544,8 +540,7 @@ public partial class GameManager : MonoBehaviour
                     }
                     if(yindex != -1 && nindex != -1) break;
                 }
-                typeSerializers[typeof(CrystalDestroyable)].schema.textureIndex = yindex;
-                schemasS.WriteLine("var crystalDestroyableTexture2 = " + nindex);
+                schemasS.WriteLine("var crystalDestroyableTextures = [" + nindex + "," + yindex + "]");
             }
             {
                 int index = -1;
@@ -567,7 +562,7 @@ public partial class GameManager : MonoBehaviour
                 var name = jsStr(it.itType.FullName);
                 schemasS.Write("[" + it.type + "," + name + ",{");
                 if(it.textureIndex != null) {
-                    schemasS.Write("textureI: " + it.textureIndex + ",");
+                    schemasS.Write("textureI:" + it.textureIndex + ",");
                 }
                 if(it.type == 1 && it.memberNames.Length > 0) {
                     schemasS.Write(

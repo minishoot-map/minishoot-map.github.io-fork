@@ -24,29 +24,45 @@ function multiply(n, m) {
 
 var deg2rad = (Math.PI / 180)
 // Note: rotation is counter-clockwise in both Unity and css (right?)
-function construct(obj) {
-    var sin = Math.sin(obj.rz * deg2rad)
-    var cos = Math.cos(obj.rz * deg2rad)
-    var matrix = new Float32Array(6);
-    matrix[0] = cos * obj.scale[0]
-    matrix[1] = -sin * obj.scale[1]
-    matrix[2] = obj.localPos[0]
-    matrix[3] = sin * obj.scale[0]
-    matrix[4] = cos * obj.scale[1]
-    matrix[5] = obj.localPos[1]
+function construct(t) {
+    var sin = Math.sin(t.rotation * deg2rad)
+    var cos = Math.cos(t.rotation * deg2rad)
+    var matrix = new Float32Array(6)
+    matrix[0] = cos * t.scale[0]
+    matrix[1] = -sin * t.scale[1]
+    matrix[2] = t.position[0]
+    matrix[3] = sin * t.scale[0]
+    matrix[4] = cos * t.scale[1]
+    matrix[5] = t.position[1]
     return matrix
 }
 
-function updateTansform(i) {
-    if(i == undefined || i < 0) return
-    var obj = objects[i]
-    if(obj.matrix) return obj.matrix
+function getType(it, type) {
+    while(it != null) {
+        if(it._schema === type) return it
+        it = it._base
+    }
+}
 
-    var matrix = construct(obj)
-    var pMatrix = updateTansform(obj.parentI)
-    if(pMatrix) multiply(matrix, pMatrix)
+const objects = []
+function prepareObjects(parentMatrix, parentI, obj) {
+    var transform
+    for(let i = 0; i < obj.components.length && transform == null; i++) {
+        transform = getType(obj.components[i], typeSchemaI.Transform)
+    }
+    if(transform == null) throw "Unreachable"
+    obj.transform = transform
+    obj.parentI = parentI
 
-    return obj.matrix = matrix
+    const index = objects.length
+    objects.push(obj)
+
+    var matrix = construct(transform)
+    if(parentMatrix) multiply(matrix, parentMatrix)
+    obj.matrix = matrix
+    obj.pos = [matrix[2], matrix[5]]
+
+    obj.children.forEach(c => prepareObjects(matrix, index, c))
 }
 
 var view = document.getElementById('view')
@@ -323,22 +339,6 @@ function addMark(it) {
     if(curMarkBatchI == batchSize) {
         view.appendChild(curMarkBatch)
         curMarkBatch = null
-    }
-}
-
-var curColliderBatch, curColliderBatchI
-function addCollider(it) {
-    if(curColliderBatch == null) {
-        curColliderBatchI = 0
-        curColliderBatch = document.createElement('div')
-        curColliderBatch.classList.add('batch', 'collider-batch')
-    }
-
-    curColliderBatch.appendChild(it)
-    curColliderBatchI++
-    if(curColliderBatchI == batchSize) {
-        view.appendChild(curColliderBatch)
-        curColliderBatch = null
     }
 }
 
@@ -628,25 +628,108 @@ container.addEventListener('touchend', function (e) {
     }
 })
 
+function texturePath(index) {
+    return 'data/sprites/' + textures[i] + '.png'
+}
+
+function schemaTexture(c, o) {
+    return texturePath(schemas[o._schema].textureI)
+}
+
+function scaleSize(c) { return 1 + 0.5*c.size }
+
+function colliderSvg(c, o) {
+    const ti = typeSchemaI
+    if(![ti.BoxCollider2D, ti.CircleCollider2D, ti.CapsuleCollider2D, ti.PolygonCollider2D].includes(c._schema)) return true
+    if(!(o.name === 'Wall' || o.layer == 17 || o.layer == 25) || o.name === 'Movable') return true // skip
+
+    console.log('not implemented')
+}
+
+// lower - more priority
+const displays = [
+    ['Jar', { image: schemaTexture, size: scaleSize }],
+    ['CrystalDestroyable', { image: c => schemaTexture(crystalDestroyableTextures[c.dropXp]), size: scaleSize }],
+    ['ScarabPickup', { image: schemaTexture }],
+    ['CompositeCollider2D', { svg: (c, o) => createCollider(o, c) }],
+    ['Collider2D', { svg: colliderSvg }],
+    ['Transition', { svg: (c, o) => createCollider(o, c), marker: true }],
+    ['Enemy', { image: c => texturePath(c.spriteI), }],
+]
+const displayTypes = {}
+function addAll(schemaI, v) {
+    if(schemaI == null) return
+
+    displayTypes[schemaI] = v
+    for(let i = 0; i < schemas.length; i++) {
+        if(schemas[i].base === schemaI) addAll(i, v)
+    }
+}
+for(let i = 0; i < displays.length; i++) {
+    const name = displays[i][0]
+    let si = typeSchemaI[name]
+    addAll(si, i)
+}
+
+function renderComponent(c, o, index) {
+    const el = document.createElement('span')
+    el.classList.add('mark')
+
+    const d = displays[index][1]
+    if(d.image) {
+        var img = document.createElement('img')
+        img.src = d.image(c, o)
+        img.draggable = false
+        el.appendChild(img)
+    }
+    else if(d.svg) {
+    }
+    else throw 'cannot render ' + c
+
+    el.style.left = cx(obj.pos[0]) + 'px'
+    el.style.top = cy(obj.pos[1]) + 'px'
+
+    return el
+}
+
 var markers = []
 
 objectsLoaded.then(() => {
-    return
-    for(let i = 0; i < objects.length; i++) {
-        updateTansform(i);
+    for(let i = 0; i < scenes.length; i++) {
+        const s = scenes[i]
+        for(let j = 0; j < s.roots.length; j++) {
+            prepareObjects(null, -1 - i, s.roots[j])
+        }
     }
+    return
 
     for(let i = 0; i < objects.length; i++) {
         const obj = objects[i]
         const components = obj.components
 
-        var displayable = {}
+        let objDisplays = Array(displays.length)
+        let added = false
         for(let j = 0; j < components.length; i++) {
             const c = components[j]
-            if(c._schema === typeSchemaI.Enemy) {
-                displayable.Enemy = c
+            const index = displayTypes[c._schema]
+            if(index != null && objDisplays[index] == null) {
+                objDisplays[index] = renderComponent(c, obj, index)
+                added = true
             }
         }
+
+        if(added) {
+            const cont = document.createElement('span')
+            for(let j = 0; j < objDisplays.length; j++) {
+                if(objDisplays[j] != null) cont.append(objDisplays[j])
+            }
+            addMark(cont)
+            markers.push(i)
+             // el.setAttribute('data-index', i)
+        }
+    }
+
+    /*    var displayable = {}
 
         if(c.Enemy) {
             const it = c.Enemy
@@ -799,9 +882,8 @@ objectsLoaded.then(() => {
                 continue
             }
         }
-    }
+    }*/
 
-    if(curColliderBatch) view.appendChild(curColliderBatch)
     if(curMarkBatch) view.appendChild(curMarkBatch)
 
     container.addEventListener('click', function(e) {

@@ -3,12 +3,20 @@ const shortenName = /[.+](.+)$/
 
 ;(() => {
     for(var i = 0; i < schemas.length; i++) {
-        if(typeof(schemas[i]) == 'string') schemas[i] = { type: 1, name: schemas[i], members: [], membersT: [] }
-        const match = shortenName.exec(schemas[i].name)
+        const s = schemas[i]
+        s.type = s[0]
+        s.name = s[1]
+        for(let key in s[2]) s[key] = s[2][key]
+        if(s.type === 1) {
+            s.members ??= []
+            s.membersT ??= []
+        }
+
+        const match = shortenName.exec(s.name)
         if(match && !typeSchemaI.hasOwnProperty(match[1])) {
             typeSchemaI[match[1]] = i
         }
-        typeSchemaI[schemas[i].name] = i
+        typeSchemaI[s.name] = i
     }
 })()
 
@@ -46,12 +54,10 @@ class Src {
 }
 
 var scenes
-var objects
 
 var objectsLoaded = (async() => {
     const response = await fetch('./data/objects.bp')
     const reader = response.body.getReader()
-    objects = []
     scenes = await parseAny(new Src(reader))
     wereObjectsLoaded = true
 })()
@@ -144,8 +150,10 @@ async function parseRecord(schemaI, src) {
     for(var i = 0; i < names.length; i++) {
         res[names[i]] = await parseBySchema(types[i], src)
     }
+    if(schema.base != null) {
+        res._base = await parseBySchema(schema.base, src)
+    }
     res._schema = schemaI
-    if(schemaI === typeSchemaI.GameObject) objects.push(res)
 
     return res
 }
