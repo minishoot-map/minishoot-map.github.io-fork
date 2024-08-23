@@ -537,13 +537,18 @@ function testFiltersScarab(it) {
 }
 
 var minScale = 0.1 / dd, maxScale = 100 / dd
-function clampScale(scale, old) {
-    if(scale != scale) return old;
-    if(scale <= maxScale) {
-        if(scale >= minScale) return scale
-        else return minScale
+function clampedScale(scale, old) {
+    if(scale != scale) {
+        return [false, old]
     }
-    else return maxScale
+    if(scale <= maxScale) {
+        if(scale >= minScale) return [true, scale]
+        else return [false, minScale]
+    }
+    else return [false, maxScale]
+}
+function clampScale(scale, old) {
+    return clampedScale(scale, old)[1]
 }
 
 function hypot2(xd, yd) {
@@ -627,7 +632,8 @@ container.addEventListener('touchmove', function (e) {
     }
     if(t1 == undefined) return
 
-    const rect = window['center-view'].getBoundingClientRect()
+    const rect0 = window['center-view'].getBoundingClientRect()
+    const rect = { x: rect0.x, y: rect0.y }
 
     const touch1 = touches.touches[firstId]
     if(t2 == undefined) { // pan
@@ -641,21 +647,27 @@ container.addEventListener('touchmove', function (e) {
     else {
         const touch2 = touches.touches[secondId]
 
-        const curX = t1.clientX - rect.x
-        const curY = t1.clientY - rect.y
+        const curX1 = t1.clientX - rect.x
+        const curY1 = t1.clientY - rect.y
         const curX2 = t2.clientX - rect.x
         const curY2 = t2.clientY - rect.y
 
-        const preX = touch1.prevX
-        const preY = touch1.prevY
+        const preX1 = touch1.prevX
+        const preY1 = touch1.prevY
         const preX2 = touch2.prevX
         const preY2 = touch2.prevY
 
-        const delta = hypot2(curX - curX2, curY - curY2) / hypot2(preX - preX2, preY - preY2)
-        const newScale = clampScale(scale * delta, scale)
+        // note: for some reason, zoom sometimes snaps to some value
+        const dx = curX1 - curX2
+        const dy = curY1 - curY2
+        const pdx = preX1 - preX2
+        const pdy = preY1 - preY2
+        const delta = Math.sqrt((dx * dx + dy * dy) / (pdx * pdx + pdy * pdy))
+        const [wasOk, newScale] = clampedScale(scale * delta, scale)
+        const newDelta = wasOk ? delta : (newScale / scale)
 
-        const tx = curX - (preX - originX) * (newScale / scale)
-        const ty = curY - (preY - originY) * (newScale / scale)
+        const tx = (curX1 + curX2) * 0.5 - ((preX1 + preX2) * 0.5 - originX) * newDelta
+        const ty = (curY1 + curY2) * 0.5 - ((preY1 + preY2) * 0.5 - originY) * newDelta
 
         scale = newScale
         originX = tx
