@@ -99,12 +99,25 @@ var map_details = {
 
 
 ;(() => {
-    var maps = document.getElementById("maps")
-    for (const child of maps.children) {
-        var d = map_details[child.id]
-        child.style.left = cx(d[0]) + "px"
-        child.style.top = cy(d[1]) + "px"
-        child.style.transform = `scale(${d[2] * dd})`
+    var backgroundSize = 100 // see ./retrieve/retrieve_backgrounds.cs (50 * 2)
+    var maps = document.getElementById("backgrounds")
+    for(var i = 0; i < background_names.length; i++) {
+        const b = background_names[i]
+
+        const data = b.slice(0, -4) // remove .png
+        const underscoreI = data.indexOf('_')
+
+        const x = parseInt(data.slice(0, underscoreI))
+        const y = parseInt(data.slice(underscoreI + 1))
+
+        const img = document.createElement('img')
+        img.src = './backgrounds/' + b
+        img.style.left = cx(x) + "px"
+        img.style.top = cy(y) + "px"
+        img.style.width = backgroundSize * dd + "px"
+        img.draggable = false
+
+        maps.appendChild(img)
     }
 })()
 
