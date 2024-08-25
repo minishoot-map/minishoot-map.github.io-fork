@@ -483,12 +483,12 @@ function addMark(it) {
 }
 
 var filters = {
-    enemies: true, e_name: false, e_name_text: "", e_size: false, e_size_text: 3, e_tier: false, e_tier_text: 1,
+    enemies: false, e_name: false, e_name_text: "", e_size: false, e_size_text: 3, e_tier: false, e_tier_text: 1,
     jars: true, jars_t0: true, jars_t1: true, jars_t2: true, jars_t3: true, jars_t4: true, jars_t5: true, jars_t6: true,
     crd_y_f: true, crd_n_f: true, crd_f_s: false, crd_f_s_text: 3,
     tran: true, tran_l: false,
     scarab: true,
-    backg: true, coll: true, coll_4: true, coll_6: true, coll_14: true, coll_16: true, coll_17: false, coll_25: true,
+    backg: true, coll: false, coll_4: true, coll_6: true, coll_14: true, coll_16: true, coll_17: false, coll_25: true,
     coll_ui: false,
 }
 var coll_layers = [4, 6, 14, 16, 17, 25]
