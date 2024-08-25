@@ -161,6 +161,17 @@ function createCanvas(w, h) {
 
     const width = (max[0] - min[0] + 1)
     const height = (max[1] - min[1] + 1)
+
+    var imgg = new Image()
+    const x = cx(backgroundStart[0] + (min[0] * backgroundSize) - backgroundSize*0.5)
+    const y = cy(backgroundStart[1] + (min[1] * backgroundSize) - backgroundSize*0.5) - height /* hate this */
+    const size = dd * backgroundSize
+    imgg.draggable = false
+    imgg.style.opacity = 0
+    imgg.style.transform = `matrix(${size}, 0, 0, ${size}, ${x}, ${y})`
+    imgg.width = width
+    imgg.height = height
+
     const { canvas, ctx, getUrl } = createCanvas(width * actualResolution, height * actualResolution)
 
     ctx.fillStyle = "#" + backgroundColor
@@ -170,17 +181,8 @@ function createCanvas(w, h) {
     function checkSubmit() {
         if(count == images.length) {
             getUrl().then(url => {
-                var imgg = new Image()
-                const x = cx(backgroundStart[0] + (min[0] * backgroundSize) - backgroundSize*0.5)
-                const y = cy(backgroundStart[1] + (min[1] * backgroundSize) - backgroundSize*0.5) - height /* hate this */
-                const size = dd * backgroundSize
-                imgg.style.transform = `matrix(${size}, 0, 0, ${size}, ${x}, ${y})`
-                imgg.width = width
-                imgg.height = height
                 imgg.src = url
-
-                var maps = document.getElementById("backgrounds")
-                maps.appendChild(imgg)
+                imgg.style.opacity = 1
             })
         }
     }
@@ -205,6 +207,7 @@ function createCanvas(w, h) {
         })
     }
 
+    document.getElementById("backgrounds").appendChild(imgg)
 })()
 
 var levelDiffMax = 35
