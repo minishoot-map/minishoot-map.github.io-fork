@@ -147,18 +147,7 @@ function createCanvas(w, h) {
     const width = (max[0] - min[0] + 1)
     const height = (max[1] - min[1] + 1)
     const { canvas, ctx, getUrl } = createCanvas(width * actualResolution, height * actualResolution)
-    // document.createElement('canvas')
-    // canvas.width = width * actualResolution
-    // canvas.height = height * actualResolution
-    // const x = cx(backgroundStart[0] + (min[0] * backgroundSize) - backgroundSize*0.5)
-    // const y = cy(backgroundStart[1] + (min[1] * backgroundSize) - backgroundSize*0.5) - canvas.height
-    // const size = (dd * backgroundSize / actualResolution)
-    // canvas.style.transform = `matrix(${size}, 0, 0, ${size}, ${x}, ${y})`
 
-    // print(119100 - 109300)
-    // print(2048 * 0.25)
-
-    // const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true })
     ctx.fillStyle = "#" + backgroundColor
     ctx.fillRect(0, 0, canvas.width, canvas.height)
 
@@ -596,7 +585,7 @@ function updFilters() {
     for(let coll_li of coll_layers) {
         if(!filters['coll_' + coll_li]) css += '[data-collider-layer="' + coll_li + '"] { display: none; }'
     }
-    if(!filters.backg) css += '#maps { display: none; }'
+    if(!filters.backg) css += '#backgrounds { display: none; }'
 
 
     filters_style.textContent = css;
