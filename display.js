@@ -164,13 +164,13 @@ function createCanvas(w, h) {
 
     var imgg = new Image()
     const x = cx(backgroundStart[0] + (min[0] * backgroundSize) - backgroundSize*0.5)
-    const y = cy(backgroundStart[1] + (min[1] * backgroundSize) - backgroundSize*0.5) - height /* hate this */
-    const size = dd * backgroundSize
+    const y = cy(backgroundStart[1] + (min[1] * backgroundSize) - backgroundSize*0.5)
+        - height * backgroundSize * dd /* hate this */
     imgg.draggable = false
     imgg.style.opacity = 0
-    imgg.style.transform = `matrix(${size}, 0, 0, ${size}, ${x}, ${y})`
-    imgg.width = width
-    imgg.height = height
+    imgg.style.transform = `translate(${x}px, ${y}px)`
+    imgg.width = width * backgroundSize * dd
+    imgg.height = height * backgroundSize * dd
 
     const { canvas, ctx, getUrl } = createCanvas(width * actualResolution, height * actualResolution)
 
