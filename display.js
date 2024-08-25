@@ -112,28 +112,110 @@ var map_details = {
     "d3": [ 739.7868686868687, 94.43989898989898, 0.13 / 0.7926341072858286 ]
 }
 
+function createCanvas(w, h) {
+    if ('OffscreenCanvas' in window) {
+        const canvas = new OffscreenCanvas(w, h)
+        const ctx = canvas.getContext('2d', { alpha: false })
+
+        const getUrl = async() => {
+            const blob = await canvas.convertToBlob()
+            return URL.createObjectURL(blob)
+        };
+
+        return { canvas, ctx, getUrl }
+    }
+    else {
+        const canvas = document.createElement('canvas')
+        canvas.width = w + "px"
+        canvas.height = h + "px"
+        const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true })
+        const getUrl = () => {
+            return new Promise((s, j) => {
+                canvas.toBlob(blob => {
+                    if(blob == null) j()
+                    s(URL.createObjectURL(blob))
+                })
+            })
+        }
+
+        return { canvas, ctx, getUrl }
+    }
+}
+
 
 ;(() => {
-    var backgroundSize = 100 // see ./retrieve/retrieve_backgrounds.cs (50 * 2)
-    var maps = document.getElementById("backgrounds")
-    for(var i = 0; i < background_names.length; i++) {
-        const b = background_names[i]
-
-        const data = b.slice(0, -4) // remove .png
-        const underscoreI = data.indexOf('_')
-
-        const x = parseInt(data.slice(0, underscoreI))
-        const y = parseInt(data.slice(underscoreI + 1))
-
-        const img = document.createElement('img')
-        img.src = './backgrounds/' + b
-        img.style.left = cx(x) + "px"
-        img.style.top = cy(y) + "px"
-        img.style.width = backgroundSize * dd + "px"
-        img.draggable = false
-
-        maps.appendChild(img)
+    const images = []
+    const min = [backgroundCount[0], backgroundCount[1]], max = [0, 0]
+    for(let i = 0; i < backgrounds.length; i++) {
+        const b = backgrounds[i]
+        min[0] = Math.min(min[0], b[0])
+        min[1] = Math.min(min[1], b[1])
+        max[0] = Math.max(max[0], b[0])
+        max[1] = Math.max(max[1], b[1])
+        const img = new Image()
+        img.src = './backgrounds/' + b[0] + '_' + b[1] + '.png'
+        images.push({ b, img })
     }
+
+    const actualResolution = backgroundResolution * 0.25 // downscale
+
+    const width = (max[0] - min[0] + 1)
+    const height = (max[1] - min[1] + 1)
+    const { canvas, ctx, getUrl } = createCanvas(width * actualResolution, height * actualResolution)
+    // document.createElement('canvas')
+    // canvas.width = width * actualResolution
+    // canvas.height = height * actualResolution
+    // const x = cx(backgroundStart[0] + (min[0] * backgroundSize) - backgroundSize*0.5)
+    // const y = cy(backgroundStart[1] + (min[1] * backgroundSize) - backgroundSize*0.5) - canvas.height
+    // const size = (dd * backgroundSize / actualResolution)
+    // canvas.style.transform = `matrix(${size}, 0, 0, ${size}, ${x}, ${y})`
+
+    // print(119100 - 109300)
+    // print(2048 * 0.25)
+
+    // const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true })
+    ctx.fillStyle = "#" + backgroundColor
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    var count = 0
+    function checkSubmit() {
+        if(count == images.length) {
+            getUrl().then(url => {
+                var imgg = new Image()
+                const x = cx(backgroundStart[0] + (min[0] * backgroundSize) - backgroundSize*0.5)
+                const y = cy(backgroundStart[1] + (min[1] * backgroundSize) - backgroundSize*0.5) - height /* hate this */
+                const size = dd * backgroundSize
+                imgg.style.transform = `matrix(${size}, 0, 0, ${size}, ${x}, ${y})`
+                imgg.width = width
+                imgg.height = height
+                imgg.src = url
+
+                var maps = document.getElementById("backgrounds")
+                maps.appendChild(imgg)
+            })
+        }
+    }
+
+    for(let i = 0; i < images.length; i++) {
+        const it = images[i]
+        // this is safe right? I am not suspending, so the event could not trigger before this
+        it.img.addEventListener('error', _ => {
+            count++
+            checkSubmit()
+        })
+        it.img.addEventListener('load', _ => {
+            count++
+            ctx.drawImage(
+                it.img,
+                (it.b[0] - min[0]) * actualResolution,
+                canvas.height - (1 + it.b[1] - min[1]) * actualResolution,
+                actualResolution,
+                actualResolution
+            )
+            checkSubmit()
+        })
+    }
+
 })()
 
 var levelDiffMax = 35
@@ -384,7 +466,6 @@ function gotoObject() {
     const o = objects[curI]
     if(o == null) return
 
-    console.log(o.pos)
     originX = -cx(o.pos[0]) * scale
     originY = -cy(o.pos[1]) * scale
     updTransform()

@@ -112,11 +112,6 @@ public partial class GameManager : MonoBehaviour {
                 location2.SetActive(true);
             }
 
-            using(var boundsSw = new StreamWriter(CameraManager.basePath + "bounds.js", false)) {
-                boundsSw.WriteLine("var backgroundBounds = [[" + bounds.min.x + ", " + bounds.min.y + "], ["
-                    + bounds.max.x + ", " + bounds.max.y + "]]");
-            }
-
             /* ittelevant... string res = "[";
             foreach(var b in boundss) {
                 res += "{ min: [" + b.min.x + "," + b.min.y + "], max: [" + b.max.x + "," + b.max.y
@@ -145,6 +140,7 @@ public partial class GameManager : MonoBehaviour {
             var start = bounds.min - Vector2.one * 10;
             var end = bounds.max + Vector2.one * 10;
 
+            // wrong?
             var sx = (int)Mathf.Floor(start.x + cameraSize2);
             var sy = (int)Mathf.Floor(start.y + cameraSize2);
             var countX = (int)Mathf.Ceil((end.x - sx) / cameraSize);
@@ -161,6 +157,9 @@ public partial class GameManager : MonoBehaviour {
             var p = Player.Instance;
             p.transform.position = new Vector3(sx, sy, p.transform.position.z);
             yield return null;
+
+            var backgroundColor = "#000000";
+            var backgrounds = "";
 
             for(var cy = 0; cy < countY; cy++)
             for(var cx = 0; cx < countX; cx++) {
@@ -181,8 +180,6 @@ public partial class GameManager : MonoBehaviour {
                 yield return null;
 
                 using(var errorsSw = new StreamWriter(CameraManager.basePath + "errors.txt")) try {
-                    var name = px + "_" + py + ".png";
-
                     RenderTexture.active = tex;
                     image.ReadPixels(new Rect(0, 0, tex.width, tex.height), 0, 0);
                     image.Apply();
@@ -201,20 +198,30 @@ public partial class GameManager : MonoBehaviour {
                         int r = Mathf.RoundToInt(color.r * 255);
                         int g = Mathf.RoundToInt(color.g * 255);
                         int b = Mathf.RoundToInt(color.b * 255);
-                        var str = $"{r:X2}{g:X2}{b:X2}";
-
-                        System.IO.File.WriteAllBytes(CameraManager.basePath + "#" + str + ".color", new byte[0]);
+                        backgroundColor = $"{r:X2}{g:X2}{b:X2}";
                         continue;
                     }
 
                     byte[] bytes = image.EncodeToPNG();
+                    var name = cx + "_" + cy + ".png";
                     System.IO.File.WriteAllBytes(CameraManager.basePath + name, bytes);
+                    backgrounds += "[" + cx + "," + cy + "],\n";
 
                     //ScreenCapture.CaptureScreenshot(CameraManager.basePath + name);
                 }
                 catch(Exception e) {
                     errorsSw.WriteLine("Error during capture: " + e.ToString());
                 }
+            }
+
+            using(var boundsSw = new StreamWriter(CameraManager.basePath + "backgrounds.js")) {
+                boundsSw.WriteLine("var backgroundSize = " + cameraSize);
+                boundsSw.WriteLine("var backgroundResolution = " + upscaleRes);
+                boundsSw.WriteLine("var backgroundStart = [" + sx + ", " + sy + "]");
+                boundsSw.WriteLine("var backgroundCount = [" + countX + ", " + countY + "]");
+                boundsSw.WriteLine("var backgroundColor = '" + backgroundColor + "'");
+                boundsSw.WriteLine("var backgrounds = [");
+                boundsSw.WriteLine(backgrounds + "]");
             }
 
             yield return null;
