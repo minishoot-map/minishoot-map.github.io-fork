@@ -139,6 +139,13 @@ body {
     height: 0px;
 }
 
+#backgrounds > img {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    image-rendering: pixelated;
+}
+
+
 </style>
     </head>
     <body>
@@ -148,9 +155,7 @@ body {
                 <div id="map-cont">
                     <div id="center-view">
                         <div id="view">
-                            <div id="maps" style="user-select: none">
-                                <img id="ow" src="overworld.png" class="overworld"  draggable="false">
-                                <img id="d3" src="d3.png" class="d3" draggable="false">
+                            <div id="backgrounds" style="user-select: none">
                             </div>
                         </div>
                     </div>
@@ -241,6 +246,8 @@ body {
         <script src="data/schemas.js"></script>
         <script src="load.js"></script>
         <script src="collider_view.js"></script>
+        <script src="bounds.js"></script>
+        <script src="backgrounds_list.js"></script>
         <script src="display.js"></script>
     </body>
 </html>
