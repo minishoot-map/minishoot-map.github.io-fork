@@ -34,22 +34,4 @@ for filename in os.listdir(input_directory):
     imageP = image.convert('P', palette=Image.ADAPTIVE)
     imageP.save(output_path, format='PNG', optimize=True, compress_level=9)
 
-    # stream = io.BytesIO()
-    # image.save(stream, format='PNG', optimize=True, compress_level=9)
-    # streamP = io.BytesIO()
-    # imageP.save(streamP, format='PNG', optimize=True, compress_level=9)
-    # array = stream.getvalue()
-    # arrayP = streamP.getvalue()
-    # print('  ' + str(len(array)) + ' vs ' + str(len(arrayP)))
-    # if len(array) < len(arrayP):
-    #    print('  to rgb')
-    #    with open(output_path, 'wb') as out_file:
-    #        out_file.write(array)
-    # else:
-    #     print('  to palette')
-    #     with open(output_path, 'wb') as out_file:
-    #         out_file.write(arrayP)
-
-    # image.save(output_path, format='PNG', optimize=True, compress_level=9)
-
 print("Done!")
