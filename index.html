@@ -141,7 +141,7 @@ body {
 
 #backgrounds > img {
     position: absolute;
-    transform: translate(-50%, -50%);
+    transform-origin: bottom left;
     image-rendering: pixelated;
 }
 
@@ -257,8 +257,7 @@ body {
         <script async src="data/objects.js" onload="objectsLoadedS()" onerror="objectsLoadedJ()"></script>
 
         <script src="collider_view.js"></script>
-        <script src="bounds.js"></script>
-        <script src="backgrounds_list.js"></script>
+        <script src="backgrounds.js"></script>
         <script src="display.js"></script>
     </body>
 </html>
