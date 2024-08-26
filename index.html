@@ -149,7 +149,7 @@ body {
 </style>
     </head>
     <body>
-        <div class="wrapper">
+        <div class="wrapper" style="display: none">
             <button id="prop-show-hide">properties</button>
             <div id="views">
                 <div id="map-cont">
@@ -243,10 +243,13 @@ body {
             </div>
         </div>
 
+	<canvas id="glCanvas" width="1024" height="1024"></canvas>
+
         <script src="data/schemas.js"></script>
         <script src="load.js"></script>
         <script src="collider_view.js"></script>
         <script src="backgrounds.js"></script>
-        <script src="display.js"></script>
+        <script src="markers.js"></script>
+        <script src="render.js"></script>
     </body>
 </html>
