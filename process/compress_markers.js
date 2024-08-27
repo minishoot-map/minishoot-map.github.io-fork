@@ -1,6 +1,11 @@
 // See for generating the atlas: https://free-tex-packer.com/app/
-const fs = require('fs')
-var data = fs.readFileSync('../data/markers.json')
+
+import { join } from 'node:path';
+import * as fs from 'node:fs'
+
+const root = join(import.meta.dirname, '..')
+
+var data = fs.readFileSync(join(root, './data-raw/markers/markers.json'))
 data = JSON.parse(data).frames
 
 var res = {}
@@ -10,6 +15,8 @@ for(const name in data) {
     if(m.pivot.x != 0.5 || m.pivot.y != 0.5) throw 'Not implemented'
     if(m.trimmed) throw 'Trim not supported'
 }
-res = 'var markerData = ' + JSON.stringify(res)
-fs.writeFileSync('../markers.js', res, 'utf-8')
+
+const proc = join(root, 'data-processed')
+fs.mkdirSync(proc, { recursive: true })
+fs.writeFileSync(join(proc, '/markers.json'), JSON.stringify(res), 'utf-8')
 console.log('Done!')

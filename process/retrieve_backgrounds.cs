@@ -7,11 +7,25 @@ using UnityEngine;
 using System.IO;
 using UnityEngine.SceneManagement;
 
-// CameraManager (basePath, remove body of LateUpdate())
-// SceneAsync... (same as in retrieve.cs)
+// CameraManager (remove body of LateUpdate())
+// SceneAsync... (remove rate limit - same as in retrieve.cs)
 // AspectUtility (set _wantedAspectRatio = 1 at the start of Awake())
 // LightFlicker (remove body of Awake())
+// ActivationManager (remove body of LateUpdate(),
+/*
+using UnityEngine;
 
+public partial class ActivationManager : MiniBehaviour {
+	protected override void OnGameLocationLoaded() {
+		this.RetrieveAllItems();
+		for (int i = this.currentCheckIndex; i < this.objects.Count; i++) {
+			var itemState = this.objects[i];
+			itemState.transform.gameObject.SetActive(true);
+			itemState.activated = true;
+		}
+	}
+})
+*/
 /*
 using System.Collections.Generic;
 using UnityEngine;
@@ -26,6 +40,7 @@ public partial class LightManager : MonoBehaviour {
 	}
 }
 */
+// GameManager (yield return this.LaunchGame(); from InitializeGame(), also remove scene preloading (baseScenesToLoad), also remove whole if(SkipTitle) {} else {}, also basePath (ends in slash!), also Application.runInBackground = true;, remove WaitForSeconds...)
 
 public partial class GameManager : MonoBehaviour {
 	private IEnumerator LaunchGame() {
@@ -94,7 +109,7 @@ public partial class GameManager : MonoBehaviour {
         c.orthographicSize = cameraSize2;
 
         Bounds bounds;
-		using(var errorsSw = new StreamWriter(CameraManager.basePath + "errors.txt", false)) try {
+		using(var errorsSw = new StreamWriter(basePath + "errors.txt", false)) try {
             bounds = Prepare();
 
             tex = new RenderTexture(upscaleRes, upscaleRes, 24);
@@ -167,7 +182,7 @@ public partial class GameManager : MonoBehaviour {
                 c.transform.position = new Vector3(px, py, -10f/* from CamPos(this Vector3 v)*/);;
                 yield return null;
 
-                using(var errorsSw = new StreamWriter(CameraManager.basePath + "errors.txt")) try {
+                using(var errorsSw = new StreamWriter(basePath + "errors.txt")) try {
                     RenderTexture.active = tex;
                     image.ReadPixels(new Rect(0, 0, tex.width, tex.height), 0, 0);
                     image.Apply();
@@ -192,7 +207,7 @@ public partial class GameManager : MonoBehaviour {
 
                     byte[] bytes = image.EncodeToPNG();
                     var name = cx + "_" + cy + ".png";
-                    System.IO.File.WriteAllBytes(CameraManager.basePath + name, bytes);
+                    System.IO.File.WriteAllBytes(basePath + name, bytes);
                     backgrounds += "[" + cx + "," + cy + "],\n";
 
                     //ScreenCapture.CaptureScreenshot(CameraManager.basePath + name);
@@ -202,7 +217,7 @@ public partial class GameManager : MonoBehaviour {
                 }
             }
 
-            using(var boundsSw = new StreamWriter(CameraManager.basePath + "backgrounds.js")) {
+            using(var boundsSw = new StreamWriter(basePath + "backgrounds.js")) {
                 boundsSw.WriteLine("var backgroundSize = " + cameraSize);
                 boundsSw.WriteLine("var backgroundResolution = " + upscaleRes);
                 boundsSw.WriteLine("var backgroundStart = [" + sx + ", " + sy + "]");

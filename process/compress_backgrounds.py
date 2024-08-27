@@ -1,19 +1,17 @@
 import os
 import io
-import shutil
 from PIL import Image
 
-input_directory = '../raw/backgrounds'
-output_directory = '../backgrounds'
+root = os.path.join(os.path.dirname(__file__), '..')
+
+input_directory  = os.path.join(root, './data-raw/backgrounds')
+output_directory = os.path.join(root, './data-processed/backgrounds')
 
 os.makedirs(output_directory, exist_ok=True)
 
 for filename in os.listdir(input_directory):
     input_path = os.path.join(input_directory, filename)
     output_path = os.path.join(output_directory, filename)
-
-    if filename == 'backgrounds.js':
-        shutil.copy(input_path, '../' + filename)
 
     if not filename.endswith('.png'):
         continue

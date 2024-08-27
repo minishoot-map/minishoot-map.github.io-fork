@@ -1,14 +1,17 @@
 import cdt2d from 'cdt2d' // great lib! Many thanks
-import * as fs from 'node:fs/promises'
+import * as fs from 'node:fs'
 import { join } from 'node:path';
 
-import { schemas } from '../raw/objects/schemas.js'
+import * as meta from '../data-raw/objects/schemas.js'
 import { parseSchema, parse } from '../load.js'
 
 const root = join(import.meta.dirname, '..')
 
-const collidersData = await fs.readFile(join(root, 'raw', 'objects', 'polygons.bp'))
-const parsedSchema = parseSchema(schemas)
+const proc = join(root, 'data-processed')
+fs.mkdirSync(proc, { recursive: true })
+
+const collidersData = fs.readFileSync(join(root, 'data-raw', 'objects', 'polygons.bp'))
+const parsedSchema = parseSchema(meta.schemas)
 const allPolygons = parse(parsedSchema, collidersData)
 
 const points = []
@@ -33,9 +36,107 @@ function triangulate(i) {
 
     return cdt2d(points, edges, { exterior: false })
 }
-//for(let i = 0; i < allPolygons.length; i++) {
-//    triangulate(i)
-//}
+
+function compactInt(it) {
+    const tmpBuffer = new ArrayBuffer(5)
+    const tmpView = new DataView(tmpBuffer)
+    if(it < 0) throw "Unreachable"
+    var i = 0
+    do {
+        var div = it >> 7;
+        var rem = it & ((1 << 7) - 1)
+        tmpView.setUint8(i, rem | (div === 0 ? 1 << 7 : 0))
+        it = div
+        i++
+    } while(it != 0);
+    return new Uint8Array(tmpBuffer, 0, i)
+}
+
+function isPZero(it) {
+    return it == 0.0 && 1 / it > 0
+}
+function compactFloat(it) {
+    if(isPZero(it)) {
+        const arr = new Uint8Array(1)
+        arr[0] = 0b1111_1111
+        return arr
+    }
+    const tmpBuffer = new ArrayBuffer(4)
+    const tmpView = new DataView(tmpBuffer)
+    tmpView.setFloat32(0, it, false)
+    const f = tmpView.getUint8(0)
+    if(f == 0b1111_1111 || f == 0b0111_1111) {
+        throw "Scary numbers, not tested"
+    }
+    return tmpView
+}
+
+function writeVector2(sw, it) {
+    var px0 = isPZero(it[0])
+    if(px0 && isPZero(it[1])) {
+        const arr = new Uint8Array(1)
+        arr[0] = 0b0111_1111
+        sw.write(arr)
+        return
+    }
+    if(px0) {
+        const arr = new Uint8Array(1)
+        arr[0] = 0b1111_1111
+        sw.write(arr)
+        sw.write(compactFloat(it[1]))
+        return
+    }
+
+    const tmpBuffer = new ArrayBuffer(4)
+    const tmpView = new DataView(tmpBuffer)
+    tmpView.setFloat32(0, it[0], false)
+    const f = tmpView.getUint8(0)
+    if(f == 0b1111_1111 || f == 0b0111_1111 || f == 0b1111_1110) {
+        throw "Scary numbers, not tested"
+    }
+    sw.write(tmpView)
+    sw.write(compactFloat(it[1]))
+}
+
+const v2arrI = parsedSchema.typeSchemaI['UnityEngine.Vector2[]']
+if(v2arrI == null) throw "vec2[] doesn't exist"
+
+var intArrI = parsedSchema.typeSchemaI['System.Int32[]']
+if(intArrI == null) {
+    var intI = parsedSchema.typeSchemaI['System.Int32']
+    if(intI == null) throw "int doesn't exist"
+
+    intArrI = meta.schemas.length
+    meta.schemas.push([2, 'System.Int32[]', { elementT: intI }])
+}
+
+const colliderDataI = meta.schemas.length
+meta.schemas.push([1, "$ColliderData$", { members: ['points', 'indices'], membersT: [v2arrI, intArrI] }])
+const colliderDataArrI = meta.schemas.length
+meta.schemas.push([2, "$ColliderData$[]", { elementT: colliderDataI }])
+
+const sw = fs.createWriteStream(join(proc, 'polygons.bp'))
+sw.write(compactInt(colliderDataArrI))
+sw.write(compactInt(allPolygons.length))
+
+for(let i = 0; i < allPolygons.length; i++) {
+    const res = triangulate(i)
+    sw.write(compactInt(points.length))
+    for(let j = 0; j < points.length; j++) {
+        writeVector2(sw, points[j])
+    }
+    sw.write(compactInt(res.length * 3))
+    for(let j = 0; j < res.length; j++) {
+        sw.write(compactInt(res[j][0]))
+        sw.write(compactInt(res[j][1]))
+        sw.write(compactInt(res[j][2]))
+    }
+    console.log(i, res.length)
+}
+
+fs.writeFileSync(join(proc, 'meta.json'), JSON.stringify(meta))
+
+console.log('Done!')
 
 /* const res = triangulate(1)
 const re = []

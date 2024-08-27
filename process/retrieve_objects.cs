@@ -12,7 +12,7 @@ using System.Reflection;
 using System.Linq;
 
 // SceneAsyncActivationGO (remove rate limit)
-// GameManager (yield return this.LaunchGame(); from InitializeGame(), also remove scene preloading (baseScenesToLoad), also remove whole if(SkipTitle) {} else {}, basePath (ends in slash!), remove WaitForSeconds...)
+// GameManager (yield return this.LaunchGame(); from InitializeGame(), also remove scene preloading (baseScenesToLoad), also remove whole if(SkipTitle) {} else {}, also basePath (ends in slash!), also Application.runInBackground = true;, remove WaitForSeconds...)
 
 
 // "Overworld", "Cave", "CaveExtra", "Dungeon1", "Dungeon2", "Dungeon3", "Dungeon4", "Dungeon5", "Temple1", "Temple2", "Temple3", "Tower", "CaveArena", "Snow"

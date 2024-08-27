@@ -47,7 +47,7 @@ function parseAny() {
 }
 
 const primParsers = {
-    ["GameManager+None"]: () => { throw "None is not parsable" },
+    ["GameManager+None"]: () => { throw new Error("None is not parsable i=" + index) },
     ["System.Boolean"]: () => pop() != 0,
     ["System.Int32"]: parseCompressedInt,
     ["System.Single"]: parseFloat,
@@ -74,7 +74,7 @@ function parseBySchema(schemaI) {
     else if(type === 2) {
         return parseArray(schemaI)
     }
-    else throw ("No type " + type)
+    else throw new Error("No type " + type + " i=" + index)
 }
 
 function parseRecord(schemaI) {

@@ -1,11 +1,14 @@
+import * as load from './load.js'
+import markerData from './data-processed/markers.json'
+import meta from './data-processed/meta.json'
+
+const polygonsP = fetch('./data/polygons.bp').then(it => it.arrayBuffer()).then(it => new Uint8Array(it))
+
 const canvas = document.getElementById('glCanvas')
 const gl = canvas.getContext('webgl2')
 
-if (!gl) {
-    throw 'WebGL 2 is not supported.'
-}
+if (!gl) { throw 'WebGL 2 is not supported.' }
 
-// Vertex shader program
 const vsSource = `#version 300 es
 precision highp float;
 
@@ -47,7 +50,6 @@ void main(void) {
 }
 `
 
-// Fragment shader program
 const fsSource = `#version 300 es
 precision highp float;
 
@@ -99,7 +101,6 @@ const unifs = {
     texture_size: gl.getUniformLocation(shaderProgram, 'texture_size')
 }
 
-// Set up the buffers
 const positionBuffer = gl.createBuffer()
 gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
 const vertexData = new ArrayBuffer(20 * 5)
@@ -125,7 +126,6 @@ for(const name in markerData) {
 gl.bufferData(gl.ARRAY_BUFFER, v, gl.STATIC_DRAW)
 
 
-// ext.vertexAttribDivisorANGLE(loc, 1)
 /* const m = markerData['Overworld 410 Miniboss Busher T1 S3.png']
 
 const textureCoordBuffer = gl.createBuffer()
@@ -138,11 +138,9 @@ const textureCoordinates = [
 ]
 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates), gl.STATIC_DRAW);*/
 
-// Load and set up the texture
 const texture = gl.createTexture()
 gl.bindTexture(gl.TEXTURE_2D, texture)
 
-// Load image
 const image = new Image()
 image.onload = () => {
     gl.bindTexture(gl.TEXTURE_2D, texture)
@@ -153,11 +151,14 @@ image.onload = () => {
 
     render()
 }
-image.src = './data/markers.png'; // Replace with the texture URL
+image.src = './data/markers.png';
 
-// uniform uint texture_size
+/* const parsedSchema = load.parseSchema(meta.schemas)
+polygonsP.then(polygons => {
+    const res = load.parse(parsedSchema, polygons)
+    console.log(res.length)
+})*/
 
-// Bind position buffer
 gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
 console.log(attrs)
 
@@ -174,7 +175,6 @@ gl.enableVertexAttribArray(attrs.texture_data)
 gl.vertexAttribDivisor(attrs.texture_data, 1)
 
 
-// Render
 function render() {
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
