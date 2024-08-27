@@ -11,13 +11,11 @@ using System.Runtime.InteropServices;
 using System.Reflection;
 using System.Linq;
 
-// "Overworld", "Cave", "CaveExtra", "Dungeon1", "Dungeon2", "Dungeon3", "Dungeon4", "Dungeon5", "Temple1", "Temple2", "Temple3", "Tower", "CaveArena", "Snow"
 // SceneAsyncActivationGO (remove rate limit)
-// CameraManager (.basePath, .sceneNames)
-// GameManager (yield return this.LaunchGame(); from InitializeGame())
-// CrystalDestroyable (public dropXp, public size)
-// ScarabDrop (public destroyable)
+// GameManager (yield return this.LaunchGame(); from InitializeGame(), also remove scene preloading (baseScenesToLoad), also remove whole if(SkipTitle) {} else {}, basePath (ends in slash!), remove WaitForSeconds...)
 
+
+// "Overworld", "Cave", "CaveExtra", "Dungeon1", "Dungeon2", "Dungeon3", "Dungeon4", "Dungeon5", "Temple1", "Temple2", "Temple3", "Tower", "CaveArena", "Snow"
 public partial class GameManager : MonoBehaviour
 {
 	static StreamWriter errorsSw;
@@ -168,10 +166,12 @@ public partial class GameManager : MonoBehaviour
         return addprim(typeof(T), (bw, it) => w(bw, (T)it));
     }
 
-    public static Dictionary<GameObject, int> objects;
-    public static List<GameObject> objectList;
-    public static List<string> textureNames;
-    public static Dictionary<long, int> textureIndices;
+    static Dictionary<GameObject, int> objects;
+    static List<GameObject> objectList;
+    static List<string> textureNames;
+    static Dictionary<long, int> textureIndices;
+
+    static List<Vector2[][]> colliderPolygons;
 
     static int getObjectRef(GameObject o) {
         if(o == null) return -1;
@@ -221,7 +221,7 @@ public partial class GameManager : MonoBehaviour
             textureIndices.Add(key, textureCount);
             textureNames.Add(name);
             byte[] array = duplicateTexture(sprite.sprite.texture).EncodeToPNG();
-            using (FileStream fileStream = new FileStream(CameraManager.basePath + "sprites/" + name + ".png", FileMode.Create, FileAccess.Write)) {
+            using (FileStream fileStream = new FileStream(basePath + "sprites/" + name + ".png", FileMode.Create, FileAccess.Write)) {
 				fileStream.Write(array, 0, array.Length);
             }
 			return textureCount;
@@ -350,6 +350,25 @@ public partial class GameManager : MonoBehaviour
         }
     }
 
+    int addPolygons(Vector2[][] polygons) {
+        for(var i = 0; i < colliderPolygons.Count; i++) {
+            var c = colliderPolygons[i];
+            if(c.Length != polygons.Length) continue;
+            bool same = true;
+            for(var j = 0; same && j < c.Length; j++) {
+                var cp = c[j];
+                var polygon = polygons[j];
+                for(var k = 0; same && k < c.Length; k++) {
+                    if(cp[k] != polygon[k]) same = false;
+                }
+            }
+            if(same) return i;
+        }
+        var res = colliderPolygons.Count;
+        colliderPolygons.Add(polygons);
+        return res;
+    }
+
     private IEnumerator LaunchGame()
     {
         Debug.Log(" > LaunchGame");
@@ -363,7 +382,7 @@ public partial class GameManager : MonoBehaviour
         UIManager.Background.Close();
         SteamIntegration.DoubleCheckGameCompleted();
         var scenes = new string[]{ "Overworld", "Cave", "CaveExtra", "Dungeon1", "Dungeon2", "Dungeon3", "Dungeon4", "Dungeon5", "Temple1", "Temple2", "Temple3", "Tower", "CaveArena", "Snow" };
-        //var scenes = new string[]{ "Cave" };
+        // var scenes = new string[]{ "Cave" };
         if (this.preloadScenes)
         {
             yield return this.LoadScenes(0.1f, scenes);
@@ -394,34 +413,12 @@ public partial class GameManager : MonoBehaviour
         objectList = new List<GameObject>();
         textureNames = new List<string>();
         textureIndices = new Dictionary<long, int>();
-        /*locations = new Dictionary<string, int>{
-            { "Overworld", 0 },
-            { "Cave", 1 },
-            { "CaveExtra", 2 },
-            { "Dungeon1", 3 },
-            { "Dungeon2", 4 },
-            { "Dungeon3", 5 },
-            { "Dungeon4", 6 },
-            { "Dungeon5", 7 },
-            { "Temple1", 8 },
-            { "Temple2", 9 },
-            { "Temple3", 10 },
-            { "Tower", 11 },
-            { "CaveArena", 12 },
-            { "Snow", 13 }
-        };
-        knownColliders = new Dictionary<string, int>{
-            { "BoxCollider2D", 0 },
-            { "CapsuleCollider2D", 1 },
-            { "CircleCollider2D", 2 },
-            { "PolygonCollider2D", 3 },
-            { "CompositeCollider2D", 4 },
-            { "TilemapCollider2D", 5 }
-        };*/
 
-        Directory.CreateDirectory(CameraManager.basePath);
-        Directory.CreateDirectory(CameraManager.basePath + "sprites/");
-        using(errorsSw = new StreamWriter(CameraManager.basePath + "errors.txt", false)) try {
+        colliderPolygons = new List<Vector2[][]>();
+
+        Directory.CreateDirectory(basePath);
+        Directory.CreateDirectory(basePath + "sprites/");
+        using(errorsSw = new StreamWriter(basePath + "errors.txt", false)) try {
             Write();
         }
         catch(Exception e) {
@@ -472,16 +469,20 @@ public partial class GameManager : MonoBehaviour
         addrec<CrystalDestroyable, (bool, int)>(v => ((bool)prop(v, "dropXp"), Convert.ToInt32(prop(v, "size"))), "dropXp", "size");
         addrec<ScarabPickup, ValueTuple<Reference>>(v => {
             int oIndex;
-            if(!objects.TryGetValue(v.destroyable.gameObject, out oIndex)) oIndex = -1;
+            if(!objects.TryGetValue(prop(v, "destroyable", "gameObject") as GameObject, out oIndex)) oIndex = -1;
             return new ValueTuple<Reference>(toReference(oIndex));
         }, "container");
 
         addrec<Collider2D, (bool, Vector2)>(v => (v.isTrigger, v.offset), "isTrigger", "offset");
         addrec<BoxCollider2D, (Vector2, bool, Collider2D)>(v => (v.size, v.usedByComposite, v), "size", "usedByComposite", "base");
+
         addrec<CapsuleCollider2D, (Vector2, Collider2D)>(v => (v.size, v), "size", "base");
         addrec<CircleCollider2D, (float, Collider2D)>(v => (v.radius, v), "radius", "base");
-        addrec<PolygonCollider2D, (Vector2[], bool, Collider2D)>(v => (v.points, v.usedByComposite, v), "points", "usedByComposite", "base");
-        addrec<CompositeCollider2D, (Vector2[][], Collider2D)>(v => {
+        addrec<PolygonCollider2D, (int, bool, Collider2D)>(v => {
+            var polygonI = addPolygons(new[]{ v.points });
+            return (polygonI, v.usedByComposite, v);
+        }, "points", "usedByComposite", "base");
+        addrec<CompositeCollider2D, (int, Collider2D)>(v => {
             var pathCount = v.pathCount;
             var polygons = new Vector2[pathCount][];
             for(int i = 0; i < pathCount; i++) {
@@ -489,7 +490,8 @@ public partial class GameManager : MonoBehaviour
                 v.GetPath(i, points);
                 polygons[i] = points;
             }
-            return (polygons, v);
+            var polygonsI = addPolygons(polygons);
+            return (polygonsI, v);
         }, "polygons", "base");
 
         addrec<Transition, ValueTuple<Reference>>(v => {
@@ -520,9 +522,10 @@ public partial class GameManager : MonoBehaviour
             scenes[i] = SceneManager.GetSceneAt(i);
         }
         var result = serialized(scenes);
+        var polygonsResult = serialized(colliderPolygons.ToArray());
 
 
-        using(var schemasS = new StreamWriter(CameraManager.basePath + "schemas.js", false)) {
+        using(var schemasS = new StreamWriter(basePath + "schemas.js", false)) {
             {
                 int index = -1;
                 var it = FindObjectOfType<Jar>(true);
@@ -532,7 +535,7 @@ public partial class GameManager : MonoBehaviour
             {
                 int yindex = -1, nindex = -1;
                 foreach(var it in FindObjectsOfType<CrystalDestroyable>(true)) {
-                    if(it.dropXp) {
+                    if((bool)prop(it, "dropXp")) {
                         if(yindex == -1) yindex = tryAddSprite(it.gameObject.GetComponentInChildren<SpriteRenderer>(), it.gameObject.name);
                     }
                     else {
@@ -540,7 +543,7 @@ public partial class GameManager : MonoBehaviour
                     }
                     if(yindex != -1 && nindex != -1) break;
                 }
-                schemasS.WriteLine("var crystalDestroyableTextures = [" + nindex + "," + yindex + "]");
+                schemasS.WriteLine("export var crystalDestroyableTextures = [" + nindex + "," + yindex + "]");
             }
             {
                 int index = -1;
@@ -548,15 +551,15 @@ public partial class GameManager : MonoBehaviour
                 if(it != null) index = tryAddSprite(it.gameObject.GetComponentNamed<SpriteRenderer>("FullImage", true), it.gameObject.name);
                 typeSerializers[typeof(ScarabPickup)].schema.textureIndex = index;
             }
-            schemasS.WriteLine("var xpForCrystalSize = [" + String.Join(", ", PlayerData.DestroyableCrystalValue) + "]");
+            schemasS.WriteLine("export var xpForCrystalSize = [" + String.Join(", ", PlayerData.DestroyableCrystalValue) + "]");
 
-            schemasS.WriteLine("var textureNames = [");
+            schemasS.WriteLine("export var textureNames = [");
             for(var i = 0; i < textureNames.Count; i++) {
                 schemasS.WriteLine(jsStr(textureNames[i]) + ",");
             }
             schemasS.WriteLine("]");
 
-            schemasS.WriteLine("var schemas = [");
+            schemasS.WriteLine("export var schemas = [");
             for(var i = 0; i < serializers.Count; i++) {
                 var it = serializers[i].schema;
                 var name = jsStr(it.itType.FullName);
@@ -583,9 +586,14 @@ public partial class GameManager : MonoBehaviour
 
         }
 
-        using (FileStream fs = new FileStream(CameraManager.basePath + "objects.bp", FileMode.Create, FileAccess.Write))
+        using (FileStream fs = new FileStream(basePath + "objects.bp", FileMode.Create, FileAccess.Write))
         using (BinaryWriter bw = new BinaryWriter(fs)) {
             writeDynamic(bw, result, anySerializer.index);
+        }
+
+        using (FileStream fs = new FileStream(basePath + "polygons.bp", FileMode.Create, FileAccess.Write))
+        using (BinaryWriter bw = new BinaryWriter(fs)) {
+            writeDynamic(bw, polygonsResult, anySerializer.index);
         }
     }
 }

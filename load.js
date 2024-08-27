@@ -1,52 +1,4 @@
-const typeSchemaI = {}
-const shortenName = /[.+](.+)$/
-
-;(() => {
-    for(var i = 0; i < schemas.length; i++) {
-        const s = schemas[i]
-        s.type = s[0]
-        s.name = s[1]
-        for(let key in s[2]) s[key] = s[2][key]
-        if(s.type === 1) {
-            s.members ??= []
-            s.membersT ??= []
-        }
-
-        const match = shortenName.exec(s.name)
-        if(match && !typeSchemaI.hasOwnProperty(match[1])) {
-            typeSchemaI[match[1]] = i
-        }
-        typeSchemaI[s.name] = i
-    }
-})()
-
-var src
-function peek() {
-    if(src.i < src.value.length) return src.value[src.i]
-    return src.value[i]
-}
-function pop() {
-    var cur = peek(src)
-    src.i++
-    return cur
-}
-function skip() {
-    src.i++
-}
-
-var scenes
-
-var objectsLoaded = (async() => {
-    const response = await fetch('./data/objects.bp')
-    const value = new Uint8Array(await response.arrayBuffer())
-    console.log('started')
-    const start = performance.now()
-    src = { i: 0, value }
-    scenes = parseAny()
-    const end = performance.now()
-    console.log('done in ' + (end - start) + 'ms')
-    wereObjectsLoaded = true
-})()
+var primIParsers, index, array, schemas
 
 function parseCompressedInt() {
     var res = 0
@@ -89,6 +41,11 @@ function parseString() {
     return res
 }
 
+function parseAny() {
+    var schemaI = parseCompressedInt()
+    return parseBySchema(schemaI)
+}
+
 const primParsers = {
     ["GameManager+None"]: () => { throw "None is not parsable" },
     ["System.Boolean"]: () => pop() != 0,
@@ -100,19 +57,9 @@ const primParsers = {
     ["UnityEngine.Vector2"]: parseVector2,
     ["GameManager+Any"]: parseAny,
 }
-const primIParsers = Array(10)
-for(const key in primParsers) {
-    primIParsers[typeSchemaI[key]] = primParsers[key]
-}
 
 function parsePrimitive(schemaI) {
     return primIParsers[schemaI]()
-}
-
-function parseAny() {
-    var schemaI = parseCompressedInt()
-    var schema = schemas[schemaI]
-    return parseBySchema(schemaI)
 }
 
 function parseBySchema(schemaI) {
@@ -158,3 +105,64 @@ function parseArray(schemaI) {
     res._schema = schemaI
     return res
 }
+
+const shortenName = /[.+](.+)$/
+
+function peek() {
+    if(index < array.length) return array[index]
+    return array[index]
+}
+function pop() {
+    var cur = peek()
+    index++
+    return cur
+}
+function skip() {
+    index++
+}
+
+export function parseSchema(schema) {
+    const typeSchemaI = {}
+
+    for(var i = 0; i < schema.length; i++) {
+        const s = schema[i]
+        s.type = s[0]
+        s.name = s[1]
+        for(let key in s[2]) s[key] = s[2][key]
+        if(s.type === 1) {
+            s.members ??= []
+            s.membersT ??= []
+        }
+
+        const match = shortenName.exec(s.name)
+        if(match && !typeSchemaI.hasOwnProperty(match[1])) {
+            typeSchemaI[match[1]] = i
+        }
+        typeSchemaI[s.name] = i
+    }
+
+    return { schema, typeSchemaI }
+}
+
+export function parse(parsedSchema, objectsUint8Array) {
+    index = 0
+    array = objectsUint8Array
+    primIParsers = Array(10)
+    schemas = parsedSchema.schema
+
+    for(const key in primParsers) {
+        primIParsers[parsedSchema.typeSchemaI[key]] = primParsers[key]
+    }
+
+    return parseAny()
+}
+
+/*
+    console.log('started')
+    const start = performance.now()
+    const end = performance.now()
+    console.log('done in ' + (end - start) + 'ms')
+    async() => {
+    const response = await fetch('./data/objects.bp')
+    const value = new Uint8Array(await response.arrayBuffer())
+})() */
