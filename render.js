@@ -12,16 +12,66 @@ const gl = canvas.getContext('webgl2', { alpha: false })
 
 if (!gl) { throw 'WebGL 2 is not supported.' }
 
+const prevCanvasSize = [-1, -1]
+const canvasSize = []
+
+function shouldResize() {
+    const pw = Math.round(prevCanvasSize[0])
+    const ph = Math.round(prevCanvasSize[1])
+
+    const cw = Math.round(canvasSize[0])
+    const ch = Math.round(canvasSize[1])
+
+    if(cw !== pw || ch !== ph) {
+        return [cw, ch]
+    }
+}
+
+// https://webgl2fundamentals.org/webgl/lessons/webgl-fundamentals.html
+function onResize(entries) {
+    const entry = entries[0]
+    if(entry == null) return
+
+    var width
+    var height
+    var dpr = window.devicePixelRatio
+    if (entry.devicePixelContentBoxSize) {
+        width = entry.devicePixelContentBoxSize[0].inlineSize
+        height = entry.devicePixelContentBoxSize[0].blockSize
+        dpr = 1
+    } else if (entry.contentBoxSize) {
+        if (entry.contentBoxSize[0]) {
+            width = entry.contentBoxSize[0].inlineSize
+            height = entry.contentBoxSize[0].blockSize
+        } else {
+            width = entry.contentBoxSize.inlineSize
+            height = entry.contentBoxSize.blockSize
+        }
+    } else {
+        width = entry.contentRect.width
+        height = entry.contentRect.height
+    }
+
+    canvasSize[0] = width * dpr
+    canvasSize[1] = height * dpr
+    if(shouldResize()) render()
+}
+const resizeObserver = new ResizeObserver(onResize)
+resizeObserver.observe(canvas, {box: 'content-box'});
+
 const vsSource = `#version 300 es
 precision highp float;
 
 uniform vec2 translate;
 uniform float scale;
+uniform float aspect;
 
 in vec2 coord;
 
 void main(void) {
-    gl_Position = vec4((translate + coord) * scale, 1.0, 1.0);
+    vec2 pos = (translate + coord) * scale;
+    pos.x *= aspect;
+    gl_Position = vec4(pos, 1.0, 1.0);
 }
 `
 const colliderColors = {
@@ -95,6 +145,7 @@ gl.useProgram(shaderProgram)
 
 const translateU = gl.getUniformLocation(shaderProgram, 'translate')
 const scaleU = gl.getUniformLocation(shaderProgram, 'scale')
+const aspectU = gl.getUniformLocation(shaderProgram, 'aspect')
 const layerU = gl.getUniformLocation(shaderProgram, 'layer')
 
 const positionBuffer = gl.createBuffer()
@@ -224,7 +275,7 @@ image.onload = () => {
 }
 image.src = './data/markers.png';*/
 
-var renderData = {}
+const renderData = {}
 
 Promise.all([objectsP, polygonsP]).then(([objectsA, polygonsA]) => {
     const scenes = load.parse(parsedSchema, objectsA)
@@ -334,10 +385,10 @@ Promise.all([objectsP, polygonsP]).then(([objectsA, polygonsA]) => {
 
     renderData.centerVao = centerVao
 
-    render()
+    scheduleRender()
 })
 
-var minScale = 0.1, maxScale = 1000
+var minScale = 0.1, maxScale = 10000
 function clampedScale(scale, old) {
     if(scale != scale) {
         return [false, old]
@@ -356,9 +407,7 @@ var posX = 0, posY = 0, scale = 100
 
 function prepInfo() {
     const rect = canvas.getBoundingClientRect()
-    const cx = (rect.right + rect.left) * 0.5
-    const cy = (rect.bottom + rect.top) * 0.5
-    return { cx, cy, scale: 2 / Math.max(rect.right - rect.left, rect.bottom - rect.top) }
+    return { cx: rect.width * 0.5, cy: rect.height * 0.5, scale: 2 / (rect.height) }
 }
 function xScreenToWorld(it, info) {
     return (it - info.cx) * info.scale * scale + posX
@@ -387,6 +436,8 @@ canvas.addEventListener('wheel', (e) => {
     scale = newScale
     posX = tx
     posY = ty
+
+    scheduleRender()
 });
 
 var panning = { is: false, prevX: undefined, prevY: undefined }
@@ -411,6 +462,7 @@ canvas.addEventListener('mousemove', (e) => {
 
     posX -= curX - panning.prevX
     posY -= curY - panning.prevY
+    scheduleRender()
 });
 
 
@@ -424,22 +476,45 @@ gl.clearColor(1, 1, 1, 1)
 
 function render() {
     if(window.__stop) return
-    gl.uniform2f(translateU, -posX, -posY)
-    gl.uniform1f(scaleU, 1 / scale)
+    renderScheduled = false
 
-    gl.clear(gl.COLOR_BUFFER_BIT)
-    gl.bindVertexArray(renderData.polygonsVao)
-    for(let i = 0; i < renderData.polygons.length; i++) {
-        const it = renderData.polygons[i]
-        gl.uniform1i(layerU, it.layer)
-        gl.drawElements(gl.TRIANGLES, it.length, gl.UNSIGNED_INT, it.startIndexI * 4)
+    if(!(canvasSize[0] >= 1 && canvasSize[1] >= 1)) return
+
+    const resizeInfo = shouldResize()
+    if(resizeInfo) {
+        prevCanvasSize[0] = canvasSize[0]
+        prevCanvasSize[1] = canvasSize[1]
+        canvas.width = resizeInfo[0]
+        canvas.height = resizeInfo[1]
+        gl.viewport(0, 0, resizeInfo[0], resizeInfo[1])
+    }
+
+    if(renderData.polygonsVao != null) {
+        gl.uniform2f(translateU, -posX, -posY)
+        gl.uniform1f(scaleU, 1 / scale)
+        gl.uniform1f(aspectU,  canvasSize[1] / canvasSize[0])
+
+        gl.clear(gl.COLOR_BUFFER_BIT)
+        gl.bindVertexArray(renderData.polygonsVao)
+        for(let i = 0; i < renderData.polygons.length; i++) {
+            const it = renderData.polygons[i]
+            gl.uniform1i(layerU, it.layer)
+            gl.drawElements(gl.TRIANGLES, it.length, gl.UNSIGNED_INT, it.startIndexI * 4)
+        }
     }
 
     // gl.bindVertexArray(renderData.centerVao)
     // gl.uniformMatrix2x3fv(transformU, false, new Float32Array([100, 0, 0, 0, 100, 0]))
     // gl.drawArrays(gl.TRIANGLES, 0, 3)
+}
 
-    requestAnimationFrame(render)
+var renderScheduled = false
+function scheduleRender() {
+    if(renderScheduled) return
+    renderScheduled = true
+    requestAnimationFrame(() => {
+        if(renderScheduled) render()
+    })
 }
 
 /*
