@@ -17,30 +17,54 @@ precision highp float;
 
 uniform vec2 translate;
 uniform float scale;
-// 6 values, I use it here as
-// | 00 01 02 |
-// | 10 11 12 |
-uniform mat2x3 transform;
 
 in vec2 coord;
 
 void main(void) {
-    mat2x3 ts = transform;
-    vec2 coordinate = vec2(dot(coord, ts[0].xy) + ts[0].z, dot(coord, ts[1].xy) + ts[1].z);
-    vec2 pos = (translate + coordinate) * scale;
-    gl_Position = vec4(pos, 1.0, 1.0);
+    gl_Position = vec4((translate + coord) * scale, 1.0, 1.0);
 }
 `
+const colliderColors = {
+    0 : "0a590360", // destroyable
+    4 : "6a97dd20", // water
+    6 : "35009920", // deep water
+    12: "f9000060", // enemy
+    13: "f9000060", // enemy
+    14: "c14a0320", // wall
+    16: "00000020", // hole
+    17: "ff00ff40", // trigger?
+    23: "11656360", // static
+    25: "4f3c0140", // bridge
+    26: "f9005060", // enemy (stationary)
+    31: "11656360", // static
+    fallback: "9400f920"
+}
+let colliderColorsS = 'const vec4 layerColors[32] = vec4[32]('
+for(let i = 0; i < 32; i++) {
+    const c = colliderColors[i] ?? colliderColors.fallback
+    let r = parseInt(c.slice(0, 2), 16) / 255
+    let g = parseInt(c.slice(2, 4), 16) / 255
+    let b = parseInt(c.slice(4, 6), 16) / 255
+    let a = 1 // parseInt(c.slice(6, 8), 16) / 255
+    if(i != 0) colliderColorsS += ',\n'
+    colliderColorsS += `vec4(${r}, ${g}, ${b}, ${a})`
+}
+colliderColorsS += ');'
 
 const fsSource = `#version 300 es
 precision highp float;
 
+uniform int layer;
+
 out vec4 color;
 
+${colliderColorsS}
+
 void main(void) {
-    color = vec4(1, 0, 0, 0.3);
+    color = vec4(1, 0, 0, layer == 16); //layerColors[layer]; //vec4(0, float(layer % 8) / 8.0, float(layer) / 8.0, 0.5);
 }
 `
+
 
 // Compile shader program
 function loadShader(type, source) {
@@ -71,7 +95,7 @@ gl.useProgram(shaderProgram)
 
 const translateU = gl.getUniformLocation(shaderProgram, 'translate')
 const scaleU = gl.getUniformLocation(shaderProgram, 'scale')
-const transformU = gl.getUniformLocation(shaderProgram, 'transform')
+const layerU = gl.getUniformLocation(shaderProgram, 'layer')
 
 const positionBuffer = gl.createBuffer()
 gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
@@ -213,20 +237,35 @@ Promise.all([objectsP, polygonsP]).then(([objectsA, polygonsA]) => {
         }
     }
 
+    const taken = {}
+
     var totalPointsC = 0, totalIndicesC = 0
-    const polyDrawData = []
+    const polyDrawDataByLayer = Array(32)
     for(let i = 0; i < objects.length; i++) {
-        const cs = objects[i].components
+        const obj = objects[i]
+        const cs = obj.components
         let composite, tilemap
         for(let j = 0; j < cs.length && (composite == null || tilemap == null); j++) {
             if(composite == null) composite = getAsSchema(cs[j], parsedSchema.typeSchemaI['CompositeCollider2D'])
             if(tilemap == null) tilemap = getAsSchema(cs[j], parsedSchema.typeSchemaI['TilemapCollider2D'])
         }
         if(composite == null || tilemap == null) continue
-        //polygonsI.push(composite.polygons)
+
         const polygon = polygons[composite.polygons]
         if(polygon.indices.length == 0) continue
-        polyDrawData.push([composite, totalIndicesC, polygon.indices.length, objects[i].matrix])
+
+        if(taken[composite.polygons] != null) {
+            console.log('taken!', taken[polygon], obj)
+            continue
+        }
+        taken[composite.polygons] = obj
+
+        const data = [obj.matrix, polygon]
+
+        var datas = polyDrawDataByLayer[obj.layer]
+        if(datas == null) polyDrawDataByLayer[obj.layer] = [data]
+        else datas.push(data)
+
         totalPointsC += polygon.points.length * 2
         totalIndicesC += polygon.indices.length
     }
@@ -234,18 +273,30 @@ Promise.all([objectsP, polygonsP]).then(([objectsA, polygonsA]) => {
     const verts = new Float32Array(totalPointsC)
     const indices = new Uint32Array(totalIndicesC)
     let vertI = 0, indexI = 0
-    for(let i = 0; i < polyDrawData.length; i++) {
-        const poly = polygons[polyDrawData[i][0].polygons]
-        // no glDrawElementsBaseVertex(), so have to offset indices ourselves
-        // also means can't use 16 bit indices :(
-        const startVertexI = vertI
-        for(let j = 0; j < poly.points.length; j++) {
-            verts[vertI++] = poly.points[j][0]
-            verts[vertI++] = poly.points[j][1]
+    const polyDrawData = []
+    for(let i = 0; i < polyDrawDataByLayer.length; i++) {
+        const datas = polyDrawDataByLayer[i]
+        if(datas == null) continue
+        const startIndexI = indexI
+
+        for(let j = 0; j < datas.length; j++) {
+            const data = datas[j]
+            const m = data[0]
+            const poly = data[1]
+            const startVertexI = vertI
+            for(let k = 0; k < poly.points.length; k++) {
+                const x = poly.points[k][0]
+                const y = poly.points[k][1]
+                verts[vertI*2    ] = x * m[0] + y * m[1] + m[2]
+                verts[vertI*2 + 1] = x * m[3] + y * m[4] + m[5]
+                vertI++
+            }
+            for(let k = 0; k < poly.indices.length; k++) {
+                indices[indexI++] = startVertexI + poly.indices[k]
+            }
         }
-        for(let j = 0; j < poly.indices.length; j++) {
-            indices[indexI++] = startVertexI / 2 + poly.indices[j]
-        }
+
+        polyDrawData.push({ startIndexI, length: indexI - startIndexI, layer: i })
     }
 
     const verticesB = gl.createBuffer()
@@ -375,9 +426,11 @@ function render() {
     gl.bindVertexArray(renderData.polygonsVao)
     for(let i = 0; i < renderData.polygons.length; i++) {
         const it = renderData.polygons[i]
-        gl.uniformMatrix2x3fv(transformU, false, it[3])
-        gl.drawElements(gl.TRIANGLES, it[2], gl.UNSIGNED_INT, it[1] * 4)
+        gl.uniform1i(layerU, it.layer)
+        gl.drawElements(gl.TRIANGLES, it.startIndexI, gl.UNSIGNED_INT, it.length * 4)
+        console.log(it.layer, it.startIndexI, it.length)
     }
+    return
 
     // gl.bindVertexArray(renderData.centerVao)
     // gl.uniformMatrix2x3fv(transformU, false, new Float32Array([100, 0, 0, 0, 100, 0]))
