@@ -42,10 +42,10 @@ const colliderColors = {
 let colliderColorsS = 'const vec4 layerColors[32] = vec4[32]('
 for(let i = 0; i < 32; i++) {
     const c = colliderColors[i] ?? colliderColors.fallback
-    let r = parseInt(c.slice(0, 2), 16) / 255
-    let g = parseInt(c.slice(2, 4), 16) / 255
-    let b = parseInt(c.slice(4, 6), 16) / 255
-    let a = 1 // parseInt(c.slice(6, 8), 16) / 255
+    let a = parseInt(c.slice(6, 8), 16) / 255
+    let r = a * parseInt(c.slice(0, 2), 16) / 255
+    let g = a * parseInt(c.slice(2, 4), 16) / 255
+    let b = a * parseInt(c.slice(4, 6), 16) / 255
     if(i != 0) colliderColorsS += ',\n'
     colliderColorsS += `vec4(${r}, ${g}, ${b}, ${a})`
 }
@@ -61,7 +61,7 @@ out vec4 color;
 ${colliderColorsS}
 
 void main(void) {
-    color = vec4(1, 0, 0, layer == 16); //layerColors[layer]; //vec4(0, float(layer % 8) / 8.0, float(layer) / 8.0, 0.5);
+    color = layerColors[layer];
 }
 `
 
@@ -415,7 +415,9 @@ canvas.addEventListener('mousemove', (e) => {
 
 
 gl.enable(gl.BLEND);
-gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+// note: premultiplied alpha. Straight alpha looks completely wrong
+gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+// gl.clearColor(1, 1, 1, 1);
 
 function render() {
     if(window.__stop) return
@@ -427,10 +429,8 @@ function render() {
     for(let i = 0; i < renderData.polygons.length; i++) {
         const it = renderData.polygons[i]
         gl.uniform1i(layerU, it.layer)
-        gl.drawElements(gl.TRIANGLES, it.startIndexI, gl.UNSIGNED_INT, it.length * 4)
-        console.log(it.layer, it.startIndexI, it.length)
+        gl.drawElements(gl.TRIANGLES, it.length, gl.UNSIGNED_INT, it.startIndexI * 4)
     }
-    return
 
     // gl.bindVertexArray(renderData.centerVao)
     // gl.uniformMatrix2x3fv(transformU, false, new Float32Array([100, 0, 0, 0, 100, 0]))
