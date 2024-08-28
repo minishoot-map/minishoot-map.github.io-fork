@@ -1,9 +1,9 @@
-var backgroundSize = 100
-var backgroundResolution = 2048
-var backgroundStart = [-1757, -1141]
-var backgroundCount = [35, 20]
-var backgroundColor = '050E16'
-var backgrounds = [
+export var backgroundSize = 100
+export var backgroundResolution = 2048
+export var backgroundStart = [-1757, -1141]
+export var backgroundCount = [35, 20]
+export var backgroundColor = '050E16'
+export var backgrounds = [
 [21,0],
 [22,0],
 [21,1],

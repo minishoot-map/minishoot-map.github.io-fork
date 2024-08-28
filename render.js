@@ -1,5 +1,6 @@
 import * as load from './load.js'
 import * as canvasDisplay from './canvas.js'
+import * as backgroundsDisplay from './renderBackground.js'
 import { getAsSchema, parsedSchema } from './schema.js'
 import * as polygons from './renderColliders.js'
 
@@ -96,7 +97,6 @@ function scheduleRender() {
 // This all doesn't matter when background starts as fully opaque and alpha is disregarded at the end.
 gl.enable(gl.BLEND)
 gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-gl.clearColor(1, 1, 1, 1)
 
 function render() {
     if(window.__stop) return
@@ -104,9 +104,9 @@ function render() {
 
     if(!canvasDisplay.resize(this)) return
 
-    gl.clear(gl.COLOR_BUFFER_BIT)
+    backgroundsDisplay.render(this)
+    // polygons.render(this)
 
-    polygons.render(this)
     // gl.bindVertexArray(renderData.centerVao)
     // gl.uniformMatrix2x3fv(transformU, false, new Float32Array([100, 0, 0, 0, 100, 0]))
     // gl.drawArrays(gl.TRIANGLES, 0, 3)
@@ -117,23 +117,12 @@ const context = {
     canvas, gl,
     scheduleRender,
     render,
-    camera: { posX: 0, posY: 0, scale: 100 },
+    camera: { posX: 0, posY: 0, scale: 1000 },
     canvasSize: [],
 }
 
 canvasDisplay.setup(context)
-
-/*const image = new Image()
-image.onload = () => {
-    gl.bindTexture(gl.TEXTURE_2D, texture)
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-    gl.generateMipmap(gl.TEXTURE_2D)
-
-    render()
-}
-image.src = './data/markers.png';*/
+backgroundsDisplay.setup(context)
 
 /*
 

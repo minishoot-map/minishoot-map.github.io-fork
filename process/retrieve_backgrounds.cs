@@ -218,12 +218,12 @@ public partial class GameManager : MonoBehaviour {
             }
 
             using(var boundsSw = new StreamWriter(basePath + "backgrounds.js")) {
-                boundsSw.WriteLine("var backgroundSize = " + cameraSize);
-                boundsSw.WriteLine("var backgroundResolution = " + upscaleRes);
-                boundsSw.WriteLine("var backgroundStart = [" + sx + ", " + sy + "]");
-                boundsSw.WriteLine("var backgroundCount = [" + countX + ", " + countY + "]");
-                boundsSw.WriteLine("var backgroundColor = '" + backgroundColor + "'");
-                boundsSw.WriteLine("var backgrounds = [");
+                boundsSw.WriteLine("export var backgroundSize = " + cameraSize);
+                boundsSw.WriteLine("export var backgroundResolution = " + upscaleRes);
+                boundsSw.WriteLine("export var backgroundStart = [" + sx + ", " + sy + "]");
+                boundsSw.WriteLine("export var backgroundCount = [" + countX + ", " + countY + "]");
+                boundsSw.WriteLine("export var backgroundColor = '" + backgroundColor + "'");
+                boundsSw.WriteLine("export var backgrounds = [");
                 boundsSw.WriteLine(backgrounds + "]");
             }
 
