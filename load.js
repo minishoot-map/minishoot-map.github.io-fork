@@ -106,7 +106,7 @@ function parseArray(schemaI) {
     return res
 }
 
-const shortenName = /[.+](.+)$/
+const shortenName = /[.]([^.]+)$/
 
 function peek() {
     if(index < array.length) return array[index]
