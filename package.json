@@ -12,7 +12,8 @@
     "b-backgrounds": "python ./process/compress_backgrounds.py"
   },
   "dependencies": {
-    "cdt2d": "^1.0.0"
+    "cdt2d": "^1.0.0",
+    "clean-pslg": "^1.1.2"
   },
   "devDependencies": {
     "vite": "^5.4.2",

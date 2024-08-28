@@ -1,6 +1,7 @@
 import cdt2d from 'cdt2d' // great lib! Many thanks
+import cleanPSLG from 'clean-pslg'
 import * as fs from 'node:fs'
-import { join } from 'node:path';
+import { join } from 'node:path'
 
 import * as meta from '../data-raw/objects/schemas.js'
 import { parseSchema, parse } from '../load.js'
@@ -32,6 +33,25 @@ function triangulate(i) {
             edges.push([prevPointI, pointI])
             prevPointI = pointI
         }
+    }
+
+    /* const ab = new ArrayBuffer(8)
+    const dv = new DataView(ab)
+
+    const coords = {}
+    for(let i = 0; i < points.length; i++) {
+        const p = points[i]
+        dv.setFloat32(0, p[0])
+        dv.setFloat32(4, p[1])
+        const res = dv.getFloat64(0)
+        if(coords[res] != null) console.log('Duplicate at', coords[res], i)
+        coords[res] = i
+    }*/
+
+    if(cleanPSLG(points, edges)) {
+        // HOW ARE THERE DUPLICATES??? UNITY HELLO??????????
+        // this actually happens on deep water in Overworld, look at the (scuffed) bottom part
+        console.log('path', i, 'is broken!')
     }
 
     return cdt2d(points, edges, { exterior: false })

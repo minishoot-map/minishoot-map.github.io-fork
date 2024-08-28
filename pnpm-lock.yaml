@@ -11,6 +11,9 @@ importers:
       cdt2d:
         specifier: ^1.0.0
         version: 1.0.0
+      clean-pslg:
+        specifier: ^1.1.2
+        version: 1.1.2
     devDependencies:
       vite:
         specifier: ^5.4.2
@@ -258,12 +261,24 @@ packages:
     resolution: {integrity: sha512-KMReFUr0B4t+D+OBkjR3KYqvocp2XaSzO55UcB6mgQMd3KbcE+mWTyvVV7D/zsdEbNnV6acZUutkiHQXvTr1Rw==}
     engines: {node: '>= 8'}
 
+  big-rat@1.0.4:
+    resolution: {integrity: sha512-AubEohDDrak6urvKkFMIlwPWyQbJ/eq04YsK/SNipH7NNiPCYchjQNvWYK5vyyMmtGXAmNmsAjIcfkaDuTtd8g==}
+
   binary-extensions@2.3.0:
     resolution: {integrity: sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==}
     engines: {node: '>=8'}
 
   binary-search-bounds@2.0.5:
     resolution: {integrity: sha512-H0ea4Fd3lS1+sTEB2TgcLoK21lLhwEJzlQv3IN47pJS976Gx4zoWe0ak3q+uYh60ppQxg9F16Ri4tS1sfD4+jA==}
+
+  bit-twiddle@1.0.2:
+    resolution: {integrity: sha512-B9UhK0DKFZhoTFcfvAzhqsjStvGJp9vYWf3+6SNTtdSQnvIgfkHbgHrg/e4+TH71N2GDu8tpmCVoyfrL1d7ntA==}
+
+  bn.js@4.12.0:
+    resolution: {integrity: sha512-c98Bf3tPniI+scsdk237ku1Dc3ujXQTSgyiPUDEOe7tRkhrqridvh8klBv0HCEso1OLOYcHuCv/cS6DNxKH+ZA==}
+
+  box-intersect@1.0.2:
+    resolution: {integrity: sha512-yJeMwlmFPG1gIa7Rs/cGXeI6iOj6Qz5MG5PE61xLKpElUGzmJ4abm+qsLpzxKJFpsSDq742BQEocr8dI2t8Nxw==}
 
   braces@3.0.3:
     resolution: {integrity: sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==}
@@ -275,6 +290,15 @@ packages:
   chokidar@3.6.0:
     resolution: {integrity: sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw==}
     engines: {node: '>= 8.10.0'}
+
+  clean-pslg@1.1.2:
+    resolution: {integrity: sha512-bJnEUR6gRiiNi2n4WSC6yrc0Hhn/oQDOTzs6evZfPwEF/VKVXM6xu0F4n/WSBz7TjTt/ZK6I5snRM9gVKMVAxA==}
+
+  double-bits@1.1.1:
+    resolution: {integrity: sha512-BCLEIBq0O/DWoA7BsCu/R+RP0ZXiowP8BhtJT3qeuuQEBpnS8LK/Wo6UTJQv6v8mK1fj8n90YziHLwGdM5whSg==}
+
+  dup@1.0.0:
+    resolution: {integrity: sha512-Bz5jxMMC0wgp23Zm15ip1x8IhYRqJvF3nFC0UInJUDkN1z4uNPk9jTnfCUJXbOGiQ1JbXLQsiV41Fb+HXcj5BA==}
 
   esbuild@0.21.5:
     resolution: {integrity: sha512-mg3OPMV4hXywwpoDxu3Qda5xCKQi+vCTZq8S9J/EpkhB2HzKXq4SNFZE3+NK93JYxc8VMSep+lOUSC/RVKaBqw==}
@@ -340,6 +364,9 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
+  nextafter@1.0.0:
+    resolution: {integrity: sha512-7PO+A89Tll2rSEfyrjtqO0MaI37+nnxBdnQcPypfbEYYuGaJxWGCqaOwQX4a3GHNTS08l1kazuiLEWZniZjMUQ==}
+
   normalize-path@3.0.0:
     resolution: {integrity: sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA==}
     engines: {node: '>=0.10.0'}
@@ -358,6 +385,9 @@ packages:
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
+  rat-vec@1.1.1:
+    resolution: {integrity: sha512-FbxGwkQxmw4Jx41LR7yMOR+g8M9TWCEmf/SUBQVLuK2eh0nThnffF7IUualr3XE2x5F8AdLiCVeSGwXd4snfgg==}
+
   readdirp@3.6.0:
     resolution: {integrity: sha512-hOS089on8RduqdbhvQ5Z37A0ESjsqz6qnRcffsMU3495FuTdqSm+7bhJ29JvIOsBDEEnan5DPu9t3To9VRlMzA==}
     engines: {node: '>=8.10.0'}
@@ -374,6 +404,9 @@ packages:
 
   robust-scale@1.0.2:
     resolution: {integrity: sha512-jBR91a/vomMAzazwpsPTPeuTPPmWBacwA+WYGNKcRGSh6xweuQ2ZbjRZ4v792/bZOhRKXRiQH0F48AvuajY0tQ==}
+
+  robust-segment-intersect@1.0.1:
+    resolution: {integrity: sha512-QWngxcL7rCRLK7nTMcTNBPi/q+fecrOo6aOtTPnXjT/Dve5AK20DzUSq2fznUS+rCAxyir6OdPgDCzcUxFtJoQ==}
 
   robust-subtract@1.0.0:
     resolution: {integrity: sha512-xhKUno+Rl+trmxAIVwjQMiVdpF5llxytozXJOdoT4eTIqmqsndQqFb1A0oiW3sZGlhMRhOi6pAD4MF1YYW6o/A==}
@@ -402,6 +435,15 @@ packages:
 
   two-sum@1.0.0:
     resolution: {integrity: sha512-phP48e8AawgsNUjEY2WvoIWqdie8PoiDZGxTDv70LDr01uX5wLEQbOgSP7Z/B6+SW5oLtbe8qaYX2fKJs3CGTw==}
+
+  typedarray-pool@1.2.0:
+    resolution: {integrity: sha512-YTSQbzX43yvtpfRtIDAYygoYtgT+Rpjuxy9iOpczrjpXLgGoyG7aS5USJXV2d3nn8uHTeb9rXDvzS27zUg5KYQ==}
+
+  union-find@1.0.2:
+    resolution: {integrity: sha512-wFA9bMD/40k7ZcpKVXfu6X1qD3ri5ryO8HUsuA1RnxPCQl66Mu6DgkxyR+XNnd+osD0aLENixcJVFj+uf+O4gw==}
+
+  uniq@1.0.1:
+    resolution: {integrity: sha512-Gw+zz50YNKPDKXs+9d+aKAjVwpjNwqzvNpLigIruT4HA9lMZNdMqs9x07kKHB/L9WRzqp4+DlTU5s4wG2esdoA==}
 
   universalify@2.0.1:
     resolution: {integrity: sha512-gptHNQghINnc/vTGIk0SOFGFNXw7JVrlRUtConJRlvaw6DuX0wO5Jeko9sWrMBhh+PsYAZ7oXAiOnf/UKogyiw==}
@@ -582,9 +624,24 @@ snapshots:
       normalize-path: 3.0.0
       picomatch: 2.3.1
 
+  big-rat@1.0.4:
+    dependencies:
+      bit-twiddle: 1.0.2
+      bn.js: 4.12.0
+      double-bits: 1.1.1
+
   binary-extensions@2.3.0: {}
 
   binary-search-bounds@2.0.5: {}
+
+  bit-twiddle@1.0.2: {}
+
+  bn.js@4.12.0: {}
+
+  box-intersect@1.0.2:
+    dependencies:
+      bit-twiddle: 1.0.2
+      typedarray-pool: 1.2.0
 
   braces@3.0.3:
     dependencies:
@@ -607,6 +664,20 @@ snapshots:
       readdirp: 3.6.0
     optionalDependencies:
       fsevents: 2.3.3
+
+  clean-pslg@1.1.2:
+    dependencies:
+      big-rat: 1.0.4
+      box-intersect: 1.0.2
+      nextafter: 1.0.0
+      rat-vec: 1.1.1
+      robust-segment-intersect: 1.0.1
+      union-find: 1.0.2
+      uniq: 1.0.1
+
+  double-bits@1.1.1: {}
+
+  dup@1.0.0: {}
 
   esbuild@0.21.5:
     optionalDependencies:
@@ -692,6 +763,10 @@ snapshots:
 
   nanoid@3.3.7: {}
 
+  nextafter@1.0.0:
+    dependencies:
+      double-bits: 1.1.1
+
   normalize-path@3.0.0: {}
 
   picocolors@1.0.1: {}
@@ -705,6 +780,10 @@ snapshots:
       source-map-js: 1.2.0
 
   queue-microtask@1.2.3: {}
+
+  rat-vec@1.1.1:
+    dependencies:
+      big-rat: 1.0.4
 
   readdirp@3.6.0:
     dependencies:
@@ -730,6 +809,10 @@ snapshots:
     dependencies:
       two-product: 1.0.2
       two-sum: 1.0.0
+
+  robust-segment-intersect@1.0.1:
+    dependencies:
+      robust-orientation: 1.2.1
 
   robust-subtract@1.0.0: {}
 
@@ -770,6 +853,15 @@ snapshots:
   two-product@1.0.2: {}
 
   two-sum@1.0.0: {}
+
+  typedarray-pool@1.2.0:
+    dependencies:
+      bit-twiddle: 1.0.2
+      dup: 1.0.0
+
+  union-find@1.0.2: {}
+
+  uniq@1.0.1: {}
 
   universalify@2.0.1: {}
 
