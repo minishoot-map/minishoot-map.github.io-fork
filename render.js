@@ -8,7 +8,7 @@ const objectsP = fetch('./data/objects.bp').then(it => it.arrayBuffer()).then(it
 const polygonsP = fetch('./data/polygons.bp').then(it => it.arrayBuffer()).then(it => new Uint8Array(it))
 
 const canvas = document.getElementById('glCanvas')
-const gl = canvas.getContext('webgl2')
+const gl = canvas.getContext('webgl2', { alpha: false })
 
 if (!gl) { throw 'WebGL 2 is not supported.' }
 
@@ -42,10 +42,10 @@ const colliderColors = {
 let colliderColorsS = 'const vec4 layerColors[32] = vec4[32]('
 for(let i = 0; i < 32; i++) {
     const c = colliderColors[i] ?? colliderColors.fallback
+    let r = parseInt(c.slice(0, 2), 16) / 255
+    let g = parseInt(c.slice(2, 4), 16) / 255
+    let b = parseInt(c.slice(4, 6), 16) / 255
     let a = parseInt(c.slice(6, 8), 16) / 255
-    let r = a * parseInt(c.slice(0, 2), 16) / 255
-    let g = a * parseInt(c.slice(2, 4), 16) / 255
-    let b = a * parseInt(c.slice(4, 6), 16) / 255
     if(i != 0) colliderColorsS += ',\n'
     colliderColorsS += `vec4(${r}, ${g}, ${b}, ${a})`
 }
@@ -414,10 +414,13 @@ canvas.addEventListener('mousemove', (e) => {
 });
 
 
-gl.enable(gl.BLEND);
-// note: premultiplied alpha. Straight alpha looks completely wrong
-gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-// gl.clearColor(1, 1, 1, 1);
+// Note: this is not correct alpha blending, works only if background is already fully transparent!
+// 1. Source alpha is multiplied by itself so overall transparency decreases when drawing transparent things
+// 2. Disregards destination alpha (dst color should be multiplied by it).
+// This all doesn't matter when background starts as fully opaque and alpha is disregarded at the end.
+gl.enable(gl.BLEND)
+gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+gl.clearColor(1, 1, 1, 1)
 
 function render() {
     if(window.__stop) return
