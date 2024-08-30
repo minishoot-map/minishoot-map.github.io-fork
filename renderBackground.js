@@ -100,7 +100,7 @@ export function setup(context) {
             // Technically can be the last texture, so this will make
             // mimpaps not appear. But only until the user moves the screen
             // or something else triggers a rerender, so shouldn't be a big deal
-            renderData.changed = true
+            renderData.changed.push(i)
             imgData.done = true
         })
         img.addEventListener('load', _ => {
@@ -157,9 +157,12 @@ export function setup(context) {
     gl.uniform1i(texturesU, 0)
 
     const c = bkg.backgroundColor
-    const r = parseInt(c.slice(0, 2), 16) / 255
-    const g = parseInt(c.slice(2, 4), 16) / 255
-    const b = parseInt(c.slice(4, 6), 16) / 255
+    // round background color to RGB565.
+    // Not sure if rounding is officially specified anywhere
+    // but this looks correct
+    const r = (parseInt(c.slice(0, 2), 16) >> 3 << 3) / 255
+    const g = (parseInt(c.slice(2, 4), 16) >> 2 << 2) / 255
+    const b = (parseInt(c.slice(4, 6), 16) >> 3 << 3) / 255
 
     gl.clearColor(r, g, b, 1)
 
