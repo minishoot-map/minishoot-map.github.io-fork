@@ -1,7 +1,6 @@
 import { loadShader, checkProg } from './render_util.js'
 import { getAsSchema, parsedSchema } from './schema.js'
 import markerData from './data-processed/markers.json'
-import * as load from './load.js'
 
 const vsSource = `#version 300 es
 precision highp float;
@@ -59,7 +58,7 @@ void main(void) {
 }
 `
 
-export function setup(gl, context, objects, polygonsP) {
+export function setup(gl, context, collidersData) {
     const renderData = {}
     context.polygons = renderData
 
@@ -102,89 +101,16 @@ export function setup(gl, context, objects, polygonsP) {
     }
     gl.bufferData(gl.ARRAY_BUFFER, v, gl.STATIC_DRAW)
 
-    polygonsP.then((polygonsA) => {
-        const polygons = load.parse(parsedSchema, polygonsA)
-        prepareRenderData(context, objects, polygons)
-    })
-
     renderData.u = { translate, scale, aspect, layer }
     renderData.prog = prog
-}
-
-function prepareRenderData(context, objects, polygons) {
-    const renderData = context.polygons
-    const gl = context.gl
-
-    const taken = {}
-
-    var totalPointsC = 0, totalIndicesC = 0
-    const polyDrawDataByLayer = Array(32)
-    for(let i = 0; i < objects.length; i++) {
-        const obj = objects[i]
-        const cs = obj.components
-        let composite, tilemap
-        for(let j = 0; j < cs.length && (composite == null || tilemap == null); j++) {
-            if(composite == null) composite = getAsSchema(cs[j], parsedSchema.typeSchemaI['CompositeCollider2D'])
-            if(tilemap == null) tilemap = getAsSchema(cs[j], parsedSchema.typeSchemaI['TilemapCollider2D'])
-        }
-        if(composite == null || tilemap == null) continue
-
-        const polygon = polygons[composite.polygons]
-        if(polygon.indices.length == 0) continue
-
-        if(taken[composite.polygons] != null) {
-            console.log('taken!', taken[polygon], obj)
-            continue
-        }
-        taken[composite.polygons] = obj
-
-        const data = [obj.matrix, polygon]
-
-        var datas = polyDrawDataByLayer[obj.layer]
-        if(datas == null) polyDrawDataByLayer[obj.layer] = [data]
-        else datas.push(data)
-
-        totalPointsC += polygon.points.length * 2
-        totalIndicesC += polygon.indices.length
-    }
-
-
-    const verts = new Float32Array(totalPointsC)
-    const indices = new Uint32Array(totalIndicesC)
-    let vertI = 0, indexI = 0
-    const polyDrawData = []
-    for(let i = 0; i < polyDrawDataByLayer.length; i++) {
-        const datas = polyDrawDataByLayer[i]
-        if(datas == null) continue
-        const startIndexI = indexI
-
-        for(let j = 0; j < datas.length; j++) {
-            const data = datas[j]
-            const m = data[0]
-            const poly = data[1]
-            const startVertexI = vertI
-            for(let k = 0; k < poly.points.length; k++) {
-                const x = poly.points[k][0]
-                const y = poly.points[k][1]
-                verts[vertI*2    ] = x * m[0] + y * m[1] + m[2]
-                verts[vertI*2 + 1] = x * m[3] + y * m[4] + m[5]
-                vertI++
-            }
-            for(let k = 0; k < poly.indices.length; k++) {
-                indices[indexI++] = startVertexI + poly.indices[k]
-            }
-        }
-
-        polyDrawData.push({ startIndexI, length: indexI - startIndexI, layer: i })
-    }
 
     const verticesB = gl.createBuffer()
     gl.bindBuffer(gl.ARRAY_BUFFER, verticesB)
-    gl.bufferData(gl.ARRAY_BUFFER, verts, gl.STATIC_DRAW)
+    gl.bufferData(gl.ARRAY_BUFFER, collidersData.verts, gl.STATIC_DRAW)
 
     const indicesB = gl.createBuffer()
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesB)
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW)
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, collidersData.indices, gl.STATIC_DRAW)
 
 
     const polygonsVao = gl.createVertexArray()
@@ -198,7 +124,7 @@ function prepareRenderData(context, objects, polygons) {
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesB)
 
     renderData.vao = polygonsVao
-    renderData.drawData = polyDrawData
+    renderData.drawData = collidersData.polyDrawData
     renderData.ok = true
     context.scheduleRender()
 }

@@ -156,13 +156,3 @@ export function parse(parsedSchema, objectsUint8Array) {
 
     return parseAny()
 }
-
-/*
-    console.log('started')
-    const start = performance.now()
-    const end = performance.now()
-    console.log('done in ' + (end - start) + 'ms')
-    async() => {
-    const response = await fetch('./data/objects.bp')
-    const value = new Uint8Array(await response.arrayBuffer())
-})() */
