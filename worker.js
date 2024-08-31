@@ -1,5 +1,6 @@
 import * as Load from '/load.js'
 import markersData from './data-processed/markers.json'
+import markersMeta from './data-processed/markers-meta.json'
 import { meta, getAsSchema, parsedSchema } from './schema.js'
 
 // NOTE: DO NOT send 30mb of objects w/ postMessage() :)
@@ -125,31 +126,47 @@ const objectsProcessedP = objectsLoadedP.then(objects => {
 
 objectsProcessedP.then(pObjects => {
     const { markerObjects } = pObjects
-    const [texW, texH] = markersData[markersData.length - 1]
+    const [markerDataC, texW, texH] = markersMeta
 
-    const res = new ArrayBuffer(markerObjects.length * 20)
-    const dv = new DataView(res)
+    // note: 4 bytes of padding for std140
+    const markerDataB = new ArrayBuffer(markerDataC * 16)
+    const mddv = new DataView(markerDataB)
+    for(var i = 0; i < markerDataC; i++) {
+        const td = markersData[i]
+
+        var aspect = td[2] / td[3]
+        if(aspect > 1) aspect = -td[3] / td[2]
+
+        mddv.setUint16 (i * 16    , Math.floor(td[0] * 0x10000 / texW), true)
+        mddv.setUint16 (i * 16 + 2, Math.floor(td[1] * 0x10000 / texH), true)
+        mddv.setUint16 (i * 16 + 4, Math.floor(td[2] * 0x10000 / texW), true)
+        mddv.setUint16 (i * 16 + 6, Math.floor(td[3] * 0x10000 / texH), true)
+        mddv.setFloat32(i * 16 + 8, aspect, true)
+    }
+
+    const markersB = new ArrayBuffer(markerObjects.length * 12)
+    const dv = new DataView(markersB)
     for(var i = 0; i < markerObjects.length; i++) {
         const [obj, texI] = markerObjects[i]
         const pos = obj.pos
-        const td = markersData[texI]
 
-        dv.setFloat32(i * 20     , pos[0], true)
-        dv.setFloat32(i * 20 + 4 , pos[1], true)
-        dv.setUint16 (i * 20 + 8 , Math.floor(td[0] * 0x10000 / texW), true)
-        dv.setUint16 (i * 20 + 10, Math.floor(td[1] * 0x10000 / texH), true)
-        dv.setUint16 (i * 20 + 12, Math.floor(td[2] * 0x10000 / texW), true)
-        dv.setUint16 (i * 20 + 14, Math.floor(td[3] * 0x10000 / texH), true)
-        var v = td[2] / td[3]
-        if(v > 1) v = -td[3] / td[2]
-        dv.setFloat32(i * 20 + 16, v, true)
+        dv.setFloat32(i * 12     , pos[0], true)
+        dv.setFloat32(i * 12 + 4 , pos[1], true)
+        dv.setUint16 (i * 12 + 8 , texI, true)
+        dv.setFloat16(i * 12 + 10, 1.0, true)
     }
 
-    postMessage({ type: 'markers-done', data: res, count: markerObjects.length, size: [texW, texH] }, [res])
+    postMessage({
+        type: 'markers-done',
+        markers: markersB,
+        markersData: markerDataB,
+        count: markerObjects.length
+    }, [markersB, markerDataB])
 })
 
 var polygons
 Promise.all([objectsProcessedP, polygonsP]).then(([pObjects, polygonsA]) => {
+    if(true) return
     polygons = Load.parse(parsedSchema, polygonsA)
 
     const { polygonObjects } = pObjects

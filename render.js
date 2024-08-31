@@ -16,26 +16,27 @@ const collidersP = new Promise((s, j) => {
     resolveCollidersP = s
 })
 
-var markersData
 var resolveMarkersDataP
 const markersP = new Promise((s, j) => {
     resolveMarkersDataP = s
 })
 
-const worker = new ParserWorker()
-worker.onmessage = (e) => {
-    console.log('received from worker', e.data.type)
-    if(e.data.type === 'colliders-done') {
-        collidersData = { verts: e.data.verts, indices: e.data.indices, polyDrawData: e.data.polyDrawData }
-        resolveCollidersP()
+if(true) {
+    const worker = new ParserWorker()
+    worker.onmessage = (e) => {
+        console.log('received from worker', e.data.type)
+        if(e.data.type === 'colliders-done') {
+            collidersData = { verts: e.data.verts, indices: e.data.indices, polyDrawData: e.data.polyDrawData }
+            resolveCollidersP(collidersData)
+        }
+        else if(e.data.type == 'markers-done') {
+            const it = { markers: e.data.markers, markersData: e.data.markersData, count: e.data.count }
+            resolveMarkersDataP(it)
+        }
     }
-    else if(e.data.type == 'markers-done') {
-        markersData = { data: e.data.data, count: e.data.count, size: e.data.size }
-        resolveMarkersDataP()
+    worker.onerror = (e) => {
+        console.error('Error with webworker')
     }
-}
-worker.onerror = (e) => {
-    console.error('Error with webworker')
 }
 
 const canvas = document.getElementById('glCanvas')
@@ -47,9 +48,6 @@ collidersP.then(() => {
     collidersDisplay.setup(gl, context, collidersData)
 })
 
-markersP.then(() => {
-    markersDisplay.setup(gl, context, markersData)
-})
 
 // Note: this is not correct alpha blending, works only if background is already fully transparent!
 // 1. Source alpha is multiplied by itself so overall transparency decreases when drawing transparent things
@@ -111,3 +109,4 @@ const context = {
 
 canvasDisplay.setup(context)
 backgroundsDisplay.setup(context)
+markersDisplay.setup(gl, context, markersP)
