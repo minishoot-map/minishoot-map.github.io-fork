@@ -45,7 +45,7 @@ for(let i = 0; i < 32; i++) {
 colliderColorsS += ');'
 
 const fsSource = `#version 300 es
-precision highp float;
+precision mediump float;
 
 uniform int layer;
 
