@@ -1,5 +1,6 @@
 import * as Load from '/load.js'
-import { getAsSchema, parsedSchema } from './schema.js'
+import markersData from './data-processed/markers.json'
+import { meta, getAsSchema, parsedSchema } from './schema.js'
 
 // NOTE: DO NOT send 30mb of objects w/ postMessage() :)
 
@@ -80,32 +81,86 @@ const objectsLoadedP = objectsP.then(objectsA => {
     return objects
 })
 
-var polygons
-Promise.all([objectsLoadedP, polygonsP]).then(([objects, polygonsA]) => {
-    polygons = Load.parse(parsedSchema, polygonsA)
+function createOneTex(obj, comp) {
+    return [obj, parsedSchema.schema[comp._schema].textureI]
+}
 
-    const taken = {}
+const objectsProcessedP = objectsLoadedP.then(objects => {
+    const ti = parsedSchema.typeSchemaI
+    const ss = parsedSchema.schema
 
-    var totalPointsC = 0, totalIndicesC = 0
-    const polyDrawDataByLayer = Array(32)
+    const polygonObjects = []
+    const markerObjects = []
+
     for(let i = 0; i < objects.length; i++) {
         const obj = objects[i]
         const cs = obj.components
+
         let composite, tilemap
-        for(let j = 0; j < cs.length && (composite == null || tilemap == null); j++) {
-            if(composite == null) composite = getAsSchema(cs[j], parsedSchema.typeSchemaI['CompositeCollider2D'])
-            if(tilemap == null) tilemap = getAsSchema(cs[j], parsedSchema.typeSchemaI['TilemapCollider2D'])
+        let enemy, jar, crDes, transit, scarab
+        for(let j = 0; j < cs.length; j++) {
+            if(enemy == null) enemy = getAsSchema(cs[j], ti.Enemy)
+            if(jar == null) jar = getAsSchema(cs[j], ti.Jar)
+            if(crDes == null) crDes = getAsSchema(cs[j], ti.CrystalDestroyable)
+            if(transit == null) transit = getAsSchema(cs[j], ti.Transition)
+            if(scarab == null) scarab = getAsSchema(cs[j], ti.ScarabPickup)
+            if(composite == null) composite = getAsSchema(cs[j], ti.CompositeCollider2D)
+            if(tilemap == null) tilemap = getAsSchema(cs[j], ti.TilemapCollider2D)
         }
-        if(composite == null || tilemap == null) continue
+
+        if(enemy != null) markerObjects.push([obj, enemy.spriteI])
+        else if(jar != null) markerObjects.push(createOneTex(obj, jar))
+        else if(crDes != null) {
+            const ti = meta.crystalDestroyableTextures[crDes.dropXp ? 1 : 0]
+            markerObjects.push([obj, ti])
+        }
+        else if(scarab != null) markerObjects.push(createOneTex(obj, scarab))
+        else if(composite != null && tilemap != null) {
+            polygonObjects.push([obj, composite])
+        }
+    }
+
+    return { polygonObjects, markerObjects }
+})
+
+objectsProcessedP.then(pObjects => {
+    const { markerObjects } = pObjects
+    const [texW, texH] = markersData[markersData.length - 1]
+
+    const res = new ArrayBuffer(markerObjects.length * 20)
+    const dv = new DataView(res)
+    for(var i = 0; i < markerObjects.length; i++) {
+        const [obj, texI] = markerObjects[i]
+        const pos = obj.pos
+        const td = markersData[texI]
+
+        dv.setFloat32(i * 20     , pos[0], true)
+        dv.setFloat32(i * 20 + 4 , pos[1], true)
+        dv.setUint16 (i * 20 + 8 , Math.floor(td[0] * 0x10000 / texW), true)
+        dv.setUint16 (i * 20 + 10, Math.floor(td[1] * 0x10000 / texH), true)
+        dv.setUint16 (i * 20 + 12, Math.floor(td[2] * 0x10000 / texW), true)
+        dv.setUint16 (i * 20 + 14, Math.floor(td[3] * 0x10000 / texH), true)
+        var v = td[2] / td[3]
+        if(v > 1) v = -td[3] / td[2]
+        dv.setFloat32(i * 20 + 16, v, true)
+    }
+
+    postMessage({ type: 'markers-done', data: res, count: markerObjects.length, size: [texW, texH] }, [res])
+})
+
+var polygons
+Promise.all([objectsProcessedP, polygonsP]).then(([pObjects, polygonsA]) => {
+    polygons = Load.parse(parsedSchema, polygonsA)
+
+    const { polygonObjects } = pObjects
+
+    var totalPointsC = 0, totalIndicesC = 0
+    const polyDrawDataByLayer = Array(32)
+    for(var i = 0; i < polygonObjects.length; i++) {
+        const [obj, composite] = polygonObjects[i]
 
         const polygon = polygons[composite.polygons]
         if(polygon.indices.length == 0) continue
-
-        if(taken[composite.polygons] != null) {
-            console.log('taken!', taken[polygon], obj)
-            continue
-        }
-        taken[composite.polygons] = obj
 
         const data = [obj.matrix, polygon]
 

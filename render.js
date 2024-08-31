@@ -1,6 +1,7 @@
 import * as canvasDisplay from './canvas.js'
 import * as backgroundsDisplay from './renderBackground.js'
 import * as collidersDisplay from './renderColliders.js'
+import * as markersDisplay from './renderMarkers.js'
 import ParserWorker from './worker.js?worker'
 
 var scenes, objects
@@ -15,12 +16,22 @@ const collidersP = new Promise((s, j) => {
     resolveCollidersP = s
 })
 
+var markersData
+var resolveMarkersDataP
+const markersP = new Promise((s, j) => {
+    resolveMarkersDataP = s
+})
+
 const worker = new ParserWorker()
 worker.onmessage = (e) => {
     console.log('received from worker', e.data.type)
     if(e.data.type === 'colliders-done') {
         collidersData = { verts: e.data.verts, indices: e.data.indices, polyDrawData: e.data.polyDrawData }
         resolveCollidersP()
+    }
+    else if(e.data.type == 'markers-done') {
+        markersData = { data: e.data.data, count: e.data.count, size: e.data.size }
+        resolveMarkersDataP()
     }
 }
 worker.onerror = (e) => {
@@ -34,6 +45,10 @@ if (!gl) { throw 'WebGL 2 is not supported.' }
 
 collidersP.then(() => {
     collidersDisplay.setup(gl, context, collidersData)
+})
+
+markersP.then(() => {
+    markersDisplay.setup(gl, context, markersData)
 })
 
 // Note: this is not correct alpha blending, works only if background is already fully transparent!
@@ -50,6 +65,7 @@ function render(context) {
 
     backgroundsDisplay.render(context)
     collidersDisplay.render(context)
+    markersDisplay.render(context)
 }
 
 function requestRender(priority/* 0 - immediate, 1 - animation, 2 - idle */) {
