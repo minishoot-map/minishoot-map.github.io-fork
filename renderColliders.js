@@ -1,6 +1,4 @@
 import { loadShader, checkProg } from './render_util.js'
-import { getAsSchema, parsedSchema } from './schema.js'
-import markerData from './data-processed/markers.json'
 
 const vsSource = `#version 300 es
 precision highp float;
@@ -78,28 +76,6 @@ export function setup(gl, context, collidersData) {
     const scale = gl.getUniformLocation(prog, 'scale')
     const aspect = gl.getUniformLocation(prog, 'aspect')
     const layer = gl.getUniformLocation(prog, 'layer')
-
-    const positionBuffer = gl.createBuffer()
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-    const vertexData = new ArrayBuffer(20 * 5)
-    const v = new DataView(vertexData)
-
-    var count = 0
-    for(const name in markerData) {
-        if(count >= 5) break
-        const m = markerData[name]
-
-        v.setFloat32(0 + count*20, (m[0] + m[2]*0.5) / 2048 * 2 - 1, true)
-        v.setFloat32(4 + count*20, 1 - (m[1] + m[3]*0.5) / 4096 * 2, true)
-        v.setFloat32(8 + count*20, m[2] > m[3] ? m[2] / 2048 / 2 : m[3] / 4096 / 2, true)
-        v.setUint16(12 + count*20, m[0], true)
-        v.setUint16(14 + count*20, m[1], true)
-        v.setUint16(16 + count*20, m[2], true)
-        v.setUint16(18 + count*20, m[3], true)
-
-        count++
-    }
-    gl.bufferData(gl.ARRAY_BUFFER, v, gl.STATIC_DRAW)
 
     renderData.u = { translate, scale, aspect, layer }
     renderData.prog = prog
