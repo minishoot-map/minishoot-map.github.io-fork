@@ -126,7 +126,7 @@ export function setup(gl, context, collidersData) {
     renderData.vao = polygonsVao
     renderData.drawData = collidersData.polyDrawData
     renderData.ok = true
-    context.scheduleRender()
+    context.requestRender(1)
 }
 
 export function render(context) {

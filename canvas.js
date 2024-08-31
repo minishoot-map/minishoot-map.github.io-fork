@@ -93,7 +93,7 @@ export function setup(context) {
 
         context.canvasSize[0] = width * dpr
         context.canvasSize[1] = height * dpr
-        if(shouldResize(context)) context.render()
+        if(shouldResize(context)) context.requestRender(0)
     }
     const resizeObserver = new ResizeObserver(onResize)
     resizeObserver.observe(canvas, {box: 'content-box'});
@@ -119,7 +119,7 @@ export function setup(context) {
         camera.scale = newScale
         camera.posX = tx
         camera.posY = ty
-        context.scheduleRender()
+        context.requestRender(1)
     });
 
     var panning = { is: false, prevX: undefined, prevY: undefined }
@@ -147,7 +147,7 @@ export function setup(context) {
 
         camera.posX -= curX - panning.prevX
         camera.posY -= curY - panning.prevY
-        context.scheduleRender()
+        context.requestRender(1)
     });
 
     canvas.addEventListener('touchstart', function (e) {
@@ -192,7 +192,7 @@ export function setup(context) {
 
             camera.posX -= curX - touch1.prevX
             camera.posY -= curY - touch1.prevY
-            context.scheduleRender()
+            context.requestRender(1)
         }
         else {
             const touch2 = touches.touches[secondId]
@@ -234,7 +234,7 @@ export function setup(context) {
             touch2.prevX = xScreenToWorld(t2.clientX, info2)
             touch2.prevY = yScreenToWorld(t2.clientY, info2)
 
-            context.scheduleRender()
+            context.requestRender(1)
         }
 
         e.preventDefault()

@@ -32,15 +32,6 @@ const gl = canvas.getContext('webgl2', { alpha: false })
 
 if (!gl) { throw 'WebGL 2 is not supported.' }
 
-var renderScheduled = false
-function scheduleRender() {
-    if(renderScheduled) return
-    renderScheduled = true
-    requestAnimationFrame(() => {
-        if(renderScheduled) this.render()
-    })
-}
-
 collidersP.then(() => {
     collidersDisplay.setup(gl, context, collidersData)
 })
@@ -52,21 +43,52 @@ collidersP.then(() => {
 gl.enable(gl.BLEND)
 gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
-function render() {
+function render(context) {
     if(window.__stop) return
-    renderScheduled = false
 
-    if(!canvasDisplay.resize(this)) return
+    if(!canvasDisplay.resize(context)) return
 
-    backgroundsDisplay.render(this)
-    collidersDisplay.render(this)
+    backgroundsDisplay.render(context)
+    collidersDisplay.render(context)
 }
 
+function requestRender(priority/* 0 - immediate, 1 - animation, 2 - idle */) {
+    const rr = this.renderRequest
+    if(rr != null) {
+        if(rr.priority <= priority) return
+        rr.cancel()
+    }
+
+    if(priority == 0) {
+        this.renderRequest = null
+        render(this)
+    }
+    else if(priority == 1) {
+        this.renderRequest = {
+            priority: 1,
+            cancel() { cancelAnimationFrame(this.id) },
+            id: requestAnimationFrame(() => {
+                this.renderRequest = null
+                render(this)
+            })
+        }
+    }
+    else {
+        this.renderRequest = {
+            priority: 2,
+            cancel() { cancelIdleCallback(this.id) },
+            id: requestIdleCallback(() => {
+                this.renderRequest = null
+                render(this)
+            })
+        }
+    }
+}
 
 const context = {
     canvas, gl,
-    scheduleRender,
-    render,
+    renderRequest: null,
+    requestRender,
     camera: { posX: 0, posY: 0, scale: 1000 },
     canvasSize: [],
 }

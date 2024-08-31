@@ -117,7 +117,7 @@ export function setup(context) {
             imgData.ok = true
             imgData.done = true
 
-            context.scheduleRender()
+            context.requestRender(2)
         })
     }
 
