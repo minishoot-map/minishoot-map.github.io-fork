@@ -51,10 +51,44 @@ void main(void) {
 }
 `
 
+// Need to quantize clear color to the same precision as background texture
+// to remove seams. Result is hardware-dependent! ([0, 12, 16] and [8, 12, 25])
+// RGB need to be unsigned bytes. Floats do not work
+function convToRGB656(gl, inputC) {
+    const tex = gl.createTexture()
+    gl.bindTexture(gl.TEXTURE_2D, tex)
+    gl.texStorage2D(gl.TEXTURE_2D, 1, gl.RGB565, 1, 1)
+    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 1, 1, gl.RGB, gl.UNSIGNED_BYTE, inputC)
+
+    const fb = gl.createFramebuffer()
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fb)
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0)
+
+    var res
+    if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE) {
+        res = new Uint8Array(4)
+        // Why is it RGBA? RGB doesn't work... Also floats do not work.
+        // Also why do I need a framebuffer to read pixel data from a texture?
+        gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, res)
+    }
+    else {
+        res = inputC
+        console.error('Framebuffer is not complete')
+    }
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+    gl.bindTexture(gl.TEXTURE_2D, null)
+
+    gl.deleteFramebuffer(fb)
+    gl.deleteTexture(tex)
+
+    return res
+}
+
 export function setup(context) {
     const { gl } = context
 
-    const renderData = {}
+    const renderData = { changed: [], curCount: 0 }
     context.backgrounds = renderData
 
     const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource)
@@ -157,17 +191,13 @@ export function setup(context) {
     gl.uniform1i(texturesU, 0)
 
     const c = bkg.backgroundColor
-    // round background color to RGB565.
-    // Not sure if rounding is officially specified anywhere
-    // but this looks correct
-    const r = (parseInt(c.slice(0, 2), 16) >> 3 << 3) / 255
-    const g = (parseInt(c.slice(2, 4), 16) >> 2 << 2) / 255
-    const b = (parseInt(c.slice(4, 6), 16) >> 3 << 3) / 255
+    const inputData = new Uint8Array(3)
+    inputData[0] = parseInt(c.slice(0, 2), 16)
+    inputData[1] = parseInt(c.slice(2, 4), 16)
+    inputData[2] = parseInt(c.slice(4, 6), 16)
+    const res = convToRGB656(gl, inputData)
+    gl.clearColor(res[0] / 255, res[1] / 255, res[2] / 255, 1)
 
-    gl.clearColor(r, g, b, 1)
-
-    renderData.changed = []
-    renderData.curCount = 0
     renderData.ok = true
 }
 
