@@ -41,14 +41,13 @@ function clampScale(scale, old) {
     return clampedScale(scale, old)[1]
 }
 
-function prepInfo(canvas, camera) {
-    const rect = canvas.getBoundingClientRect()
+function prepInfo(bounds, camera) {
     return {
-        cx: rect.width * 0.5,
-        cy: rect.height * 0.5,
+        cx: bounds.width * 0.5,
+        cy: bounds.height * 0.5,
         posX: camera.posX,
         posY: camera.posY,
-        scale: camera.scale * 2 / rect.height,
+        scale: camera.scale * 2 / bounds.height,
     }
 }
 function xScreenToWorld(it, info) {
@@ -102,7 +101,8 @@ export function setup(context) {
     canvas.addEventListener('wheel', (e) => {
         e.preventDefault()
 
-        const info = prepInfo(canvas, camera)
+        const bounds = canvas.getBoundingClientRect()
+        const info = prepInfo(bounds, camera)
 
         const offsetX = xScreenToWorld(e.clientX, info)
         const offsetY = yScreenToWorld(e.clientY, info)
@@ -123,9 +123,11 @@ export function setup(context) {
     });
 
     var panning = { is: false, prevX: undefined, prevY: undefined }
+    var touches = { order: [/*id*/], touches: {/*id: { prevX, prevY }*/} }
 
     canvas.addEventListener('mousedown', (e) => {
-        const info = prepInfo(canvas, camera)
+        const bounds = canvas.getBoundingClientRect()
+        const info = prepInfo(bounds, camera)
         panning.is = true
         panning.prevX = xScreenToWorld(e.clientX, info)
         panning.prevY = yScreenToWorld(e.clientY, info)
@@ -137,7 +139,8 @@ export function setup(context) {
 
     canvas.addEventListener('mousemove', (e) => {
         if(!panning.is) return
-        const info = prepInfo(canvas, camera)
+        const bounds = canvas.getBoundingClientRect()
+        const info = prepInfo(bounds, camera)
 
         const curX = xScreenToWorld(e.clientX, info)
         const curY = yScreenToWorld(e.clientY, info)
@@ -146,4 +149,107 @@ export function setup(context) {
         camera.posY -= curY - panning.prevY
         context.scheduleRender()
     });
+
+    canvas.addEventListener('touchstart', function (e) {
+        const bounds = canvas.getBoundingClientRect()
+        const info = prepInfo(bounds, camera)
+
+        for(var i = 0; i < e.changedTouches.length; i++) {
+            var t = e.changedTouches[i]
+            if(touches.touches[t.identifier]) continue;
+            touches.order.push(t.identifier)
+            touches.touches[t.identifier] = {
+                prevX: xScreenToWorld(t.clientX, info),
+                prevY: yScreenToWorld(t.clientY, info),
+            }
+        }
+    });
+
+    canvas.addEventListener('touchmove', function (e) {
+        const firstId = touches.order[0]
+        if(firstId == undefined) return
+        const secondId = touches.order[1]
+
+        let t1, t2
+        for(let i = 0; i < e.touches.length; i++) {
+            const t = e.touches[i]
+            if(t.identifier == firstId) {
+                t1 = t
+            }
+            else if(t.identifier == secondId) {
+                t2 = t
+            }
+        }
+        if(t1 == undefined) return
+
+        const bounds = canvas.getBoundingClientRect()
+        const info = prepInfo(bounds, camera)
+
+        const touch1 = touches.touches[firstId]
+        if(t2 == undefined) { // pan
+            const curX = xScreenToWorld(t1.clientX, info)
+            const curY = yScreenToWorld(t1.clientY, info)
+
+            camera.posX -= curX - touch1.prevX
+            camera.posY -= curY - touch1.prevY
+            context.scheduleRender()
+        }
+        else {
+            const touch2 = touches.touches[secondId]
+
+            const curX1 = xScreenToWorld(t1.clientX, info)
+            const curY1 = yScreenToWorld(t1.clientY, info)
+            const curX2 = xScreenToWorld(t2.clientX, info)
+            const curY2 = yScreenToWorld(t2.clientY, info)
+
+            const preX1 = touch1.prevX
+            const preY1 = touch1.prevY
+            const preX2 = touch2.prevX
+            const preY2 = touch2.prevY
+
+            const dx = curX1 - curX2
+            const dy = curY1 - curY2
+            const pdx = preX1 - preX2
+            const pdy = preY1 - preY2
+            const preDist2 = pdx * pdx + pdy * pdy
+            const curDist2 = dx * dx + dy * dy
+
+            const preCenterX = (preX1 + preX2) * 0.5
+            const preCenterY = (preY1 + preY2) * 0.5
+
+            const curCenterX = (curX1 + curX2) * 0.5
+            const curCenterY = (curY1 + curY2) * 0.5
+
+            const delta = Math.sqrt(preDist2 / curDist2)
+            const newScale = clampScale(camera.scale * delta, camera.scale)
+            const newDelta = newScale / camera.scale
+
+            camera.scale = newScale
+            camera.posX = preCenterX - (curCenterX - camera.posX) * newDelta
+            camera.posY = preCenterY - (curCenterY - camera.posY) * newDelta
+
+            const info2 = prepInfo(bounds, camera)
+            touch1.prevX = xScreenToWorld(t1.clientX, info2)
+            touch1.prevY = yScreenToWorld(t1.clientY, info2)
+            touch2.prevX = xScreenToWorld(t2.clientX, info2)
+            touch2.prevY = yScreenToWorld(t2.clientY, info2)
+
+            context.scheduleRender()
+        }
+
+        e.preventDefault()
+    });
+
+    canvas.addEventListener('touchend', function (e) {
+        for(let i = 0; i < e.changedTouches.length; i++) {
+            const t = e.changedTouches[i]
+            for(let j = 0; j < touches.order.length; j++) {
+                if(touches.order[j] === t.identifier) {
+                    delete touches.touches[t.identifier]
+                    touches.order.splice(j, 1)
+                    break;
+                }
+            }
+        }
+    })
 }
