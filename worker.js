@@ -109,11 +109,11 @@ const objectsProcessedP = objectsLoadedP.then(objects => {
             if(tilemap == null) tilemap = getAsSchema(cs[j], ti.TilemapCollider2D)
         }
 
-        if(enemy != null) markerObjects.push([obj, enemy.spriteI])
+        if(enemy != null) markerObjects.push([obj, enemy.spriteI, 1 + 0.33 * enemy.size])
         else if(jar != null) markerObjects.push(createOneTex(obj, jar))
         else if(crDes != null) {
             const ti = meta.crystalDestroyableTextures[crDes.dropXp ? 1 : 0]
-            markerObjects.push([obj, ti])
+            markerObjects.push([obj, ti, 1 + 0.5 * crDes.size])
         }
         else if(scarab != null) markerObjects.push(createOneTex(obj, scarab))
         else if(composite != null && tilemap != null) {
@@ -147,13 +147,14 @@ objectsProcessedP.then(pObjects => {
     const markersB = new ArrayBuffer(markerObjects.length * 12)
     const dv = new DataView(markersB)
     for(var i = 0; i < markerObjects.length; i++) {
-        const [obj, texI] = markerObjects[i]
+        const [obj, texI, size0] = markerObjects[i]
+        const size = size0 > 0 ? size0 : 1.0
         const pos = obj.pos
 
         dv.setFloat32(i * 12     , pos[0], true)
         dv.setFloat32(i * 12 + 4 , pos[1], true)
         dv.setUint16 (i * 12 + 8 , texI, true)
-        dv.setFloat16(i * 12 + 10, 1.0, true)
+        dv.setFloat16(i * 12 + 10, size, true)
     }
 
     postMessage({

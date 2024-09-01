@@ -39,7 +39,7 @@ void main(void) {
     uint xy = md.xy;
     uint wh = md.wh;
 
-    vec2 offset = coords[gl_VertexID] * bannerScale;
+    vec2 offset = coords[gl_VertexID] * bannerScale * size;
     if(texAspect < 0.0) offset.y *= -texAspect;
     else offset.x *= texAspect;
 
@@ -153,11 +153,12 @@ export function setup(gl, context, markersDataP) {
 
     const ubo = gl.createBuffer()
     gl.bindBuffer(gl.UNIFORM_BUFFER, ubo)
+    gl.bufferData(gl.UNIFORM_BUFFER, markersMeta[0] * 16, gl.STATIC_DRAW)
     gl.bindBufferBase(gl.UNIFORM_BUFFER, 0, ubo)
 
     markersDataP.then(data => {
         gl.bindBuffer(gl.UNIFORM_BUFFER, ubo)
-        gl.bufferData(gl.UNIFORM_BUFFER, data.markersData, gl.STATIC_DRAW)
+        gl.bufferSubData(gl.UNIFORM_BUFFER, 0, data.markersData)
 
         gl.bindBuffer(gl.ARRAY_BUFFER, dataB)
         gl.bufferData(gl.ARRAY_BUFFER, data.markers, gl.STATIC_DRAW)
