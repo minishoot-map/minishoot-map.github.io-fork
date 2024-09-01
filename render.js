@@ -1,6 +1,7 @@
 import * as canvasDisplay from './canvas.js'
 import * as backgroundsDisplay from './renderBackground.js'
 import * as collidersDisplay from './renderColliders.js'
+import * as circularDisplay from './renderCircularColliders.js'
 import * as markersDisplay from './renderMarkers.js'
 import ParserWorker from './worker.js?worker'
 
@@ -26,7 +27,13 @@ if(true) {
     worker.onmessage = (e) => {
         console.log('received from worker', e.data.type)
         if(e.data.type === 'colliders-done') {
-            collidersData = { verts: e.data.verts, indices: e.data.indices, polyDrawData: e.data.polyDrawData }
+            collidersData = {
+                verts: e.data.verts,
+                indices: e.data.indices,
+                polyDrawData: e.data.polyDrawData,
+                circularData: e.data.circularData,
+                circularDrawData: e.data.circularDrawData,
+            }
             resolveCollidersP(collidersData)
         }
         else if(e.data.type == 'markers-done') {
@@ -46,6 +53,7 @@ if (!gl) { throw 'WebGL 2 is not supported.' }
 
 collidersP.then(() => {
     collidersDisplay.setup(gl, context, collidersData)
+    circularDisplay.setup(gl, context, collidersData)
 })
 
 
@@ -63,6 +71,7 @@ function render(context) {
 
     backgroundsDisplay.render(context)
     collidersDisplay.render(context)
+    circularDisplay.render(context)
     markersDisplay.render(context)
 }
 

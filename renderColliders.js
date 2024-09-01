@@ -1,4 +1,5 @@
 import { loadShader, checkProg } from './render_util.js'
+import colliderColorsS from './collirderColors.js'
 
 const vsSource = `#version 300 es
 precision highp float;
@@ -15,32 +16,6 @@ void main(void) {
     gl_Position = vec4(pos, 1.0, 1.0);
 }
 `
-const colliderColors = {
-    0 : "0a590360", // destroyable
-    4 : "6a97dd20", // water
-    6 : "35009920", // deep water
-    12: "f9000060", // enemy
-    13: "f9000060", // enemy
-    14: "c14a0320", // wall
-    16: "00000020", // hole
-    17: "ff00ff40", // trigger?
-    23: "11656360", // static
-    25: "4f3c0140", // bridge
-    26: "f9005060", // enemy (stationary)
-    31: "11656360", // static
-    fallback: "9400f920"
-}
-let colliderColorsS = 'const vec4 layerColors[32] = vec4[32]('
-for(let i = 0; i < 32; i++) {
-    const c = colliderColors[i] ?? colliderColors.fallback
-    let r = parseInt(c.slice(0, 2), 16) / 255
-    let g = parseInt(c.slice(2, 4), 16) / 255
-    let b = parseInt(c.slice(4, 6), 16) / 255
-    let a = parseInt(c.slice(6, 8), 16) / 255
-    if(i != 0) colliderColorsS += ',\n'
-    colliderColorsS += `vec4(${r}, ${g}, ${b}, ${a})`
-}
-colliderColorsS += ');'
 
 const fsSource = `#version 300 es
 precision mediump float;
@@ -60,12 +35,12 @@ export function setup(gl, context, collidersData) {
     const renderData = {}
     context.polygons = renderData
 
-    const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource)
-    const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource)
+    const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource, 'polygons v')
+    const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource, 'polygons f')
 
     const prog = gl.createProgram()
-    gl.attachShader(prog, vertexShader, 'polygons v')
-    gl.attachShader(prog, fragmentShader, 'polygons f')
+    gl.attachShader(prog, vertexShader)
+    gl.attachShader(prog, fragmentShader)
     gl.linkProgram(prog)
 
     if(!checkProg(gl, prog)) return
@@ -89,8 +64,8 @@ export function setup(gl, context, collidersData) {
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, collidersData.indices, gl.STATIC_DRAW)
 
 
-    const polygonsVao = gl.createVertexArray()
-    gl.bindVertexArray(polygonsVao)
+    const vao = gl.createVertexArray()
+    gl.bindVertexArray(vao)
 
     gl.bindBuffer(gl.ARRAY_BUFFER, verticesB)
     const coordIn = gl.getAttribLocation(renderData.prog, 'coord')
@@ -99,7 +74,7 @@ export function setup(gl, context, collidersData) {
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesB)
 
-    renderData.vao = polygonsVao
+    renderData.vao = vao
     renderData.drawData = collidersData.polyDrawData
     renderData.ok = true
     context.requestRender(1)
