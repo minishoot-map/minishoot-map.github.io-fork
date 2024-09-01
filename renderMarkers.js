@@ -178,7 +178,11 @@ export function render(context) {
     gl.uniform2f(rd.u.translate, -camera.posX, -camera.posY)
     gl.uniform1f(rd.u.scale, 1 / camera.scale)
     gl.uniform1f(rd.u.aspect, canvasSize[1] / canvasSize[0])
-    gl.uniform1f(rd.u.bannerScale, 10 / Math.max(camera.scale, 500))
+
+    var bannerScale = 1
+    if(camera.scale > 200) bannerScale = 200 / camera.scale
+    bannerScale *= 0.03
+    gl.uniform1f(rd.u.bannerScale, bannerScale)
 
     gl.bindVertexArray(rd.vao)
     gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, rd.count)

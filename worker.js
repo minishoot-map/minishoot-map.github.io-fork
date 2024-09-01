@@ -94,6 +94,7 @@ const objectsProcessedP = objectsLoadedP.then(objects => {
     const markerObjects = []
 
     const filterSchemas = [
+        ti.Boss,
         ti.Enemy,
         ti.Jar,
         ti.CrystalDestroyable,
@@ -119,6 +120,7 @@ const objectsProcessedP = objectsLoadedP.then(objects => {
         }
 
         var ci = 0
+        var boss      = resultComponents[ci++]
         var enemy     = resultComponents[ci++]
         var jar       = resultComponents[ci++]
         var crDes     = resultComponents[ci++]
@@ -127,7 +129,8 @@ const objectsProcessedP = objectsLoadedP.then(objects => {
         var composite = resultComponents[ci++]
         var tilemap   = resultComponents[ci++]
 
-        if(enemy != null) markerObjects.push([obj, enemy.spriteI, 1 + 0.33 * enemy.size])
+        if(boss != null) markerObjects.push([obj, enemy.spriteI/*!*/, 3])
+        else if(enemy != null) markerObjects.push([obj, enemy.spriteI, 1 + 0.33 * enemy.size])
         else if(jar != null) markerObjects.push(createOneTex(obj, jar))
         else if(crDes != null) {
             const ti = meta.crystalDestroyableTextures[crDes.dropXp ? 1 : 0]
