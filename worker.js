@@ -93,21 +93,39 @@ const objectsProcessedP = objectsLoadedP.then(objects => {
     const polygonObjects = []
     const markerObjects = []
 
-    for(let i = 0; i < objects.length; i++) {
-        const obj = objects[i]
-        const cs = obj.components
+    const filterSchemas = [
+        ti.Enemy,
+        ti.Jar,
+        ti.CrystalDestroyable,
+        ti.Transition,
+        ti.ScarabPickup,
+        ti.CompositeCollider2D,
+        ti.TilemapCollider2D,
+    ]
+    const resultComponents = Array(filterSchemas.length)
 
-        let composite, tilemap
-        let enemy, jar, crDes, transit, scarab
-        for(let j = 0; j < cs.length; j++) {
-            if(enemy == null) enemy = getAsSchema(cs[j], ti.Enemy)
-            if(jar == null) jar = getAsSchema(cs[j], ti.Jar)
-            if(crDes == null) crDes = getAsSchema(cs[j], ti.CrystalDestroyable)
-            if(transit == null) transit = getAsSchema(cs[j], ti.Transition)
-            if(scarab == null) scarab = getAsSchema(cs[j], ti.ScarabPickup)
-            if(composite == null) composite = getAsSchema(cs[j], ti.CompositeCollider2D)
-            if(tilemap == null) tilemap = getAsSchema(cs[j], ti.TilemapCollider2D)
+    const s = performance.now()
+    for(var i = 0; i < objects.length; i++) {
+        var obj = objects[i]
+        var cs = obj.components
+
+        for(var j = 0; j < filterSchemas.length; j++) {
+            var fi = filterSchemas[j]
+            var it = null
+            for(var k = 0; k < cs.length && it == null; k++) {
+                it = getAsSchema(cs[k], fi)
+            }
+            resultComponents[j] = it
         }
+
+        var ci = 0
+        var enemy     = resultComponents[ci++]
+        var jar       = resultComponents[ci++]
+        var crDes     = resultComponents[ci++]
+        var transit   = resultComponents[ci++]
+        var scarab    = resultComponents[ci++]
+        var composite = resultComponents[ci++]
+        var tilemap   = resultComponents[ci++]
 
         if(enemy != null) markerObjects.push([obj, enemy.spriteI, 1 + 0.33 * enemy.size])
         else if(jar != null) markerObjects.push(createOneTex(obj, jar))
@@ -120,6 +138,8 @@ const objectsProcessedP = objectsLoadedP.then(objects => {
             polygonObjects.push([obj, composite])
         }
     }
+    const e = performance.now()
+    console.log(e - s)
 
     return { polygonObjects, markerObjects }
 })
