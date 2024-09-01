@@ -3,6 +3,9 @@ import markersData from './data-processed/markers.json'
 import markersMeta from './data-processed/markers-meta.json'
 import { meta, getAsSchema, parsedSchema } from './schema.js'
 
+const ti = parsedSchema.typeSchemaI
+const ss = parsedSchema.schema
+
 // NOTE: DO NOT send 30mb of objects w/ postMessage() :)
 
 async function load(path) {
@@ -87,23 +90,20 @@ function createOneTex(obj, comp) {
 }
 
 const objectsProcessedP = objectsLoadedP.then(objects => {
-    const ti = parsedSchema.typeSchemaI
-    const ss = parsedSchema.schema
 
     const polygonObjects = []
     const markerObjects = []
 
     const filterSchemas = [
-        ti.Boss,
         ti.Enemy,
         ti.Jar,
         ti.CrystalDestroyable,
         ti.Transition,
         ti.ScarabPickup,
-        ti.CompositeCollider2D,
-        ti.TilemapCollider2D,
+        ti.Collider2D,
     ]
     const resultComponents = Array(filterSchemas.length)
+    for(var i = 0; i < resultComponents.length; i++) resultComponents[i] = [null, null]
 
     const s = performance.now()
     for(var i = 0; i < objects.length; i++) {
@@ -113,32 +113,38 @@ const objectsProcessedP = objectsLoadedP.then(objects => {
         for(var j = 0; j < filterSchemas.length; j++) {
             var fi = filterSchemas[j]
             var it = null
-            for(var k = 0; k < cs.length && it == null; k++) {
+            for(var k = 0; k < cs.length && it != null; k++) {
                 it = getAsSchema(cs[k], fi)
             }
-            resultComponents[j] = it
+            if(it != null) {
+                resultComponents[j][0] = it
+                resultComponents[j][1] = cs[k]
+            }
+            else {
+                resultComponents[j][0] = resultComponents[j][1] = null
+            }
         }
 
         var ci = 0
-        var boss      = resultComponents[ci++]
-        var enemy     = resultComponents[ci++]
-        var jar       = resultComponents[ci++]
-        var crDes     = resultComponents[ci++]
-        var transit   = resultComponents[ci++]
-        var scarab    = resultComponents[ci++]
-        var composite = resultComponents[ci++]
-        var tilemap   = resultComponents[ci++]
+        var [enemy, enemyA]       = resultComponents[ci++]
+        var [jar, jarA]           = resultComponents[ci++]
+        var [crDes, crDesA]       = resultComponents[ci++]
+        var [transit, transitA]   = resultComponents[ci++]
+        var [scarab, scarabA]     = resultComponents[ci++]
+        var [collider, colliderA] = resultComponents[ci++]
 
-        if(boss != null) markerObjects.push([obj, enemy.spriteI/*!*/, 3])
-        else if(enemy != null) markerObjects.push([obj, enemy.spriteI, 1 + 0.33 * enemy.size])
+        if(enemy != null) {
+            const size = enemyA._schema === ti.Boss ? 3 : 1 + 0.33 * enemy.size
+            markerObjects.push([obj, enemy.spriteI, size])
+        }
         else if(jar != null) markerObjects.push(createOneTex(obj, jar))
         else if(crDes != null) {
             const ti = meta.crystalDestroyableTextures[crDes.dropXp ? 1 : 0]
             markerObjects.push([obj, ti, 1 + 0.5 * crDes.size])
         }
         else if(scarab != null) markerObjects.push(createOneTex(obj, scarab))
-        else if(composite != null && tilemap != null) {
-            polygonObjects.push([obj, composite])
+        else if(collider != null) {
+            colliderObjects.push([obj, colliderA])
         }
     }
     const e = performance.now()
@@ -147,6 +153,7 @@ const objectsProcessedP = objectsLoadedP.then(objects => {
     return { polygonObjects, markerObjects }
 })
 
+if(false)
 objectsProcessedP.then(pObjects => {
     const { markerObjects } = pObjects
     const [markerDataC, texW, texH] = markersMeta
@@ -188,54 +195,119 @@ objectsProcessedP.then(pObjects => {
     }, [markersB, markerDataB])
 })
 
+const boxPoints = [[-0.5, -0.5], [0.5, -0.5], [-0.5, 0.5], [0.5, 0.5]]
+
 var polygons
 Promise.all([objectsProcessedP, polygonsP]).then(([pObjects, polygonsA]) => {
-    if(true) return
     polygons = Load.parse(parsedSchema, polygonsA)
 
     const { polygonObjects } = pObjects
 
     var totalPointsC = 0, totalIndicesC = 0
     const polyDrawDataByLayer = Array(32)
-    for(var i = 0; i < polygonObjects.length; i++) {
-        const [obj, composite] = polygonObjects[i]
-
-        const polygon = polygons[composite.polygons]
-        if(polygon.indices.length == 0) continue
-
-        const data = [obj.matrix, polygon]
-
-        var datas = polyDrawDataByLayer[obj.layer]
-        if(datas == null) polyDrawDataByLayer[obj.layer] = [data]
-        else datas.push(data)
-
-        totalPointsC += polygon.points.length * 2
-        totalIndicesC += polygon.indices.length
+    const circularDrawDataByLayer = Array(32)
+    for(var i = 0; i < 32; i++) {
+        polyDrawDataByLayer[i] = []
+        circularDrawDataByLayer[i] = []
     }
 
-    const verts = new Float32Array(totalPointsC)
+    debugger
+    for(var i = 0; i < polygonObjects.length; i++) {
+        const pobj = polygonObjects[i]
+        const layer = pobj[0].layer, s = pobj[1]._schema
+        console.log(s)
+
+        if(s === ti.CompositeCollider2D) {
+            const polygon = polygons[composite.polygons]
+            if(polygon.indices.length == 0) continue
+
+            polyDrawDataByLayer[layer].push(pobj)
+
+            totalPointsC += polygon.points.length
+            totalIndicesC += polygon.indices.length
+        }
+        else if(s === ti.PolygonCollider2D) {
+            const polygon = polygons[composite.points]
+            if(polygon.indices.length == 0) continue
+
+            polyDrawDataByLayer[layer].push(pobj)
+
+            totalPointsC += polygon.points.length
+            totalIndicesC += polygon.indices.length
+        }
+        else if(s === ti.BoxCollider2D) {
+            polyDrawDataByLayer[layer].push(pobj)
+
+            totalPointsC += 4
+            totalPointsC += 4
+        }
+        else if(s === ti.CircleCollider2D) {
+            circularDrawDataByLayer[layer].push(pobj)
+        }
+        else if(s === ti.CapsuleCollider2D) {
+            circularDrawDataByLayer[layer].push(pobj)
+        }
+    }
+
+            // const data = [obj.matrix, polygon]
+    console.log(totalPointsC, totalIndicesC)
+
+    const verts = new Float32Array(totalPointsC * 2)
     const indices = new Uint32Array(totalIndicesC)
     let vertI = 0, indexI = 0
     const polyDrawData = []
     for(let i = 0; i < polyDrawDataByLayer.length; i++) {
         const datas = polyDrawDataByLayer[i]
-        if(datas == null) continue
+        if(datas.length == 0) continue
         const startIndexI = indexI
 
         for(let j = 0; j < datas.length; j++) {
-            const data = datas[j]
-            const m = data[0]
-            const poly = data[1]
             const startVertexI = vertI
-            for(let k = 0; k < poly.points.length; k++) {
-                const x = poly.points[k][0]
-                const y = poly.points[k][1]
-                verts[vertI*2    ] = x * m[0] + y * m[1] + m[2]
-                verts[vertI*2 + 1] = x * m[3] + y * m[4] + m[5]
-                vertI++
+
+            const data = datas[j]
+            const m = data[0].matrix
+            const coll = data[1]
+            if(coll._schema === ti.CompositeCollider2D) {
+                const poly = polygons[coll.polygons]
+                const off = coll._base.offset
+                console.log('composite w/', poly.points.length, poly.indices.length)
+                for(let k = 0; k < poly.points.length; k++) {
+                    const x = poly.points[k][0] + off[0]
+                    const y = poly.points[k][1] + off[1]
+                    verts[vertI*2    ] = x * m[0] + y * m[1] + m[2]
+                    verts[vertI*2 + 1] = x * m[3] + y * m[4] + m[5]
+                    vertI++
+                }
+                for(let k = 0; k < poly.indices.length; k++) {
+                    indices[indexI++] = startVertexI + poly.indices[k]
+                }
             }
-            for(let k = 0; k < poly.indices.length; k++) {
-                indices[indexI++] = startVertexI + poly.indices[k]
+            else if(coll._schema === ti.PolygonCollider2D) {
+                const poly = polygons[coll.points]
+                const off = coll._base.offset
+                console.log('polygon w/', poly.points.length, poly.indices.length)
+                for(let k = 0; k < poly.points.length; k++) {
+                    const x = poly.points[k][0] + off[0]
+                    const y = poly.points[k][1] + off[1]
+                    verts[vertI*2    ] = x * m[0] + y * m[1] + m[2]
+                    verts[vertI*2 + 1] = x * m[3] + y * m[4] + m[5]
+                    vertI++
+                }
+                for(let k = 0; k < poly.indices.length; k++) {
+                    indices[indexI++] = startVertexI + poly.indices[k]
+                }
+            }
+            else if(coll._schema === ti.BoxCollider2D) {
+                console.log('box')
+                const size = coll.size
+                const off = coll._base.offset
+                for(let k = 0; k < 4; k++) {
+                    const x = boxPoints[k] * size[0] + off[0]
+                    const y = boxPoints[k] * size[1] + off[1]
+                    verts[vertI*2    ] = x * m[0] + y * m[1] + m[2]
+                    verts[vertI*2 + 1] = x * m[3] + y * m[4] + m[5]
+                    indices[indexI++] = startVertexI + k
+                }
             }
         }
 
