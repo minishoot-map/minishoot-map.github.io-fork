@@ -14,8 +14,8 @@ async function load(path) {
     return new Uint8Array(ab)
 }
 
-const objectsP = load('./data/objects.bp')
-const polygonsP = load('./data/polygons.bp')
+const objectsP = load('/data/objects.bp')
+const polygonsP = load('/data/polygons.bp')
 
 var deg2rad = (Math.PI / 180)
 // Note: rotation is counter-clockwise in both Unity and css (right?)
@@ -90,7 +90,6 @@ function createOneTex(obj, comp) {
 }
 
 const objectsProcessedP = objectsLoadedP.then(objects => {
-
     const colliderObjects = []
     const markerObjects = []
 
@@ -139,7 +138,7 @@ const objectsProcessedP = objectsLoadedP.then(objects => {
 })
 
 objectsProcessedP.then(pObjects => {
-    if(!__worker_markers) return
+    if(!__worker_markers) return void console.warn('skipping markers')
 
     const { markerObjects } = pObjects
     const [markerDataC, texW, texH] = markersMeta
@@ -179,13 +178,15 @@ objectsProcessedP.then(pObjects => {
         markersData: markerDataB,
         count: markerObjects.length
     }, [markersB, markerDataB])
+}).catch(e => {
+    console.error('Error processing markers', e)
 })
 
 const boxPoints = [[-0.5, -0.5], [0.5, -0.5], [-0.5, 0.5], [0.5, 0.5]]
 
 var polygons
 Promise.all([objectsProcessedP, polygonsP]).then(([pObjects, polygonsA]) => {
-    if(!__worker_colliders) return
+    if(!__worker_colliders) return void console.warn('skipping colliders')
 
     polygons = Load.parse(parsedSchema, polygonsA)
 
@@ -360,4 +361,6 @@ Promise.all([objectsProcessedP, polygonsP]).then(([pObjects, polygonsA]) => {
         verts, indices, polyDrawData,
         circularData, circularDrawData,
     }, [verts.buffer, indices.buffer, circularData])
+}).catch(e => {
+    console.error('Error processing colliders', e)
 })

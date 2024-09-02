@@ -110,7 +110,7 @@ const shortenName = /[.]([^.]+)$/
 
 function peek() {
     if(index < array.length) return array[index]
-    return array[index]
+    throw 'Reading past the end'
 }
 function pop() {
     var cur = peek()
