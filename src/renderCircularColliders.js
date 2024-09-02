@@ -1,5 +1,5 @@
 import { loadShader, checkProg } from './render_util.js'
-import colliderColorsS from './collirderColors.js'
+import colliderColorsS from './colliderColors.js'
 
 const vsSource = `#version 300 es
 precision highp float;

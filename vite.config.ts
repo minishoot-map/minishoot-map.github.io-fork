@@ -66,6 +66,8 @@ export default defineConfig(({ command, mode, isSsrBuild, isPreview }) => {
     delete defines.__use_default_in_builds
 
     return {
+        root: './src',
+        build: { outDir: '../dist', emptyOutDir: true },
         define: defines,
         plugins: [
             viteStaticCopy({
