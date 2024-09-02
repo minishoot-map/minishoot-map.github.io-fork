@@ -10,7 +10,7 @@ uniform float aspect;
 
 in vec3 transform1;
 in vec3 transform2;
-in vec2 size;
+in float width;
 
 const vec2 coords[4] = vec2[4](
     vec2(-0.5, -0.5),
@@ -24,20 +24,17 @@ out vec2 collCoord;
 
 void main(void) {
     vec2 coord = coords[gl_VertexID];
-    coord = vec2(dot(coord, transform1.xy) + transform1.z, dot(coord, transform2.xy) + transform2.z);
+    coord = vec2(
+        dot(coord, transform1.xy) + transform1.z,
+        dot(coord, transform2.xy) + transform2.z
+    );
 
     vec2 pos = (translate + coord) * scale;
     pos.x *= aspect;
     gl_Position = vec4(pos, 1.0, 1.0);
 
-    if(size.x > size.y) {
-        collWidth = size.x / size.y;
-        collCoord = vec2(coords[gl_VertexID].x * (size.x / size.y), coords[gl_VertexID].y) * 2.0;
-    }
-    else {
-        collWidth = size.y / size.x;
-        collCoord = vec2(coords[gl_VertexID].y * (size.y / size.x), coords[gl_VertexID].x) * 2.0;
-    }
+    collWidth = width;
+    collCoord = coords[gl_VertexID] * vec2(2.0 * width, 2.0);
 }
 `
 
@@ -113,11 +110,11 @@ export function setup(gl, context, collidersData) {
     gl.enableVertexAttribArray(t2In)
     gl.vertexAttribDivisor(t2In, 1)
 
-    const sizeIn = gl.getAttribLocation(renderData.prog, 'size')
-    gl.enableVertexAttribArray(sizeIn)
-    gl.vertexAttribDivisor(sizeIn, 1)
+    const widthIn = gl.getAttribLocation(renderData.prog, 'width')
+    gl.enableVertexAttribArray(widthIn)
+    gl.vertexAttribDivisor(widthIn, 1)
 
-    renderData.inputs = { t1In, t2In, sizeIn }
+    renderData.inputs = { t1In, t2In, widthIn }
 
     renderData.drawData = collidersData.circularDrawData
     renderData.__cd = collidersData.circularData
@@ -142,11 +139,11 @@ export function render(context) {
 
         // webgl2 does not suck
         // https://stackoverflow.com/questions/69510570/drawing-specific-instances-in-gl-drawarraysinstanced
-        const offset = it.startIndexI * 32
-        const { t1In, t2In, sizeIn } = rd.inputs
-        gl.vertexAttribPointer(t1In  , 3, gl.FLOAT, false, 32, offset + 0)
-        gl.vertexAttribPointer(t2In  , 3, gl.FLOAT, false, 32, offset + 12)
-        gl.vertexAttribPointer(sizeIn, 2, gl.FLOAT, false, 32, offset + 24)
+        const offset = it.startIndexI * 28
+        const { t1In, t2In, widthIn } = rd.inputs
+        gl.vertexAttribPointer(t1In  , 3, gl.FLOAT, false, 28, offset + 0)
+        gl.vertexAttribPointer(t2In  , 3, gl.FLOAT, false, 28, offset + 12)
+        gl.vertexAttribPointer(widthIn, 1, gl.FLOAT, false, 28, offset + 24)
 
         gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, it.length)
     }

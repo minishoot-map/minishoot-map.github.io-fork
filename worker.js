@@ -300,8 +300,8 @@ Promise.all([objectsProcessedP, polygonsP]).then(([pObjects, polygonsA]) => {
         polyDrawData.push({ startIndexI, length: indexI - startIndexI, layer: i })
     }
 
-    // we need to send the whole 2x3 matrix + the size of the capsule collider
-    const cirSize = 32
+    // we need to send the whole 2x3 matrix + the bigger size of the capsule collider
+    const cirSize = 28
     const circularData = new ArrayBuffer(cirSize * totalCircularC)
     const cirdv = new DataView(circularData)
     const circularDrawData = []
@@ -323,19 +323,27 @@ Promise.all([objectsProcessedP, polygonsP]).then(([pObjects, polygonsA]) => {
                 newM[2] = off[0]
                 newM[4] = coll.radius * 2
                 newM[5] = off[1]
-                cirdv.setFloat32(circI * cirSize + 24, newM[0], true)
-                cirdv.setFloat32(circI * cirSize + 28, newM[4], true)
+                cirdv.setFloat32(circI * cirSize + 24, 1, true)
                 premultiplyBy(newM, m)
                 circI++
             }
             else if(coll._schema === ti.CapsuleCollider2D) {
+                const size = coll.size
                 const newM = new Float32Array(circularData, circI * cirSize, 6)
-                newM[0] = coll.size[0]
-                newM[2] = off[0]
-                newM[4] = coll.size[1]
-                newM[5] = off[1]
-                cirdv.setFloat32(circI * cirSize + 24, newM[0], true)
-                cirdv.setFloat32(circI * cirSize + 28, newM[4], true)
+                if(coll.size[0] > coll.size[1]) {
+                    newM[0] = coll.size[0]
+                    newM[2] = off[0]
+                    newM[4] = coll.size[1]
+                    newM[5] = off[1]
+                    cirdv.setFloat32(circI * cirSize + 24, size[0] / size[1], true)
+                }
+                else { // rotate 90 degrees because the shader expects width > height
+                    newM[1] = -coll.size[0]
+                    newM[2] = off[0]
+                    newM[3] = coll.size[1]
+                    newM[5] = off[1]
+                    cirdv.setFloat32(circI * cirSize + 24, size[1] / size[0], true)
+                }
                 premultiplyBy(newM, m)
                 circI++
             }
