@@ -69,6 +69,16 @@ function render(context) {
 
     if(!canvasDisplay.resize(context)) return
 
+    const b = context.cameraBuf
+    const aspect = context.canvasSize[1] / context.canvasSize[0]
+    const scale = 1 / context.camera.scale
+    b[0] = -context.camera.posX * (scale * aspect)
+    b[1] = -context.camera.posY * scale
+    b[2] = scale * aspect
+    b[3] = scale
+    gl.bindBuffer(gl.UNIFORM_BUFFER, context.cameraUbo)
+    gl.bufferSubData(gl.UNIFORM_BUFFER, 0, b)
+
     backgroundsDisplay.render(context)
     collidersDisplay.render(context)
     circularDisplay.render(context)
@@ -119,3 +129,20 @@ const context = {
 canvasDisplay.setup(context)
 backgroundsDisplay.setup(context)
 markersDisplay.setup(gl, context, markersP)
+
+/* prep Camera UBO */ {
+    /*
+layout(std140) uniform Camera {
+    vec2 add;
+    vec2 multiply;
+} cam;
+    */
+
+    const ubo = gl.createBuffer()
+    gl.bindBuffer(gl.UNIFORM_BUFFER, ubo)
+    gl.bufferData(gl.UNIFORM_BUFFER, 16, gl.STATIC_DRAW)
+    gl.bindBufferBase(gl.UNIFORM_BUFFER, 0, ubo)
+
+    context.cameraUbo = ubo
+    context.cameraBuf = new Float32Array(4)
+}

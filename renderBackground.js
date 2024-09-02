@@ -7,34 +7,34 @@ const texturesC = bkg.backgrounds.length
 // THIS LANGUAGE... IMAGINE TOT BEING ABLE TO PRINT A NUMBER WITH DECIMAL POINT
 // NO, toFixed() ALSO ROUNDS THE NUMBER OR ADDS A MILLION ZEROS
 // NO, toString() PRINTS INTEGERS WITHOUT DECIMAL POINT
-const bgSize2 = bkg.backgroundSize * 0.5 + '.0'
+const bgSize = bkg.backgroundSize + '.0'
 
 const vsSource = `#version 300 es
 precision highp float;
 
-uniform vec2 translate;
-uniform float scale;
-uniform float aspect;
+layout(std140) uniform Camera {
+    vec2 add;
+    vec2 multiply;
+} cam;
 
 in vec2 coord;
 in int index;
 
 const vec2 coords[4] = vec2[4](
-    vec2(-1.0, -1.0),
-    vec2(1.0, -1.0),
-    vec2(-1.0, 1.0),
-    vec2(1.0, 1.0)
+    vec2(-0.5, -0.5),
+    vec2(0.5, -0.5),
+    vec2(-0.5, 0.5),
+    vec2(0.5, 0.5)
 );
 
 out vec2 uv;
 flat out int tIndex;
 
 void main(void) {
-    vec2 pos = (translate + coord + coords[gl_VertexID] * ${bgSize2}) * scale;
-    pos.x *= aspect;
+    vec2 off = coords[gl_VertexID];
+    vec2 pos = (coord + off * ${bgSize}) * cam.multiply + cam.add;
     gl_Position = vec4(pos, 1.0, 1.0);
-    vec2 uv0 = (coords[gl_VertexID] + 1.0) * 0.5;
-    uv = vec2(uv0.x, 1.0 - uv0.y);
+    uv = vec2(off.x + 0.5, 0.5 - off.y);
     tIndex = index;
 }
 `
@@ -103,6 +103,8 @@ export function setup(context) {
     if(!checkProg(gl, prog)) return
 
     gl.useProgram(prog)
+
+    gl.uniformBlockBinding(prog, gl.getUniformBlockIndex(prog, "Camera"), 0)
 
     const bgTextures = gl.createTexture()
     renderData.bgTextures = bgTextures
@@ -180,11 +182,6 @@ export function setup(context) {
     gl.enableVertexAttribArray(indexIn)
     gl.vertexAttribDivisor(indexIn, 1)
 
-    const translate = gl.getUniformLocation(prog, 'translate')
-    const scale = gl.getUniformLocation(prog, 'scale')
-    const aspect = gl.getUniformLocation(prog, 'aspect')
-    renderData.u = { translate, scale, aspect }
-
     gl.activeTexture(gl.TEXTURE0)
     gl.bindTexture(gl.TEXTURE_2D_ARRAY, bgTextures)
     const texturesU = gl.getUniformLocation(prog, 'textures')
@@ -202,7 +199,7 @@ export function setup(context) {
 }
 
 export function render(context) {
-    const { gl, camera, canvasSize } = context
+    const { gl, camera } = context
     const rd = context.backgrounds
     if(rd?.ok !== true) {
         gl.clearColor(1, 1, 1, 1)
@@ -211,12 +208,7 @@ export function render(context) {
     }
 
     gl.clear(gl.COLOR_BUFFER_BIT)
-
     gl.useProgram(rd.prog)
-    gl.uniform2f(rd.u.translate, -camera.posX, -camera.posY)
-    gl.uniform1f(rd.u.scale, 1 / camera.scale)
-    gl.uniform1f(rd.u.aspect,  canvasSize[1] / canvasSize[0])
-
     if(rd.changed.length != 0) {
         const dv = rd.dataView
 

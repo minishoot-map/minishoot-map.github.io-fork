@@ -138,7 +138,6 @@ const objectsProcessedP = objectsLoadedP.then(objects => {
     return { colliderObjects, markerObjects }
 })
 
-if(false)
 objectsProcessedP.then(pObjects => {
     const { markerObjects } = pObjects
     const [markerDataC, texW, texH] = markersMeta

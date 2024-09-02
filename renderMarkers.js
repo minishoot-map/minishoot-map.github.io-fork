@@ -4,11 +4,12 @@ import markersMeta from './data-processed/markers-meta.json'
 const vsSource = `#version 300 es
 precision highp float;
 
-uniform vec2 translate;
-uniform float scale;
-uniform float aspect;
+layout(std140) uniform Camera {
+    vec2 add;
+    vec2 multiply;
+} cam;
 
-uniform float bannerScale;
+uniform float markerSize;
 
 struct MarkerData {
     uint xy, wh;
@@ -39,12 +40,12 @@ void main(void) {
     uint xy = md.xy;
     uint wh = md.wh;
 
-    vec2 offset = coords[gl_VertexID] * bannerScale * size;
+    vec2 offset = coords[gl_VertexID] * markerSize * size;
     if(texAspect < 0.0) offset.y *= -texAspect;
     else offset.x *= texAspect;
 
-    vec2 pos = (translate + coord) * scale + offset;
-    gl_Position = vec4(pos.x * aspect, pos.y, 1.0, 1.0);
+    vec2 pos = (coord + offset) * cam.multiply + cam.add;
+    gl_Position = vec4(pos, 1.0, 1.0);
 
     vec2 uvOff = vec2(wh & 65535u, wh >> 16u) * vec2(gl_VertexID & 1, 1 - (gl_VertexID >> 1));
     uv = (vec2(xy & 65535u, xy >> 16u) + uvOff) * intToFloat;
@@ -86,6 +87,8 @@ export function setup(gl, context, markersDataP) {
 
     gl.useProgram(prog)
 
+    gl.uniformBlockBinding(prog, gl.getUniformBlockIndex(prog, "Camera"), 0)
+
     const texture = gl.createTexture()
     renderData.texture = texture
     gl.bindTexture(gl.TEXTURE_2D, texture)
@@ -108,14 +111,11 @@ export function setup(gl, context, markersDataP) {
         checkOk(context)
     })
 
-    const translate = gl.getUniformLocation(prog, 'translate')
-    const scale = gl.getUniformLocation(prog, 'scale')
-    const aspect = gl.getUniformLocation(prog, 'aspect')
-    const bannerScale = gl.getUniformLocation(prog, 'bannerScale')
+    const markerSize = gl.getUniformLocation(prog, 'markerSize')
     const tex = gl.getUniformLocation(prog, 'tex')
     gl.uniform1i(tex, 1)
 
-    renderData.u = { translate, scale, aspect, bannerScale }
+    renderData.u = { markerSize }
     renderData.prog = prog
 
     const dataB = gl.createBuffer()
@@ -148,13 +148,13 @@ export function setup(gl, context, markersDataP) {
 
     gl.bindVertexArray(null)
 
-    const blockIndex = gl.getUniformBlockIndex(prog, "MarkersData")
-    gl.uniformBlockBinding(prog, blockIndex, 0)
 
+    const markersBIndex = gl.getUniformBlockIndex(prog, "MarkersData")
     const ubo = gl.createBuffer()
     gl.bindBuffer(gl.UNIFORM_BUFFER, ubo)
     gl.bufferData(gl.UNIFORM_BUFFER, markersMeta[0] * 16, gl.STATIC_DRAW)
-    gl.bindBufferBase(gl.UNIFORM_BUFFER, 0, ubo)
+    gl.bindBufferBase(gl.UNIFORM_BUFFER, 1, ubo)
+    gl.uniformBlockBinding(prog, markersBIndex, 1)
 
     markersDataP.then(data => {
         gl.bindBuffer(gl.UNIFORM_BUFFER, ubo)
@@ -172,17 +172,11 @@ export function setup(gl, context, markersDataP) {
 export function render(context) {
     const rd = context.markers
     if(rd?.ok !== true) return
-    const { gl, camera, canvasSize } = context
+    const { gl, camera } = context
 
     gl.useProgram(rd.prog)
-    gl.uniform2f(rd.u.translate, -camera.posX, -camera.posY)
-    gl.uniform1f(rd.u.scale, 1 / camera.scale)
-    gl.uniform1f(rd.u.aspect, canvasSize[1] / canvasSize[0])
 
-    var bannerScale = 1
-    if(camera.scale > 200) bannerScale = 200 / camera.scale
-    bannerScale *= 0.03
-    gl.uniform1f(rd.u.bannerScale, bannerScale)
+    gl.uniform1f(rd.u.markerSize, Math.min(camera.scale, 200) * 0.03)
 
     gl.bindVertexArray(rd.vao)
     gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, rd.count)

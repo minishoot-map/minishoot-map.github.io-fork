@@ -4,9 +4,10 @@ import colliderColorsS from './collirderColors.js'
 const vsSource = `#version 300 es
 precision highp float;
 
-uniform vec2 translate;
-uniform float scale;
-uniform float aspect;
+layout(std140) uniform Camera {
+    vec2 add;
+    vec2 multiply;
+} cam;
 
 in vec3 transform1;
 in vec3 transform2;
@@ -29,8 +30,7 @@ void main(void) {
         dot(coord, transform2.xy) + transform2.z
     );
 
-    vec2 pos = (translate + coord) * scale;
-    pos.x *= aspect;
+    vec2 pos = coord * cam.multiply + cam.add;
     gl_Position = vec4(pos, 1.0, 1.0);
 
     collWidth = width;
@@ -85,12 +85,10 @@ export function setup(gl, context, collidersData) {
 
     gl.useProgram(prog)
 
-    const translate = gl.getUniformLocation(prog, 'translate')
-    const scale = gl.getUniformLocation(prog, 'scale')
-    const aspect = gl.getUniformLocation(prog, 'aspect')
-    const layer = gl.getUniformLocation(prog, 'layer')
+    gl.uniformBlockBinding(prog, gl.getUniformBlockIndex(prog, "Camera"), 0)
 
-    renderData.u = { translate, scale, aspect, layer }
+    const layer = gl.getUniformLocation(prog, 'layer')
+    renderData.u = { layer }
     renderData.prog = prog
 
     const dataB = gl.createBuffer()
@@ -125,13 +123,9 @@ export function setup(gl, context, collidersData) {
 export function render(context) {
     const rd = context.circular
     if(rd?.ok !== true) return
-    const { gl, camera, canvasSize } = context
+    const { gl, camera } = context
 
     gl.useProgram(rd.prog)
-    gl.uniform2f(rd.u.translate, -camera.posX, -camera.posY)
-    gl.uniform1f(rd.u.scale, 1 / camera.scale)
-    gl.uniform1f(rd.u.aspect,  canvasSize[1] / canvasSize[0])
-
     gl.bindVertexArray(rd.vao)
     for(let i = 0; i < rd.drawData.length; i++) {
         const it = rd.drawData[i]
