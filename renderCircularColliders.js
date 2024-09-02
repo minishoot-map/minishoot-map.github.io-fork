@@ -69,7 +69,7 @@ void main(void) {
 }
 `
 
-export function setup(gl, context, collidersData) {
+export function setup(gl, context, collidersDataP) {
     const renderData = {}
     context.circular = renderData
 
@@ -92,8 +92,6 @@ export function setup(gl, context, collidersData) {
     renderData.prog = prog
 
     const dataB = gl.createBuffer()
-    gl.bindBuffer(gl.ARRAY_BUFFER, dataB)
-    gl.bufferData(gl.ARRAY_BUFFER, collidersData.circularData, gl.STATIC_DRAW)
 
     const vao = gl.createVertexArray()
     renderData.vao = vao
@@ -114,10 +112,14 @@ export function setup(gl, context, collidersData) {
 
     renderData.inputs = { t1In, t2In, widthIn }
 
-    renderData.drawData = collidersData.circularDrawData
-    renderData.__cd = collidersData.circularData
-    renderData.ok = true
-    context.requestRender(1)
+    collidersDataP.then(collidersData => {
+        gl.bindBuffer(gl.ARRAY_BUFFER, dataB)
+        gl.bufferData(gl.ARRAY_BUFFER, collidersData.circularData, gl.STATIC_DRAW)
+
+        renderData.drawData = collidersData.circularDrawData
+        renderData.ok = true
+        context.requestRender(1)
+    })
 }
 
 export function render(context) {

@@ -1,6 +1,6 @@
 // See for generating the atlas: https://free-tex-packer.com/app/
 
-import { join } from 'node:path';
+import { join } from 'node:path'
 import * as fs from 'node:fs'
 import { textureNames } from '../data-raw/objects/schemas.js'
 

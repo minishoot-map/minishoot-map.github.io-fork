@@ -11,7 +11,6 @@ const objectsP = new Promise((s, j) => {
     resolveObjectsP = s
 })
 
-var collidersData
 var resolveCollidersP
 const collidersP = new Promise((s, j) => {
     resolveCollidersP = s
@@ -22,19 +21,19 @@ const markersP = new Promise((s, j) => {
     resolveMarkersDataP = s
 })
 
-if(true) {
+if(__worker) {
     const worker = new ParserWorker()
     worker.onmessage = (e) => {
         console.log('received from worker', e.data.type)
         if(e.data.type === 'colliders-done') {
-            collidersData = {
+            const it = {
                 verts: e.data.verts,
                 indices: e.data.indices,
                 polyDrawData: e.data.polyDrawData,
                 circularData: e.data.circularData,
                 circularDrawData: e.data.circularDrawData,
             }
-            resolveCollidersP(collidersData)
+            resolveCollidersP(it)
         }
         else if(e.data.type == 'markers-done') {
             const it = { markers: e.data.markers, markersData: e.data.markersData, count: e.data.count }
@@ -50,12 +49,6 @@ const canvas = document.getElementById('glCanvas')
 const gl = canvas.getContext('webgl2', { alpha: false })
 
 if (!gl) { throw 'WebGL 2 is not supported.' }
-
-collidersP.then(() => {
-    collidersDisplay.setup(gl, context, collidersData)
-    circularDisplay.setup(gl, context, collidersData)
-})
-
 
 // Note: this is not correct alpha blending, works only if background is already fully transparent!
 // 1. Source alpha is multiplied by itself so overall transparency decreases when drawing transparent things
@@ -80,9 +73,9 @@ function render(context) {
     gl.bufferSubData(gl.UNIFORM_BUFFER, 0, b)
 
     backgroundsDisplay.render(context)
-    collidersDisplay.render(context)
-    circularDisplay.render(context)
-    markersDisplay.render(context)
+    if(__render_colliders) collidersDisplay.render(context)
+    if(__render_circular) circularDisplay.render(context)
+    if(__render_markers) markersDisplay.render(context)
 }
 
 function requestRender(priority/* 0 - immediate, 1 - animation, 2 - idle */) {
@@ -128,7 +121,9 @@ const context = {
 
 canvasDisplay.setup(context)
 backgroundsDisplay.setup(context)
-markersDisplay.setup(gl, context, markersP)
+if(__setup_markers) markersDisplay.setup(gl, context, markersP)
+if(__setup_colliders) collidersDisplay.setup(gl, context, collidersP)
+if(__setup_circular) circularDisplay.setup(gl, context, collidersP)
 
 /* prep Camera UBO */ {
     /*

@@ -85,6 +85,48 @@ function convToRGB656(gl, inputC) {
     return res
 }
 
+function setupImages(images, context) {
+    for(let i = 0; i < bkg.backgrounds.length; i++) {
+        const b = bkg.backgrounds[i]
+
+        const imgData = { ok: false, done: false }
+        images[i] = imgData
+
+        const img = new Image()
+        imgData.img = img
+
+        img.src = './data/backgrounds/' + b[0] + '_' + b[1] + '.png'
+        img.addEventListener('error', _ => {
+            // note: don't redender just because a texture errored.
+            // Technically can be the last texture, so this will make
+            // mimpaps not appear. But only until the user moves the screen
+            // or something else triggers a rerender, so shouldn't be a big deal
+            context.backgrounds.changed.push(i)
+            imgData.done = true
+        })
+        img.addEventListener('load', _ => {
+            const gl = context.gl
+            const renderData = context.backgrounds
+
+            gl.bindTexture(gl.TEXTURE_2D_ARRAY, renderData.bgTextures)
+            gl.texSubImage3D(
+                gl.TEXTURE_2D_ARRAY, 0,
+                0, 0, i,
+                actualResolution, actualResolution, 1,
+                gl.RGB, gl.UNSIGNED_BYTE,
+                img
+            )
+
+            renderData.changed.push(i)
+            imgData.ok = true
+            imgData.done = true
+
+            context.requestRender(2)
+        })
+    }
+
+}
+
 export function setup(context) {
     const { gl } = context
 
@@ -110,8 +152,11 @@ export function setup(context) {
     renderData.bgTextures = bgTextures
 
     gl.bindTexture(gl.TEXTURE_2D_ARRAY, bgTextures)
-    // optimally you would paletize straight to rgb565 but I have no idea how to do it
-    gl.texStorage3D(gl.TEXTURE_2D_ARRAY, 6, gl.RGB565, actualResolution, actualResolution, texturesC)
+    gl.texStorage3D(
+        gl.TEXTURE_2D_ARRAY, __backgrounds_mipmap_levels,
+        gl.RGB565, actualResolution, actualResolution,
+        texturesC
+    )
 
     gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.NEAREST) // for now
     gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
@@ -121,41 +166,7 @@ export function setup(context) {
     const images = Array(texturesC)
     renderData.images = images
 
-    for(let i = 0; i < bkg.backgrounds.length; i++) {
-        const b = bkg.backgrounds[i]
-
-        const imgData = { ok: false, done: false }
-        images[i] = imgData
-
-        const img = new Image()
-        imgData.img = img
-
-        img.src = './data/backgrounds/' + b[0] + '_' + b[1] + '.png'
-        img.addEventListener('error', _ => {
-            // note: don't redender just because a texture errored.
-            // Technically can be the last texture, so this will make
-            // mimpaps not appear. But only until the user moves the screen
-            // or something else triggers a rerender, so shouldn't be a big deal
-            renderData.changed.push(i)
-            imgData.done = true
-        })
-        img.addEventListener('load', _ => {
-            gl.bindTexture(gl.TEXTURE_2D_ARRAY, bgTextures)
-            gl.texSubImage3D(
-                gl.TEXTURE_2D_ARRAY, 0,
-                0, 0, i,
-                actualResolution, actualResolution, 1,
-                gl.RGB, gl.UNSIGNED_BYTE,
-                img
-            )
-
-            renderData.changed.push(i)
-            imgData.ok = true
-            imgData.done = true
-
-            context.requestRender(2)
-        })
-    }
+    if(__backgrounds_setup_images) setupImages(images, context)
 
     const buf = gl.createBuffer()
     renderData.buf = buf
@@ -187,6 +198,8 @@ export function setup(context) {
     const texturesU = gl.getUniformLocation(prog, 'textures')
     gl.uniform1i(texturesU, 0)
 
+    // by the way, how is this color the correct one?
+    // I palletized the images, hasn't it change?
     const c = bkg.backgroundColor
     const inputData = new Uint8Array(3)
     inputData[0] = parseInt(c.slice(0, 2), 16)

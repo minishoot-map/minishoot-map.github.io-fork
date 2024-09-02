@@ -139,6 +139,8 @@ const objectsProcessedP = objectsLoadedP.then(objects => {
 })
 
 objectsProcessedP.then(pObjects => {
+    if(!__worker_markers) return
+
     const { markerObjects } = pObjects
     const [markerDataC, texW, texH] = markersMeta
 
@@ -183,6 +185,8 @@ const boxPoints = [[-0.5, -0.5], [0.5, -0.5], [-0.5, 0.5], [0.5, 0.5]]
 
 var polygons
 Promise.all([objectsProcessedP, polygonsP]).then(([pObjects, polygonsA]) => {
+    if(!__worker_colliders) return
+
     polygons = Load.parse(parsedSchema, polygonsA)
 
     const { colliderObjects } = pObjects

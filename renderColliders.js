@@ -31,7 +31,7 @@ void main(void) {
 }
 `
 
-export function setup(gl, context, collidersData) {
+export function setup(gl, context, collidersDataP) {
     const renderData = {}
     context.polygons = renderData
 
@@ -54,14 +54,10 @@ export function setup(gl, context, collidersData) {
     renderData.prog = prog
 
     const verticesB = gl.createBuffer()
-    gl.bindBuffer(gl.ARRAY_BUFFER, verticesB)
-    gl.bufferData(gl.ARRAY_BUFFER, collidersData.verts, gl.STATIC_DRAW)
-
     const indicesB = gl.createBuffer()
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesB)
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, collidersData.indices, gl.STATIC_DRAW)
 
     const vao = gl.createVertexArray()
+    renderData.vao = vao
     gl.bindVertexArray(vao)
 
     gl.bindBuffer(gl.ARRAY_BUFFER, verticesB)
@@ -71,10 +67,17 @@ export function setup(gl, context, collidersData) {
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesB)
 
-    renderData.vao = vao
-    renderData.drawData = collidersData.polyDrawData
-    renderData.ok = true
-    context.requestRender(1)
+    collidersDataP.then(collidersData => {
+        gl.bindBuffer(gl.ARRAY_BUFFER, verticesB)
+        gl.bufferData(gl.ARRAY_BUFFER, collidersData.verts, gl.STATIC_DRAW)
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesB)
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, collidersData.indices, gl.STATIC_DRAW)
+
+        renderData.drawData = collidersData.polyDrawData
+        renderData.ok = true
+        context.requestRender(1)
+    })
 }
 
 export function render(context) {

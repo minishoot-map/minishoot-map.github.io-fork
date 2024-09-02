@@ -14,6 +14,12 @@ importers:
       clean-pslg:
         specifier: ^1.1.2
         version: 1.1.2
+      json5:
+        specifier: ^2.2.3
+        version: 2.2.3
+      vite-plugin-restart:
+        specifier: ^0.4.1
+        version: 0.4.1(vite@5.4.2)
     devDependencies:
       vite:
         specifier: ^5.4.2
@@ -348,6 +354,11 @@ packages:
     resolution: {integrity: sha512-41Cifkg6e8TylSpdtTpeLVMqvSBEVzTttHvERD741+pnZ8ANv0004MRL43QKPDlK9cGvNp6NZWZUBlbGXYxxng==}
     engines: {node: '>=0.12.0'}
 
+  json5@2.2.3:
+    resolution: {integrity: sha512-XmOWe7eyHYH14cLdVPoyg+GOH3rYX++KpzrylJwSW98t3Nk+U8XOl8FWKOgwtzdb8lXGf6zYwDUzeHMWfxasyg==}
+    engines: {node: '>=6'}
+    hasBin: true
+
   jsonfile@6.1.0:
     resolution: {integrity: sha512-5dgndWOriYSm5cnYaJNhalLNDKOqFwyDB/rr1E9ZsGciGvKPs8R2xYGCacuf3z6K1YKDz182fd+fY3cn3pMqXQ==}
 
@@ -448,6 +459,11 @@ packages:
   universalify@2.0.1:
     resolution: {integrity: sha512-gptHNQghINnc/vTGIk0SOFGFNXw7JVrlRUtConJRlvaw6DuX0wO5Jeko9sWrMBhh+PsYAZ7oXAiOnf/UKogyiw==}
     engines: {node: '>= 10.0.0'}
+
+  vite-plugin-restart@0.4.1:
+    resolution: {integrity: sha512-MYhDFaa2HMoSavr/2pShj6toKVFso+zqF6FAdWGC8JSIrsNig+4giy9EzoSySgGRJvsnbwZXKdjAvn8ag8rUkA==}
+    peerDependencies:
+      vite: ^2.9.0 || ^3.0.0 || ^4.0.0 || ^5.0.0
 
   vite-plugin-static-copy@1.0.6:
     resolution: {integrity: sha512-3uSvsMwDVFZRitqoWHj0t4137Kz7UynnJeq1EZlRW7e25h2068fyIZX4ORCCOAkfp1FklGxJNVJBkBOD+PZIew==}
@@ -748,6 +764,8 @@ snapshots:
 
   is-number@7.0.0: {}
 
+  json5@2.2.3: {}
+
   jsonfile@6.1.0:
     dependencies:
       universalify: 2.0.1
@@ -864,6 +882,11 @@ snapshots:
   uniq@1.0.1: {}
 
   universalify@2.0.1: {}
+
+  vite-plugin-restart@0.4.1(vite@5.4.2):
+    dependencies:
+      micromatch: 4.0.8
+      vite: 5.4.2
 
   vite-plugin-static-copy@1.0.6(vite@5.4.2):
     dependencies:
