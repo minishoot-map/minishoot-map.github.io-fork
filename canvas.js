@@ -108,8 +108,8 @@ export function setup(context) {
         const offsetY = yScreenToWorld(e.clientY, info)
 
         const zoomFactor = 0.004
-        var delta = 1 + Math.abs(e.deltaY) * -zoomFactor
-        if(e.deltaY > 0) delta = 1 / delta
+        var delta = 1 + Math.abs(e.deltaY) * zoomFactor
+        if(e.deltaY < 0) delta = 1 / delta
 
         const newScale = clampScale(camera.scale * delta, camera.scale)
 
