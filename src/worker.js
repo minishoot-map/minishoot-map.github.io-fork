@@ -1,7 +1,10 @@
 import * as Load from '/load.js'
-import markersData from './data-processed/markers.json'
-import markersMeta from './data-processed/markers-meta.json'
-import { meta, getAsSchema, parsedSchema } from './schema.js'
+import markersData from '$/markers.json'
+import markersMeta from '$/markers-meta.json'
+import { meta, getAsSchema, parsedSchema } from '/schema.js'
+
+import objectUrl from '$/objects.bp'
+import polygonsUrl from '$/polygons.bp'
 
 const ti = parsedSchema.typeSchemaI
 const ss = parsedSchema.schema
@@ -14,8 +17,8 @@ async function load(path) {
     return new Uint8Array(ab)
 }
 
-const objectsP = load('/data/objects.bp')
-const polygonsP = load('/data/polygons.bp')
+const objectsP = load(objectUrl)
+const polygonsP = load(polygonsUrl)
 
 var deg2rad = (Math.PI / 180)
 // Note: rotation is counter-clockwise in both Unity and css (right?)

@@ -1,5 +1,7 @@
 import { loadShader, checkProg } from './render_util.js'
-import markersMeta from './data-processed/markers-meta.json'
+import markersMeta from '$/markers-meta.json'
+
+import markersImageUrl from '$/markers.png'
 
 const vsSource = `#version 300 es
 precision highp float;
@@ -101,7 +103,7 @@ export function setup(gl, context, markersDataP) {
     gl.bindTexture(gl.TEXTURE_2D, texture)
 
     const img = new Image()
-    img.src = './data/markers.png'
+    img.src = markersImageUrl
     img.addEventListener('load', _ => {
         gl.bindTexture(gl.TEXTURE_2D, texture)
         gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, img.width, img.height, gl.RGBA, gl.UNSIGNED_BYTE, img)

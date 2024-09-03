@@ -1,4 +1,4 @@
-import meta from './data-processed/meta.json'
+import meta from '$/meta.json'
 import * as load from './load.js'
 
 export { meta }

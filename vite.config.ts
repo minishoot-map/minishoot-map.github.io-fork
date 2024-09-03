@@ -5,12 +5,16 @@ import ViteRestart from 'vite-plugin-restart'
 
 import json5 from 'json5'
 
-import { join } from 'node:path'
+import { join, normalize } from 'node:path'
 import * as fs from 'node:fs'
+
+function srcPath(...paths: string[]) {
+    return normalize(join(import.meta.dirname, 'src', ...paths))
+}
 
 const configPath = './config.json'
 
-var userDefsS
+var userDefsS: string | undefined
 try {
     userDefsS = fs.readFileSync(configPath)
 }
@@ -50,7 +54,7 @@ var defaultDefs = {
     markers_mipmap_levels: 6,
 }
 
-var defines = {}
+var defines: any = {}
 for(const k in defaultDefs) {
     const v = userDefs[k] ?? defaultDefs[k]
     defines[k] = v
@@ -69,14 +73,22 @@ export default defineConfig(({ command, mode, isSsrBuild, isPreview }) => {
         root: './src',
         build: { outDir: '../dist', emptyOutDir: true },
         define: defines,
+        resolve: {
+            alias: {
+                '$/objects.bp' : srcPath('./data-raw/objects/objects.bp'),
+                '$/polygons.bp': srcPath('./data-processed/polygons.bp'),
+                '$/markers.png': srcPath('./data-raw/markers/markers.png'),
+
+                '$/backgrounds.js': srcPath('./data-raw/backgrounds/backgrounds.js'),
+                '$/markers-meta.json': srcPath('./data-processed/markers-meta.json'),
+                '$/markers.json': srcPath('./data-processed/markers.json'),
+                '$/meta.json': srcPath('./data-processed/meta.json'),
+            },
+        },
+        assetsInclude: ['**/*.bp'],
         plugins: [
             viteStaticCopy({
-                targets: [
-                    { src: 'data-raw/objects/objects.bp', dest: 'data' },
-                    { src: 'data-raw/markers/markers.png', dest: 'data' },
-                    { src: 'data-processed/polygons.bp', dest: 'data' },
-                    { src: 'data-processed/backgrounds', dest: 'data' },
-                ],
+                targets: [{ src: 'data-processed/backgrounds/*.png', dest: 'data/backgrounds/' }],
             }),
             ViteRestart({
                 restart: [configPath]

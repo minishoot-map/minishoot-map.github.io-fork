@@ -1,4 +1,4 @@
-import * as bkg from './data-raw/backgrounds/backgrounds.js'
+import * as bkg from '$/backgrounds.js'
 import { loadShader, checkProg } from './render_util.js'
 
 const actualResolution = bkg.backgroundResolution * 0.25 // downscaled by script
@@ -95,7 +95,7 @@ function setupImages(images, context) {
         const img = new Image()
         imgData.img = img
 
-        img.src = './data/backgrounds/' + b[0] + '_' + b[1] + '.png'
+        img.src = '/data/backgrounds/' + b[0] + '_' + b[1] + '.png'
         img.addEventListener('error', _ => {
             // note: don't redender just because a texture errored.
             // Technically can be the last texture, so this will make
