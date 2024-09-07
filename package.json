@@ -7,9 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "b-markers": "node ./process/compress_markers.js",
-    "b-colliders": "node ./process/triangulate_colliders.js",
-    "b-backgrounds": "python ./process/compress_backgrounds.py"
+    "b-markers": "node ./src/process/compress_markers.js",
+    "b-colliders": "node ./src/process/triangulate_colliders.js",
+    "b-backgrounds": "python ./src/process/compress_backgrounds.py"
   },
   "dependencies": {
     "cdt2d": "^1.0.0",
