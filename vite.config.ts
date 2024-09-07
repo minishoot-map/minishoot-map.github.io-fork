@@ -1,7 +1,5 @@
 import { defineConfig } from 'vite'
-import { normalizePath } from 'vite'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
-import ViteRestart from 'vite-plugin-restart'
 
 import json5 from 'json5'
 
@@ -91,9 +89,6 @@ export default defineConfig(({ command, mode, isSsrBuild, isPreview }) => {
         plugins: [
             viteStaticCopy({
                 targets: [{ src: 'data-processed/backgrounds/*.png', dest: 'data/backgrounds/' }],
-            }),
-            ViteRestart({
-                restart: [configPath]
             }),
         ],
     }
