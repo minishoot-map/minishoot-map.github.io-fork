@@ -5,7 +5,6 @@ import * as circularDisplay from './renderCircularColliders.js'
 import * as markersDisplay from './renderMarkers.js'
 import ParserWorker from './worker.js?worker'
 
-var scenes, objects
 var resolveObjectsP
 const objectsP = new Promise((s, j) => {
     resolveObjectsP = s
@@ -19,11 +18,6 @@ const collidersP = new Promise((s, j) => {
 var resolveMarkersDataP
 const markersP = new Promise((s, j) => {
     resolveMarkersDataP = s
-})
-
-var resolveBackgroundsP
-const backgroundsP = new Promise((s, j) => {
-    resolveBackgroundsP = s
 })
 
 if(__worker) {
@@ -45,8 +39,11 @@ if(__worker) {
             resolveMarkersDataP(it)
         }
         else if(e.data.type == 'backgrounds-done') {
-            const it = { imageDatas: e.data.imageDatas, data: e.data.data }
-            resolveBackgroundsP(it)
+            const bkgs = e.data.backgrounds
+            for(let i = 0; i < bkgs.length; i++) {
+                const it = bkgs[i]
+                backgroundsDisplay.updateBackground(context, it.index, it.buffer)
+            }
         }
     }
     worker.onerror = (e) => {
@@ -129,7 +126,7 @@ const context = {
 }
 
 canvasDisplay.setup(context)
-backgroundsDisplay.setup(context, backgroundsP)
+backgroundsDisplay.setup(context)
 if(__setup_markers) markersDisplay.setup(gl, context, markersP)
 if(__setup_colliders) collidersDisplay.setup(gl, context, collidersP)
 if(__setup_circular) circularDisplay.setup(gl, context, collidersP)

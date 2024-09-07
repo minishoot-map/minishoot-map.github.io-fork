@@ -86,7 +86,48 @@ function convToRGB565(gl, inputC) {
     return res
 }
 
-export function setup(context, backgroundsP) {
+export function updateBackground(context, index, data) {
+    const rd = context.backgrounds
+    if(rd?.loadImages !== true) return
+
+    const imgData = rd.images[index]
+
+    const blob = new Blob([data], { type: 'image/png' })
+    const url = URL.createObjectURL(blob) // TODO: delete
+    const img = new Image()
+    img.src = url
+
+    img.addEventListener('error', _ => {
+        // note: don't redender just because a texture errored.
+        // Technically can be the last texture, so this will make
+        // mimpaps not appear. But only until the user moves the screen
+        // or something else triggers a rerender, so shouldn't be a big deal
+        context.backgrounds.changed.push(index)
+        imgData.done = true
+        console.log('err')
+    })
+    img.addEventListener('load', _ => {
+        const gl = context.gl
+
+        gl.bindTexture(gl.TEXTURE_2D_ARRAY, rd.bgTextures)
+        gl.texSubImage3D(
+            gl.TEXTURE_2D_ARRAY, 0,
+            0, 0, index,
+            actualResolution, actualResolution, 1,
+            gl.RGB, gl.UNSIGNED_BYTE,
+            img
+        )
+
+        rd.changed.push(index)
+        imgData.ok = true
+        imgData.done = true
+
+        context.requestRender(2)
+    })
+
+}
+
+export function setup(context) {
     const { gl } = context
 
     const renderData = { changed: [], curCount: 0 }
@@ -168,53 +209,15 @@ export function setup(context, backgroundsP) {
 
     renderData.ok = true
 
-    backgroundsP.then(({ imageDatas, data }) => {
-        for(let i = 0; i < imageDatas.length; i++) {
-            const id = imageDatas[i]
-            const arr = data.subarray(id.start, id.end)
-            const blob = new Blob([arr], { type: 'image/png' })
-            const url = URL.createObjectURL(blob) // TODO: delete
-            const img = new Image()
-            img.src = url
+    for(let i = 0; i < texturesC; i++) {
+        images[i] = { ok: false, done: false }
+    }
 
-            const texI = id.index
-
-            const imgData = { ok: false, done: false }
-            images[texI] = imgData
-
-            img.addEventListener('error', _ => {
-                // note: don't redender just because a texture errored.
-                // Technically can be the last texture, so this will make
-                // mimpaps not appear. But only until the user moves the screen
-                // or something else triggers a rerender, so shouldn't be a big deal
-                context.backgrounds.changed.push(texI)
-                imgData.done = true
-                console.log('err')
-            })
-            img.addEventListener('load', _ => {
-                const gl = context.gl
-
-                gl.bindTexture(gl.TEXTURE_2D_ARRAY, renderData.bgTextures)
-                gl.texSubImage3D(
-                    gl.TEXTURE_2D_ARRAY, 0,
-                    0, 0, texI,
-                    actualResolution, actualResolution, 1,
-                    gl.RGB, gl.UNSIGNED_BYTE,
-                    img
-                )
-
-                renderData.changed.push(texI)
-                imgData.ok = true
-                imgData.done = true
-
-                context.requestRender(2)
-            })
-        }
-    })
+    renderData.loadImages = true
 }
 
 export function render(context) {
-    const { gl, camera } = context
+    const { gl } = context
     const rd = context.backgrounds
     if(rd?.ok !== true) {
         gl.clearColor(1, 1, 1, 1)

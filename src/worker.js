@@ -18,7 +18,7 @@ async function load(path) {
     return new Uint8Array(ab)
 }
 
-const backgroundsP = load(backgroundsUrl)
+const backgroundsP = fetch(backgroundsUrl).then(r => r.body).then(r => r.getReader())
 const objectsP = load(objectUrl)
 const polygonsP = load(polygonsUrl)
 
@@ -77,8 +77,46 @@ function premultiplyBy(n, m) {
     return n
 }
 
-backgroundsP.then(data => {
-    console.log('started')
+backgroundsP.then(async(reader) => {
+    var tmp = new Uint8Array()
+
+    function tryRead(length) {
+        if(tmp.length < length) return
+        const res = new Uint8Array(length)
+        res.set(tmp.subarray(0, length))
+        tmp = tmp.subarray(length)
+        return res.buffer
+    }
+    async function read(length) {
+        const chunks = []
+        var totalLength = tmp.length
+        var last = tmp
+        while(totalLength < length) {
+            const { done, value } = await reader.read()
+            if(done) throw new Error('Trying to read ' + length + ' but reached EOF')
+
+            chunks.push(last)
+            last = value
+            totalLength += value.length
+        }
+
+        const res = new Uint8Array(length)
+        var off = 0
+        for(let i = 0; i < chunks.length; i++) {
+            res.set(chunks[i], off)
+            off += chunks[i].length
+        }
+
+        res.set(last.subarray(0, length - off), off)
+        tmp = last.subarray(length - off)
+
+        return res.buffer
+    }
+
+    const headerLenB = await read(4)
+    const headerLen = new DataView(headerLenB).getUint32(headerLenB, true)
+    const header = new Uint8Array(await read(headerLen))
+
     var index = 0
 
     // duplicate from load.js
@@ -86,32 +124,42 @@ backgroundsP.then(data => {
         var res = 0
         var i = 0
         do {
-            var cur = data[index++]
+            var cur = header[index++]
             res = res | ((cur & 0b0111_1111) << (i * 7))
             i++
         } while((cur & 0b1000_0000) == 0)
         return res
     }
 
-    index += 4 // skip header length for now
     const len = parseCompressedInt()
     const imageDatas = []
-    var accum = 0
     for(let i = 0; i < len; i++) {
-        const d = {}
-        d.start = accum
         const size = parseCompressedInt()
-        accum += size
-        d.end = accum
-        d.index = parseCompressedInt()
-        imageDatas.push(d)
+        const ti = parseCompressedInt()
+        imageDatas.push({ size, index: ti })
+    }
+
+    var backgrounds = []
+    var buffers = []
+    for(let i = 0; i < imageDatas.length; i++) {
+        const id = imageDatas[i]
+        var buffer = tryRead(id.size)
+        if(buffer == null) {
+            postMessage({ type: 'backgrounds-done', backgrounds }, buffers)
+            backgrounds = []
+            buffers = []
+            buffer = await read(id.size)
+        }
+
+        backgrounds.push({ index: id.index, buffer: buffer })
+        buffers.push(buffer)
+    }
+
+    if(backgrounds.length != 0) {
+        postMessage({ type: 'backgrounds-done', backgrounds }, buffers)
     }
 
     console.log('backgrounds done')
-    postMessage(
-        { type: 'backgrounds-done', imageDatas, data: data.subarray(index) },
-        [data.buffer]
-    )
 }).catch(e => {
     console.error('Error processing backgrounds', e)
 })
@@ -176,7 +224,7 @@ const objectsProcessedP = objectsLoadedP.then(objects => {
         }
     }
     const e = performance.now()
-    console.log(e - s)
+    console.log('objects done in', e - s)
 
     return { colliderObjects, markerObjects }
 })
