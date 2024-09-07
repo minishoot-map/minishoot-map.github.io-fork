@@ -9,12 +9,14 @@
     "preview": "vite preview",
     "b-markers": "node ./src/process/compress_markers.js",
     "b-colliders": "node ./src/process/triangulate_colliders.js",
-    "b-backgrounds": "python ./src/process/compress_backgrounds.py"
+    "b-backgrounds": "node ./src/process/compress_backgrounds.js"
   },
   "dependencies": {
     "cdt2d": "^1.0.0",
     "clean-pslg": "^1.1.2",
     "json5": "^2.2.3",
+    "random": "^5.0.1",
+    "sharp": "^0.33.5",
     "vite-plugin-restart": "^0.4.1"
   },
   "devDependencies": {

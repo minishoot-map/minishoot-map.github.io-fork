@@ -24,7 +24,7 @@ public partial class ActivationManager : MiniBehaviour {
 			itemState.activated = true;
 		}
 	}
-})
+}
 */
 /*
 using System.Collections.Generic;
@@ -40,6 +40,12 @@ public partial class LightManager : MonoBehaviour {
 	}
 }
 */
+// ScrollingGroup (remove Update(), add to Awake():
+/*
+    Vector2 vector3 = new Vector2(limits.X.GetValueByRatio(0.5f, false, false), limits.Y.GetValueByRatio(0.5f, false, false));
+    if (!float.IsNaN(vector3.x) && !float.IsNaN(vector3.y)) transform.position = vector3;
+*/
+// )
 // GameManager (yield return this.LaunchGame(); from InitializeGame(), also remove scene preloading (baseScenesToLoad), also remove whole if(SkipTitle) {} else {}, also basePath (ends in slash!), also Application.runInBackground = true;, remove WaitForSeconds...)
 
 public partial class GameManager : MonoBehaviour {

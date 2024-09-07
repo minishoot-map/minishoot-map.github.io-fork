@@ -1,7 +1,8 @@
 import * as bkg from '$/backgrounds.js'
+import * as bkg2 from '$/backgrounds.json'
 import { loadShader, checkProg } from './render_util.js'
 
-const actualResolution = bkg.backgroundResolution * 0.25 // downscaled by script
+const actualResolution = bkg2.backgroundResolution
 const texturesC = bkg.backgrounds.length
 
 // THIS LANGUAGE... IMAGINE TOT BEING ABLE TO PRINT A NUMBER WITH DECIMAL POINT
@@ -54,7 +55,7 @@ void main(void) {
 // Need to quantize clear color to the same precision as background texture
 // to remove seams. Result is hardware-dependent! ([0, 12, 16] and [8, 12, 25])
 // RGB need to be unsigned bytes. Floats do not work
-function convToRGB656(gl, inputC) {
+function convToRGB565(gl, inputC) {
     const tex = gl.createTexture()
     gl.bindTexture(gl.TEXTURE_2D, tex)
     gl.texStorage2D(gl.TEXTURE_2D, 1, gl.RGB565, 1, 1)
@@ -152,6 +153,7 @@ export function setup(context) {
     renderData.bgTextures = bgTextures
 
     gl.bindTexture(gl.TEXTURE_2D_ARRAY, bgTextures)
+    console.log(actualResolution, __backgrounds_mipmap_levels)
     gl.texStorage3D(
         gl.TEXTURE_2D_ARRAY, __backgrounds_mipmap_levels,
         gl.RGB565, actualResolution, actualResolution,
@@ -200,12 +202,12 @@ export function setup(context) {
 
     // by the way, how is this color the correct one?
     // I palletized the images, hasn't it change?
-    const c = bkg.backgroundColor
+    const c = bkg2.backgroundColor
     const inputData = new Uint8Array(3)
-    inputData[0] = parseInt(c.slice(0, 2), 16)
-    inputData[1] = parseInt(c.slice(2, 4), 16)
-    inputData[2] = parseInt(c.slice(4, 6), 16)
-    const res = convToRGB656(gl, inputData)
+    inputData[0] = (c      ) & 0xff
+    inputData[1] = (c >>  8) & 0xff
+    inputData[2] = (c >> 16) & 0xff
+    const res = convToRGB565(gl, inputData)
     gl.clearColor(res[0] / 255, res[1] / 255, res[2] / 255, 1)
 
     renderData.ok = true
