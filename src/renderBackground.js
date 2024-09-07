@@ -86,49 +86,7 @@ function convToRGB565(gl, inputC) {
     return res
 }
 
-function setupImages(images, context) {
-    for(let i = 0; i < bkg.backgrounds.length; i++) {
-        const b = bkg.backgrounds[i]
-
-        const imgData = { ok: false, done: false }
-        images[i] = imgData
-
-        const img = new Image()
-        imgData.img = img
-
-        img.src = '/data/backgrounds/' + b[0] + '_' + b[1] + '.png'
-        img.addEventListener('error', _ => {
-            // note: don't redender just because a texture errored.
-            // Technically can be the last texture, so this will make
-            // mimpaps not appear. But only until the user moves the screen
-            // or something else triggers a rerender, so shouldn't be a big deal
-            context.backgrounds.changed.push(i)
-            imgData.done = true
-        })
-        img.addEventListener('load', _ => {
-            const gl = context.gl
-            const renderData = context.backgrounds
-
-            gl.bindTexture(gl.TEXTURE_2D_ARRAY, renderData.bgTextures)
-            gl.texSubImage3D(
-                gl.TEXTURE_2D_ARRAY, 0,
-                0, 0, i,
-                actualResolution, actualResolution, 1,
-                gl.RGB, gl.UNSIGNED_BYTE,
-                img
-            )
-
-            renderData.changed.push(i)
-            imgData.ok = true
-            imgData.done = true
-
-            context.requestRender(2)
-        })
-    }
-
-}
-
-export function setup(context) {
+export function setup(context, backgroundsP) {
     const { gl } = context
 
     const renderData = { changed: [], curCount: 0 }
@@ -167,8 +125,6 @@ export function setup(context) {
 
     const images = Array(texturesC)
     renderData.images = images
-
-    if(__backgrounds_setup_images) setupImages(images, context)
 
     const buf = gl.createBuffer()
     renderData.buf = buf
@@ -211,6 +167,50 @@ export function setup(context) {
     gl.clearColor(res[0] / 255, res[1] / 255, res[2] / 255, 1)
 
     renderData.ok = true
+
+    backgroundsP.then(({ imageDatas, data }) => {
+        for(let i = 0; i < imageDatas.length; i++) {
+            const id = imageDatas[i]
+            const arr = data.subarray(id.start, id.end)
+            const blob = new Blob([arr], { type: 'image/png' })
+            const url = URL.createObjectURL(blob) // TODO: delete
+            const img = new Image()
+            img.src = url
+
+            const texI = id.index
+
+            const imgData = { ok: false, done: false }
+            images[texI] = imgData
+
+            img.addEventListener('error', _ => {
+                // note: don't redender just because a texture errored.
+                // Technically can be the last texture, so this will make
+                // mimpaps not appear. But only until the user moves the screen
+                // or something else triggers a rerender, so shouldn't be a big deal
+                context.backgrounds.changed.push(texI)
+                imgData.done = true
+                console.log('err')
+            })
+            img.addEventListener('load', _ => {
+                const gl = context.gl
+
+                gl.bindTexture(gl.TEXTURE_2D_ARRAY, renderData.bgTextures)
+                gl.texSubImage3D(
+                    gl.TEXTURE_2D_ARRAY, 0,
+                    0, 0, texI,
+                    actualResolution, actualResolution, 1,
+                    gl.RGB, gl.UNSIGNED_BYTE,
+                    img
+                )
+
+                renderData.changed.push(texI)
+                imgData.ok = true
+                imgData.done = true
+
+                context.requestRender(2)
+            })
+        }
+    })
 }
 
 export function render(context) {
@@ -242,12 +242,12 @@ export function render(context) {
             coordsCount++
         }
 
-        if(done && !rd.mimpaps) {
+        /* if(done && !rd.mimpaps) {
             rd.mimpaps = true
             gl.bindTexture(gl.TEXTURE_2D_ARRAY, rd.bgTextures)
             gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_LINEAR)
             gl.generateMipmap(gl.TEXTURE_2D_ARRAY)
-        }
+        }*/
 
         gl.bindBuffer(gl.ARRAY_BUFFER, rd.buf)
         gl.bufferSubData(gl.ARRAY_BUFFER, 0, dv, 0, coordsCount * 12)

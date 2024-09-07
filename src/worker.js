@@ -5,6 +5,7 @@ import { meta, getAsSchema, parsedSchema } from '/schema.js'
 
 import objectUrl from '$/objects.bp'
 import polygonsUrl from '$/polygons.bp'
+import backgroundsUrl from '$/backgrounds.pak'
 
 const ti = parsedSchema.typeSchemaI
 const ss = parsedSchema.schema
@@ -17,6 +18,7 @@ async function load(path) {
     return new Uint8Array(ab)
 }
 
+const backgroundsP = load(backgroundsUrl)
 const objectsP = load(objectUrl)
 const polygonsP = load(polygonsUrl)
 
@@ -74,6 +76,45 @@ function premultiplyBy(n, m) {
 
     return n
 }
+
+backgroundsP.then(data => {
+    console.log('started')
+    var index = 0
+
+    // duplicate from load.js
+    function parseCompressedInt() {
+        var res = 0
+        var i = 0
+        do {
+            var cur = data[index++]
+            res = res | ((cur & 0b0111_1111) << (i * 7))
+            i++
+        } while((cur & 0b1000_0000) == 0)
+        return res
+    }
+
+    index += 4 // skip header length for now
+    const len = parseCompressedInt()
+    const imageDatas = []
+    var accum = 0
+    for(let i = 0; i < len; i++) {
+        const d = {}
+        d.start = accum
+        const size = parseCompressedInt()
+        accum += size
+        d.end = accum
+        d.index = parseCompressedInt()
+        imageDatas.push(d)
+    }
+
+    console.log('backgrounds done')
+    postMessage(
+        { type: 'backgrounds-done', imageDatas, data: data.subarray(index) },
+        [data.buffer]
+    )
+}).catch(e => {
+    console.error('Error processing backgrounds', e)
+})
 
 const objectsLoadedP = objectsP.then(objectsA => {
     scenes = Load.parse(parsedSchema, objectsA)

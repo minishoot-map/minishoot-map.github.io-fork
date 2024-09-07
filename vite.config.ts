@@ -78,6 +78,7 @@ export default defineConfig(({ command, mode, isSsrBuild, isPreview }) => {
                 '$/objects.bp' : srcPath('./data-raw/objects/objects.bp'),
                 '$/polygons.bp': srcPath('./data-processed/polygons.bp'),
                 '$/markers.png': srcPath('./data-raw/markers/markers.png'),
+                '$/backgrounds.pak': srcPath('./data-processed/backgrounds.pak'),
 
                 '$/backgrounds.js': srcPath('./data-raw/backgrounds/backgrounds.js'),
                 '$/backgrounds.json': srcPath('./data-processed/backgrounds.json'),
@@ -86,7 +87,7 @@ export default defineConfig(({ command, mode, isSsrBuild, isPreview }) => {
                 '$/meta.json': srcPath('./data-processed/meta.json'),
             },
         },
-        assetsInclude: ['**/*.bp'],
+        assetsInclude: ['**/*.bp', '**/*.pak'],
         plugins: [
             viteStaticCopy({
                 targets: [{ src: 'data-processed/backgrounds/*.png', dest: 'data/backgrounds/' }],

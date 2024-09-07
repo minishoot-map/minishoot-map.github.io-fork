@@ -21,6 +21,11 @@ const markersP = new Promise((s, j) => {
     resolveMarkersDataP = s
 })
 
+var resolveBackgroundsP
+const backgroundsP = new Promise((s, j) => {
+    resolveBackgroundsP = s
+})
+
 if(__worker) {
     const worker = new ParserWorker()
     worker.onmessage = (e) => {
@@ -38,6 +43,10 @@ if(__worker) {
         else if(e.data.type == 'markers-done') {
             const it = { markers: e.data.markers, markersData: e.data.markersData, count: e.data.count }
             resolveMarkersDataP(it)
+        }
+        else if(e.data.type == 'backgrounds-done') {
+            const it = { imageDatas: e.data.imageDatas, data: e.data.data }
+            resolveBackgroundsP(it)
         }
     }
     worker.onerror = (e) => {
@@ -120,7 +129,7 @@ const context = {
 }
 
 canvasDisplay.setup(context)
-backgroundsDisplay.setup(context)
+backgroundsDisplay.setup(context, backgroundsP)
 if(__setup_markers) markersDisplay.setup(gl, context, markersP)
 if(__setup_colliders) collidersDisplay.setup(gl, context, collidersP)
 if(__setup_circular) circularDisplay.setup(gl, context, collidersP)

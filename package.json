@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "b-markers": "node ./src/process/compress_markers.js",
     "b-colliders": "node ./src/process/triangulate_colliders.js",
-    "b-backgrounds": "node ./src/process/compress_backgrounds.js"
+    "b-backgrounds": "node ./src/process/compress_backgrounds.js",
+    "c-backgrounds": "node ./src/process/package_backgrounds.js"
   },
   "dependencies": {
     "cdt2d": "^1.0.0",
