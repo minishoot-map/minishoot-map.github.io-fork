@@ -8,9 +8,15 @@ import polygonsUrl from '$/polygons.bp'
 import backgroundsUrl from '$/backgrounds.pak'
 
 const ti = parsedSchema.typeSchemaI
-const ss = parsedSchema.schema
 
 // NOTE: DO NOT send 30mb of objects w/ postMessage() :)
+
+function shouldLoad(is, load, message) {
+    if(is) return load()
+
+    console.warn(message)
+    return new Promise(() => {})
+}
 
 async function load(path) {
     const res = await fetch(path)
@@ -18,9 +24,23 @@ async function load(path) {
     return new Uint8Array(ab)
 }
 
-const backgroundsP = fetch(backgroundsUrl).then(r => r.body).then(r => r.getReader())
-const objectsP = load(objectUrl)
-const polygonsP = load(polygonsUrl)
+const loadObjecst = __worker_markers || __worker_colliders
+
+const backgroundsP = shouldLoad(
+    __worker_backgrounds,
+    () => fetch(backgroundsUrl).then(r => r.body).then(r => r.getReader()),
+    'skipping backgrounds'
+)
+const objectsP = shouldLoad(
+    loadObjecst,
+    () => load(objectUrl),
+    'skipping objects'
+)
+const polygonsP = shouldLoad(
+    __worker_colliders,
+    () => load(polygonsUrl),
+    'skipping colliders'
+)
 
 var deg2rad = (Math.PI / 180)
 // Note: rotation is counter-clockwise in both Unity and css (right?)
@@ -278,8 +298,6 @@ const boxPoints = [[-0.5, -0.5], [0.5, -0.5], [-0.5, 0.5], [0.5, 0.5]]
 
 var polygons
 Promise.all([objectsProcessedP, polygonsP]).then(([pObjects, polygonsA]) => {
-    if(!__worker_colliders) return void console.warn('skipping colliders')
-
     polygons = Load.parse(parsedSchema, polygonsA)
 
     const { colliderObjects } = pObjects

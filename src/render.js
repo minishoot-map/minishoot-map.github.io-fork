@@ -5,11 +5,6 @@ import * as circularDisplay from './renderCircularColliders.js'
 import * as markersDisplay from './renderMarkers.js'
 import ParserWorker from './worker.js?worker'
 
-var resolveObjectsP
-const objectsP = new Promise((s, j) => {
-    resolveObjectsP = s
-})
-
 var resolveCollidersP
 const collidersP = new Promise((s, j) => {
     resolveCollidersP = s

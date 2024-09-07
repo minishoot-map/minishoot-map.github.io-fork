@@ -35,6 +35,7 @@ var defaultDefs = {
 
     worker: true,
 
+    worker_backgrounds: true,
     worker_markers: true,
     worker_colliders: true,
 
@@ -46,7 +47,6 @@ var defaultDefs = {
     render_colliders: true,
     render_circular: true,
 
-    backgrounds_setup_images: true,
     backgrounds_mipmap_levels: 10,
 
     markers_mipmap_levels: 6,
