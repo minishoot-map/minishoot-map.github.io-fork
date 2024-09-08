@@ -251,17 +251,17 @@ objectsProcessedP.then(pObjects => {
         mddv.setFloat32(i * 16 + 8, aspect, true)
     }
 
-    const markersB = new ArrayBuffer(markerObjects.length * 12)
+    const markersB = new ArrayBuffer(markerObjects.length * 16)
     const dv = new DataView(markersB)
     for(var i = 0; i < markerObjects.length; i++) {
         const [obj, texI, size0] = markerObjects[i]
         const size = size0 > 0 ? size0 : 1.0
         const pos = obj.pos
 
-        dv.setFloat32(i * 12     , pos[0], true)
-        dv.setFloat32(i * 12 + 4 , pos[1], true)
-        dv.setUint16 (i * 12 + 8 , texI, true)
-        dv.setFloat16(i * 12 + 10, size, true)
+        dv.setFloat32(i * 16     , pos[0], true)
+        dv.setFloat32(i * 16 + 4 , pos[1], true)
+        dv.setUint32(i * 16 + 8 , texI, true)
+        dv.setFloat32(i * 16 + 12, size, true)
     }
 
     postMessage({

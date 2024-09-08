@@ -129,21 +129,21 @@ export function setup(gl, context, markersDataP) {
     gl.bindBuffer(gl.ARRAY_BUFFER, dataB)
     const coordIn = gl.getAttribLocation(renderData.prog, 'coord')
     if(coordIn != -1) {
-        gl.vertexAttribPointer(coordIn, 2, gl.FLOAT, false, 12, 0)
+        gl.vertexAttribPointer(coordIn, 2, gl.FLOAT, false, 16, 0)
         gl.enableVertexAttribArray(coordIn)
         gl.vertexAttribDivisor(coordIn, 1)
     }
 
     const indexIn = gl.getAttribLocation(renderData.prog, 'index')
     if(indexIn != -1) {
-        gl.vertexAttribIPointer(indexIn, 1, gl.UNSIGNED_SHORT, 12, 8)
+        gl.vertexAttribIPointer(indexIn, 1, gl.UNSIGNED_INT, 16, 8)
         gl.enableVertexAttribArray(indexIn)
         gl.vertexAttribDivisor(indexIn, 1)
     }
 
     const sizeIn = gl.getAttribLocation(renderData.prog, 'size')
     if(sizeIn != -1) {
-        gl.vertexAttribPointer(sizeIn, 1, gl.HALF_FLOAT, false, 12, 10)
+        gl.vertexAttribPointer(sizeIn, 1, gl.FLOAT, false, 16, 12)
         gl.enableVertexAttribArray(sizeIn)
         gl.vertexAttribDivisor(sizeIn, 1)
     }
