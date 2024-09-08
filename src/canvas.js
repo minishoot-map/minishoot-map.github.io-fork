@@ -125,6 +125,15 @@ export function setup(context) {
     var panning = { is: false, prevX: undefined, prevY: undefined }
     var touches = { order: [/*id*/], touches: {/*id: { prevX, prevY }*/} }
 
+    canvas.addEventListener('click', (e) => {
+        const bounds = canvas.getBoundingClientRect()
+        const info = prepInfo(bounds, camera)
+        const x = xScreenToWorld(e.clientX, info)
+        const y = yScreenToWorld(e.clientY, info)
+
+        context.onClick(x, y)
+    })
+
     canvas.addEventListener('mousedown', (e) => {
         const bounds = canvas.getBoundingClientRect()
         const info = prepInfo(bounds, camera)

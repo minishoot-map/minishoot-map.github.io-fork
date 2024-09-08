@@ -14,15 +14,59 @@ html {
 body {
     flex-grow: 1;
 }
-canvas {
-    border: 1px solid black;
+.canvas-cont {
+    flex: 1 1 0;
+}
+#glCanvas {
     width: 100%;
     height: 100%;
 }
+.container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    justify-content: stretch;
+    gap: 1rem;
+}
+#side-menu {
+    width: 20rem;
+    overflow: scroll;
+}
+.props {
+    display: flex;
+    flex-direction: column;
+    row-gap: 0.1rem;
+}
+.component > :not(summary) {
+    padding-left: 1rem;
+}
+.component > summary {
+    cursor: pointer;
+}
+.space {
+    margin-top: 0.5rem;
+}
+
+.prop0 {
+    margin-left: 1rem;
+}
+.prop {
+    display: flex;
+    justify-content: stretch;
+    flex-wrap: wrap;
+    column-gap: 0.5rem;
+}
+.prop > :nth-child(1) {
+    margin-left: -1rem;
+}
+
 </style>
     </head>
     <body>
-        <canvas id="glCanvas"></canvas>
+        <div class="container">
+            <div class="canvas-cont"><canvas id="glCanvas"></canvas></div>
+            <div id="side-menu"></div>
+        </div>
 
         <script type="module" src="render.js"></script>
     </body>

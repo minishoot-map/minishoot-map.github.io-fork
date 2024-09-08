@@ -11,6 +11,17 @@ const ti = parsedSchema.typeSchemaI
 
 // NOTE: DO NOT send 30mb of objects w/ postMessage() :)
 
+onmessage = (e) => {
+    const d = e.data
+    console.log('received from client', d.type)
+    if(d.type === 'click') {
+        onClick(d.x, d.y)
+    }
+    else if(d.type === 'getInfo') {
+        getInfo(d.index)
+    }
+}
+
 function shouldLoad(is, load, message) {
     if(is) return load()
 
@@ -66,10 +77,11 @@ function prepareObjects(parentMatrix, parentI, obj) {
     }
     if(transform == null) throw "Unreachable"
     obj.transform = transform
-    obj.parentI = parentI
+    obj._parentI = parentI
 
     const index = objects.length
     objects.push(obj)
+    obj._index = index
 
     var matrix = construct(transform)
     if(parentMatrix) premultiplyBy(matrix, parentMatrix)
@@ -201,38 +213,41 @@ function createOneTex(obj, comp) {
     return [obj, parsedSchema.schema[comp._schema].textureI]
 }
 
+
 const objectsProcessedP = objectsLoadedP.then(objects => {
     const colliderObjects = []
     const markerObjects = []
+    const allMarkers = []
 
     const s = performance.now()
     for(var i = 0; i < objects.length; i++) {
         var obj = objects[i]
         var cs = obj.components
 
+        var display = null
         for(var j = 0; j < cs.length; j++) {
             var comp = cs[j]
 
             var enemy = getAsSchema(comp, ti.Enemy)
             if(enemy != null) {
                 const size = comp._schema === ti.Boss ? 3 : 1 + 0.33 * enemy.size
-                markerObjects.push([obj, enemy.spriteI, size])
+                display = [obj, enemy.spriteI, size]
             }
 
             var jar = getAsSchema(comp, ti.Jar)
             if(jar != null) {
-                markerObjects.push(createOneTex(obj, jar))
+                display = createOneTex(obj, jar)
             }
 
             var crDes = getAsSchema(comp, ti.CrystalDestroyable)
             if(crDes != null) {
                 const ti = meta.crystalDestroyableTextures[crDes.dropXp ? 1 : 0]
-                markerObjects.push([obj, ti, 1 + 0.5 * crDes.size])
+                display = [obj, ti, 1 + 0.5 * crDes.size]
             }
 
             var scarab = getAsSchema(comp, ti.ScarabPickup)
             if(scarab != null) {
-                markerObjects.push(createOneTex(obj, scarab))
+                display = createOneTex(obj, scarab)
             }
 
             var coll = getAsSchema(comp, ti.Collider2D)
@@ -242,11 +257,19 @@ const objectsProcessedP = objectsLoadedP.then(objects => {
                 }
             }
         }
+
+        if(display != null) {
+            allMarkers.push({ index: i, object: obj, displayI: markerObjects.length })
+            markerObjects.push(display)
+        }
     }
     const e = performance.now()
     console.log('objects done in', e - s)
 
-    return { colliderObjects, markerObjects }
+    return { colliderObjects, markerObjects, allMarkers }
+}).catch(e => {
+    console.error('Error processing objects', e)
+    throw e
 })
 
 objectsProcessedP.then(pObjects => {
@@ -474,3 +497,124 @@ Promise.all([objectsProcessedP, polygonsP]).then(([pObjects, polygonsA]) => {
 }).catch(e => {
     console.error('Error processing colliders', e)
 })
+
+var lastX, lastY, allMarkers
+objectsProcessedP.then(d => {
+    allMarkers = d.allMarkers
+    if(lastX != null) onClick(lastX, lastY)
+})
+
+function serializeObject(obj) {
+    const referenceNames = {}
+
+    const children = Array(obj.children.length)
+    for(let i = 0; i < obj.children.length; i++) {
+        const child = obj.children[i]
+        if(child) {
+            children[i] = child._index
+            const name = child.name
+            if(name) {
+                referenceNames[child._index] = name
+            }
+        }
+        else {
+            children[i] = null
+        }
+    }
+
+    for(let i = 0; i < obj.components.length; i++) {
+        const cc = obj.components[i]
+        const s = getAsSchema(cc, ti.ScarabPickup)
+        if(s) {
+            const name = objects[s.container]?.name
+            if(name) referenceNames[s.container] = name;
+        }
+
+        const t = getAsSchema(cc, ti.Transition)
+        if(t) {
+            const name = objects[t.destI]?.name
+            if(name) referenceNames[t.destI] = name
+        }
+    }
+
+    var parentI = obj._parentI
+    if(parentI < 0) {
+        const name = scenes[-parentI - 1]?.name
+        if(name) referenceNames[parentI] = name
+    }
+    else {
+        const parent = objects[parentI]
+        if(parent != null) {
+            const name = parent.name
+            if(name) referenceNames[parentI] = name
+        }
+    }
+
+    return {
+        name: obj.name,
+        pos: obj.pos,
+        components: obj.components,
+        referenceNames,
+        children,
+        parent: parentI,
+    }
+}
+
+function onClick(x, y) {
+    lastX = x
+    lastY = y
+    if(allMarkers == null) return
+
+    const closest = Array(5)
+    for(let i = 0; i < closest.length; i++) {
+        closest[i] = [1/0, -1]
+    }
+
+    for(let i = 0; i < allMarkers.length; i++) {
+        const obj = allMarkers[i].object
+        const pos = obj.pos
+        const dx = pos[0] - x
+        const dy = pos[1] - y
+        const sqDist = dx*dx + dy*dy
+
+        var insertI = 0
+        while(insertI < closest.length && closest[insertI][0] < sqDist) insertI++
+
+        if(insertI < closest.length) {
+            closest.splice(insertI, 1, [sqDist, i])
+        }
+    }
+
+    let endI = 0
+    while(endI < closest.length && closest[endI][1] !== -1) endI++
+    closest.length = endI
+
+    if(closest.length !== 0) {
+        const c = closest[0]
+        const obj = allMarkers[c[1]].object
+        const first = serializeObject(obj)
+
+        const nearby = Array(closest.length - 1)
+        for(let i = 1; i < closest.length; i++) {
+            const c = closest[i]
+            nearby.push({
+                name: allMarkers[c[1]].object.name,
+                distance: Math.sqrt(c[0]),
+                markerIndex: c[1],
+            })
+        }
+
+        postMessage({
+            type: 'click',
+            first, nearby: closest
+        })
+    }
+    else {
+        postMessage({ type: 'click' })
+    }
+}
+
+function getInfo(index) {
+    const object = objects[index]
+    if(object) postMessage({ type: 'getInfo', object: serializeObject(object) })
+}

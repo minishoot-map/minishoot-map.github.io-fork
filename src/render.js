@@ -3,6 +3,7 @@ import * as backgroundsDisplay from './renderBackground.js'
 import * as collidersDisplay from './renderColliders.js'
 import * as circularDisplay from './renderCircularColliders.js'
 import * as markersDisplay from './renderMarkers.js'
+import * as sideMenu from './sideMenu.jsx'
 import ParserWorker from './worker.js?worker'
 
 var resolveCollidersP
@@ -15,26 +16,41 @@ const markersP = new Promise((s, j) => {
     resolveMarkersDataP = s
 })
 
+var startt, endd
+
+var worker
 if(__worker) {
-    const worker = new ParserWorker()
+    worker = new ParserWorker()
     worker.onmessage = (e) => {
-        console.log('received from worker', e.data.type)
-        if(e.data.type === 'colliders-done') {
+        const d = e.data
+        console.log('received from worker', d.type)
+
+        if(d.type === 'click') {
+            endd = performance.now()
+            console.log('in', endd - startt)
+            console.log(JSON.parse(JSON.stringify(d)))
+            sideMenu.setCurrentObject({ first: d.first, nearby: d.nearby })
+        }
+        else if(d.type === 'getInfo') {
+            console.log(JSON.parse(JSON.stringify(d)))
+            sideMenu.setCurrentObject({ first: d.object, nearby: [] })
+        }
+        else if(d.type === 'colliders-done') {
             const it = {
-                verts: e.data.verts,
-                indices: e.data.indices,
-                polyDrawData: e.data.polyDrawData,
-                circularData: e.data.circularData,
-                circularDrawData: e.data.circularDrawData,
+                verts: d.verts,
+                indices: d.indices,
+                polyDrawData: d.polyDrawData,
+                circularData: d.circularData,
+                circularDrawData: d.circularDrawData,
             }
             resolveCollidersP(it)
         }
-        else if(e.data.type == 'markers-done') {
-            const it = { markers: e.data.markers, markersData: e.data.markersData, count: e.data.count }
+        else if(d.type == 'markers-done') {
+            const it = { markers: d.markers, markersData: d.markersData, count: d.count }
             resolveMarkersDataP(it)
         }
-        else if(e.data.type == 'backgrounds-done') {
-            const bkgs = e.data.backgrounds
+        else if(d.type == 'backgrounds-done') {
+            const bkgs = d.backgrounds
             for(let i = 0; i < bkgs.length; i++) {
                 const it = bkgs[i]
                 backgroundsDisplay.updateBackground(context, it.index, it.buffer)
@@ -118,8 +134,17 @@ const context = {
     requestRender,
     camera: { posX: 0, posY: 0, scale: 1000 },
     canvasSize: [],
+    onClick(x, y) {
+        startt = performance.now()
+        console.log('sending')
+        worker?.postMessage({ type: 'click', x, y })
+    }
 }
 
+sideMenu.setup((index) => {
+    if(index == null) return
+    worker?.postMessage({ type: 'getInfo', index })
+})
 canvasDisplay.setup(context)
 backgroundsDisplay.setup(context)
 if(__setup_markers) markersDisplay.setup(gl, context, markersP)
