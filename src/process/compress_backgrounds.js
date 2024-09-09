@@ -17,7 +17,6 @@ fs.mkdirSync(dstPath, { recursive: true })
 
 const filenames = fs.readdirSync(srcPath)
 const counts = {}
-const countsDoneP = []
 const residedPixelsP = []
 for(let i = 0; i < filenames.length; i++) {
     const fn = filenames[i]
@@ -27,25 +26,25 @@ for(let i = 0; i < filenames.length; i++) {
     }
 
     const img = sharp(join(srcPath, fn))
-    countsDoneP.push(
+    residedPixelsP.push(
         (async() => {
             const resized = img.resize(512, 512, { kernel: 'lanczos2' })
-            residedPixelsP.push(resized.raw().toBuffer())
-            // resized.png().toFile(join(dstPath, 'src.png'))
-
             const buf = await resized.raw().toBuffer()
             if(buf.length !== 512*512*3) throw 'Size?' + fn + ' ' + buf.length
+
             for(var i = 0; i < buf.length; i += 3) {
                 var v = buf[i] | (buf[i + 1] << 8) | (buf[i + 2] << 16)
                 counts[v] = (counts[v] ?? 0) + 1
             }
+
+            return buf
         })()
     )
 }
 
 counts[bgInt] = (counts[bgInt] ?? 0) + 100/*arbitrary*/
 
-await Promise.all(countsDoneP)
+const resizedPixels = await Promise.all(residedPixelsP)
 console.log('counted pixels')
 
 const uniqueColors = Object.keys(counts)
@@ -156,8 +155,6 @@ else {
         .toFile(join(dstPath, 'image' + iter + '.png'))
 }
 */
-
-const resizedPixels = await Promise.all(residedPixelsP)
 
 const palette = {}
 for(let i = 0; i < uniqueColors.length; i++) {
