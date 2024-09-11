@@ -128,6 +128,7 @@ export function parseSchema(schema) {
         const s = schema[i]
         s.type = s[0]
         s.name = s[1]
+        s.shortName = s.name
         for(let key in s[2]) s[key] = s[2][key]
         if(s.type === 1) {
             s.members ??= []
@@ -135,8 +136,12 @@ export function parseSchema(schema) {
         }
 
         const match = shortenName.exec(s.name)
-        if(match && !typeSchemaI.hasOwnProperty(match[1])) {
-            typeSchemaI[match[1]] = i
+        if(match) {
+            const shortName = match[1]
+            if(!typeSchemaI.hasOwnProperty(shortName)) {
+                typeSchemaI[shortName] = i
+                s.shortName = shortName
+            }
         }
         typeSchemaI[s.name] = i
     }

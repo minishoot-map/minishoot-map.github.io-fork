@@ -48,6 +48,7 @@ function Object({ first }) {
             <Prop>Name:{first.name}</Prop>
             <Prop>Position:{vec2s(first.pos)}</Prop>
         </Props>
+        <div className="space"></div>
         <Parent obj={first}/>
         <Children obj={first}/>
         <div className="space"></div>
@@ -81,39 +82,62 @@ function Children({ obj }) {
 }
 
 const componentDecl = [
-    ['Transform', (it) => <Transform c={it} />],
-    ['Enemy', (it) => <Enemy c={it} />],
-    ['Jar', (it) => <Jar c={it} />],
-    ['CrystalDestroyable', (it) => <CrDes c={it} />],
-    ['ScarabPickup', (it, o) => <Scarab c={it} o={o} />],
-    ['Transition', (it, o) => <Transition c={it} o={o} />],
+    [ti.Transform, transformC],
+    [ti.Enemy, enemyC],
+    [ti.Jar, jarC],
+    [ti.CrystalDestroyable, crDesC],
+    [ti.ScarabPickup, scarabC],
+    [ti.Transition, transitionC],
 ]
 
-function Component({ comp, obj }) {
-    for(let i = 0; i < componentDecl.length; i++) {
-        const name = componentDecl[i][0]
-        const c = getAsSchema(comp, ti[name])
-        if(c != null) {
-            return <details className="component">
-                <summary>{name}</summary>
-                {componentDecl[i][1](c, obj)}
-            </details>
-        }
-    }
+function componentInfoToComponent(thisEmpty, childC) {
+    return <details className="component" open={thisEmpty}>
+        <summary className={childC.empty && 'empty-component'}>{childC.name}</summary>
+        {childC.component}
+    </details>
 }
 
-function Transform({ c }) {
+function componentInfo(comp, obj) {
+    const cname = meta.schemas[comp._schema].shortName
+
+    for(let i = 0; i < componentDecl.length; i++) {
+        const schemaI = componentDecl[i][0]
+        if(comp._schema !== schemaI) continue
+
+        return { empty: false, name: cname, component: componentDecl[i][1](comp, obj) }
+    }
+
+    return { empty: true, name: cname, component: fallbackC(comp, obj) }
+}
+
+function Component({ comp, obj, isEmpty }) {
+    if(comp == null) return
+    if(comp._schema === ti.Component) return
+    if(comp._schema === ti.MonoBehaviour) return
+    if(comp._schema === ti.MiniBehaviour) return
+    return componentInfoToComponent(isEmpty, componentInfo(comp, obj))
+}
+
+function fallbackC(c, o) {
+    return <Props>
+        <Component isEmpty={true} comp={c._base} obj={o}/>
+    </Props>
+}
+
+function transformC(c, o) {
     return <Props>
         <Prop>Local position:{vec2s(c.position)}</Prop>
         <Prop>Local scale:{vec2s(c.scale)}</Prop>
         <Prop>Local rotation:{c.rotation}</Prop>
+        <Component comp={c._base} obj={o}/>
     </Props>
 }
 
-function CrDes({ c }) {
+function crDesC(c, o) {
     return <Props>
         <Prop>Drops XP:{c.dropXp ? 'yes' : 'no'}</Prop>
         <Prop>Size:{c.size}</Prop>
+        <Component comp={c._base} obj={o}/>
     </Props>
 }
 
@@ -131,18 +155,20 @@ function Link({ index, name }) {
     }
 }
 
-function Scarab({ c, o }) {
+function scarabC(c, o) {
     return <Props>
         <Prop>
             Container:
             <Link index={c.container} name={o.referenceNames[c.container]}/>
         </Prop>
+        <Component comp={c._base} obj={o}/>
     </Props>
 }
 
-function Transition({ c, o }) {
+function transitionC(c, o) {
     return <Props>
         <Prop>Destination:{<Link index={c.destI} name={o.referenceNames[c.destI]}/>}</Prop>
+        <Component comp={c._base} obj={o}/>
     </Props>
 }
 
@@ -157,10 +183,11 @@ function getExtra(e) {
     return (extra !== undefined ? ' (' + extra + ')' : '') + ` [value${nbsp}${e.dropType}]`
 }
 
-function Jar({ c }) {
+function jarC(c, o) {
     return <Props>
         <Prop>Drop type:{jarTypes[c.dropType] + getExtra(c)}</Prop>
         <Prop>Size:{c.size}</Prop>
+        <Component comp={c._base} obj={o}/>
     </Props>
 }
 
@@ -185,12 +212,13 @@ function XpCalculator({ enemy }) {
     </Prop>
 }
 
-function Enemy({ c }) {
+function enemyC(c, o) {
     return <Props>
         <Prop>Size:{c.size}</Prop>
         <Prop>Tier:{c.tier}</Prop>
         <Prop>Hp:{c.hp}</Prop>
         <XpCalculator enemy={c} />
+        <Component comp={c._base} obj={o}/>
     </Props>
 }
 // Copied from the game (TODO: where?)
