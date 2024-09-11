@@ -15,38 +15,6 @@ const dstInfo = join(import.meta.dirname, '../data-processed/backgrounds.json')
 fs.mkdirSync(dstPath, { recursive: true })
 
 
-const filenames = fs.readdirSync(srcPath)
-const counts = {}
-const residedPixelsP = []
-for(let i = 0; i < filenames.length; i++) {
-    const fn = filenames[i]
-    if(!fn.endsWith('.png')) {
-        console.log('skipping', fn)
-        continue
-    }
-
-    const img = sharp(join(srcPath, fn))
-    residedPixelsP.push(
-        (async() => {
-            const resized = img.resize(512, 512, { kernel: 'lanczos2' })
-            const buf = await resized.raw().toBuffer()
-            if(buf.length !== 512*512*3) throw 'Size?' + fn + ' ' + buf.length
-
-            for(var i = 0; i < buf.length; i += 3) {
-                var v = buf[i] | (buf[i + 1] << 8) | (buf[i + 2] << 16)
-                counts[v] = (counts[v] ?? 0) + 1
-            }
-
-            return buf
-        })()
-    )
-}
-
-counts[bgInt] = (counts[bgInt] ?? 0) + 100/*arbitrary*/
-
-const resizedPixels = await Promise.all(residedPixelsP)
-console.log('counted pixels')
-
 // radix sort bucket counts for each channel
 const bucketSize = 256
 const channelValuesCounts = new Uint32Array(bucketSize * 3)
@@ -54,16 +22,9 @@ const startOffsets = new Uint32Array(bucketSize)
 
 const rounds = 8
 
-const buckets = new Uint32Array(2 ** rounds)
-var bucketI = 0
-
-function palletize(remSpits, beginI, endI, colors, colorsDst) {
+function palletize(beginI, endI, colors, colorsDst, counts) {
     if(beginI == endI) {
-        console.warn('lost a palette color')
-        return
-    }
-    if(remSpits <= 0) {
-        buckets[bucketI++] = endI
+        // console.warn('lost a palette color')
         return
     }
 
@@ -141,38 +102,15 @@ function palletize(remSpits, beginI, endI, colors, colorsDst) {
     if(median - prevC < curC - median) countI = countI - 1
     countI = Math.min(Math.max(beginI + 1, countI), endI - 1)
 
-    // console.log('   ', beginI, countI, endI, curC, prevC, median)
-    palletize(remSpits - 1, beginI, countI, colorsDst, colors)
-    palletize(remSpits - 1, countI, endI, colorsDst, colors)
+    return countI
 }
 
-
-const uniqueColors = Object.keys(counts)
-const colorsC = uniqueColors.length
-
-const colors = new Uint8Array(colorsC * 3)
-for(let i = 0; i < colorsC; i++) {
-    const c = uniqueColors[i]
-    colors[i*3    ] = (c      ) & 0xff
-    colors[i*3 + 1] = (c >>  8) & 0xff
-    colors[i*3 + 2] = (c >> 16) & 0xff
-}
-const colors2 = new Uint8Array(colorsC * 3)
-
-palletize(rounds, 0, colorsC, colors, colors2)
-const resultColors = rounds & 1 ? colors2 : colors
-
-console.log('done')
-
-const palette = {}
-let prevOff = 0
-for(let i = 0; i < bucketI; i++) {
-    const curOff = buckets[i]
+function fillPaletteColor(palette, colors, beginI, endI, counts) {
     var tr = 0, tg = 0, tb = 0, total = 0
-    for(let j = prevOff; j < curOff; j++) {
-        const r = resultColors[j*3    ]
-        const g = resultColors[j*3 + 1]
-        const b = resultColors[j*3 + 2]
+    for(let j = beginI; j < endI; j++) {
+        const r = colors[j*3    ]
+        const g = colors[j*3 + 1]
+        const b = colors[j*3 + 2]
 
         const color = r | (g << 8) | (b << 16)
         const count = counts[color]
@@ -188,37 +126,109 @@ for(let i = 0; i < bucketI; i++) {
     const ab = Math.min(Math.max(0, Math.round(tb / total + 127)), 255)
     const avg = ar | (ag << 8) | (ab << 16)
 
-    for(let j = prevOff; j < curOff; j++) {
-        const r = resultColors[j * 3]
-        const g = resultColors[j*3 + 1]
-        const b = resultColors[j*3 + 2]
+    for(let j = beginI; j < endI; j++) {
+        const r = colors[j * 3]
+        const g = colors[j*3 + 1]
+        const b = colors[j*3 + 2]
         const color = r | (g << 8) | (b << 16)
         palette[color] = avg
     }
-
-    prevOff = curOff
 }
 
-console.log('generating output')
-
-// ouptut
-for(let i = 0; i < resizedPixels.length; i++) {
-    const rp = resizedPixels[i]
-    const res = Buffer.alloc(rp.length)
-    for(let j = 0; j < rp.length; j += 3) {
-        const col = rp[j    ] | (rp[j + 1] << 8) | (rp[j + 2] << 16)
-        const pcol = palette[col]
-        res.writeUint8((pcol      ) & 0xff, j    )
-        res.writeUint8((pcol >>  8) & 0xff, j + 1)
-        res.writeUint8((pcol >> 16) & 0xff, j + 2)
+const filenames = fs.readdirSync(srcPath)
+if(false) for(let i = 0; i < filenames.length; i++) {
+    const fn = filenames[i]
+    if(!fn.endsWith('.png')) {
+        console.log('skipping', fn)
+        continue
     }
-    sharp(res, { raw: { width: 512, height: 512, channels: 3 } })
-        .png({ compressionLevel: 9, palette: true, colors: 256 }) // just hope it uses the same colors as us I guess
-        .toFile(join(dstPath, filenames[i]))
+
+    const img = sharp(join(srcPath, fn))
+    ;(async() => {
+        const counts = { [bgInt]: 100/*arbitrary*/ }
+
+        const resized = img.resize(512, 512, { kernel: 'lanczos2' })
+        const buf = await resized.raw().toBuffer()
+        if(buf.length !== 512*512*3) throw 'Size?' + fn + ' ' + buf.length
+
+        for(let i = 0; i < buf.length; i += 3) {
+            const v = buf[i] | (buf[i + 1] << 8) | (buf[i + 2] << 16)
+            counts[v] = (counts[v] ?? 0) + 1
+        }
+
+        const uniqueColors = Object.keys(counts)
+        const colorsC = uniqueColors.length
+
+        const colors = new Uint8Array(colorsC * 3)
+        for(let i = 0; i < colorsC; i++) {
+            const c = uniqueColors[i]
+            colors[i*3    ] = (c      ) & 0xff
+            colors[i*3 + 1] = (c >>  8) & 0xff
+            colors[i*3 + 2] = (c >> 16) & 0xff
+        }
+        const colors2 = new Uint8Array(colorsC * 3)
+
+        const palette = {}
+
+        let remainingColors = 255
+        let round = 0
+
+        let rangeEnds = [colorsC]
+        let newRangeEnds = []
+        while(true) {
+
+            const cs = round & 1 ? colors2 : colors
+            const cd = round & 1 ? colors : colors2
+
+            let anySpit = false
+
+            let curStart = 0
+            for(let i = 0; i < rangeEnds.length; i++) {
+                const begin = curStart
+                const end = rangeEnds[i]
+                curStart = end
+
+                if(remainingColors > 0) {
+                    const median = palletize(begin, end, cs, cd, counts)
+                    if(curStart != median && median != rangeEnds[i]) {
+                        anySpit = true
+                        remainingColors--
+                        newRangeEnds.push(median)
+                        newRangeEnds.push(end)
+                        continue
+                    }
+                }
+
+                fillPaletteColor(palette, cd, begin, end, counts)
+            }
+
+            if(!anySpit) break
+
+            round++
+            const tmp = rangeEnds
+            rangeEnds = newRangeEnds
+            newRangeEnds = tmp
+            newRangeEnds.length = 0
+        }
+
+        // ouptut
+        const res = Buffer.alloc(buf.length)
+        for(let j = 0; j < buf.length; j += 3) {
+            const col = buf[j    ] | (buf[j + 1] << 8) | (buf[j + 2] << 16)
+            const pcol = palette[col]
+            res.writeUint8((pcol      ) & 0xff, j    )
+            res.writeUint8((pcol >>  8) & 0xff, j + 1)
+            res.writeUint8((pcol >> 16) & 0xff, j + 2)
+        }
+        console.log('writing image', i, 'with', 256 - remainingColors, 'colors')
+        sharp(res, { raw: { width: 512, height: 512, channels: 3 } })
+            .png({ compressionLevel: 9, palette: true }) // just hope it uses the same colors as us I guess
+            .toFile(join(dstPath, fn))
+    })()
 }
 
 const bgInfo = {}
-bgInfo.backgroundColor = palette[bgInt]
+bgInfo.backgroundColor = bgInt
 bgInfo.backgroundResolution = 512
 
 fs.writeFileSync(dstInfo, JSON.stringify(bgInfo))
