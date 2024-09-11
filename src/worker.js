@@ -35,20 +35,19 @@ async function load(path) {
     return new Uint8Array(ab)
 }
 
-const loadObjecst = __worker_markers || __worker_colliders
 
 const backgroundsP = shouldLoad(
-    __worker_backgrounds,
+    __worker_backgrounds && __worker_objects,
     () => fetch(backgroundsUrl).then(r => r.body).then(r => r.getReader()),
     'skipping backgrounds'
 )
 const objectsP = shouldLoad(
-    loadObjecst,
+    __worker_objects,
     () => load(objectUrl),
     'skipping objects'
 )
 const polygonsP = shouldLoad(
-    __worker_colliders,
+    __worker_colliders && __worker_objects,
     () => load(polygonsUrl),
     'skipping colliders'
 )
@@ -615,6 +614,7 @@ function onClick(x, y) {
 }
 
 function getInfo(index) {
+    console.log(index)
     const object = objects[index]
     if(object) postMessage({ type: 'getInfo', object: serializeObject(object) })
 }

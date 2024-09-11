@@ -36,6 +36,7 @@ var defaultDefs = {
 
     worker: true,
 
+    worker_objects: true,
     worker_backgrounds: true,
     worker_markers: true,
     worker_colliders: true,
