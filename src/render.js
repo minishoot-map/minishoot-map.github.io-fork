@@ -3,6 +3,7 @@ import * as backgroundsDisplay from './renderBackground.js'
 import * as collidersDisplay from './renderColliders.js'
 import * as circularDisplay from './renderCircularColliders.js'
 import * as markersDisplay from './renderMarkers.js'
+import * as specMarkerDisplay from './renderSpecialMarker.js'
 import * as sideMenu from './sideMenu.jsx'
 import ParserWorker from './worker.js?worker'
 
@@ -93,6 +94,7 @@ function render(context) {
     if(__render_colliders) collidersDisplay.render(context)
     if(__render_circular) circularDisplay.render(context)
     if(__render_markers) markersDisplay.render(context)
+    specMarkerDisplay.render(context)
 }
 
 function requestRender(priority/* 0 - immediate, 1 - animation, 2 - idle */) {
@@ -155,6 +157,9 @@ try { backgroundsDisplay.setup(context) }
 catch(e) { console.error(e) }
 
 try { if(__setup_markers) markersDisplay.setup(gl, context, markersP) }
+catch(e) { console.error(e) }
+
+try { if(__setup_markers) specMarkerDisplay.setup(context) }
 catch(e) { console.error(e) }
 
 try { if(__setup_colliders) collidersDisplay.setup(gl, context, collidersP) }

@@ -30,12 +30,7 @@ in float size;
 out vec2 uv;
 flat out int type;
 
-const vec2 coords[4] = vec2[4](
-    vec2(-1.0, -1.0),
-    vec2(1.0, -1.0),
-    vec2(-1.0, 1.0),
-    vec2(1.0, 1.0)
-);
+const vec2 coords[4] = vec2[4](vec2(-1.0, -1.0), vec2(1.0, -1.0), vec2(-1.0, 1.0), vec2(1.0, 1.0));
 const float intToFloat = ${1 / 65535};
 
 void main(void) {
@@ -132,10 +127,13 @@ export function setup(gl, context, markersDataP) {
     const tex = gl.getUniformLocation(prog, 'tex')
     gl.uniform1i(tex, 1)
 
-    gl.uniform1i(tex, 1)
-
     renderData.u = { markerSize, drawType }
     renderData.prog = prog
+
+    const coordIn = gl.getAttribLocation(prog, 'coord')
+    const indexIn = gl.getAttribLocation(prog, 'index')
+    const sizeIn  = gl.getAttribLocation(prog, 'size')
+    renderData.in = { coordIn, indexIn, sizeIn }
 
     const dataB = gl.createBuffer()
     renderData.dataB = dataB
@@ -145,27 +143,22 @@ export function setup(gl, context, markersDataP) {
     gl.bindVertexArray(vao)
 
     gl.bindBuffer(gl.ARRAY_BUFFER, dataB)
-    const coordIn = gl.getAttribLocation(renderData.prog, 'coord')
     if(coordIn != -1) {
         gl.enableVertexAttribArray(coordIn)
         gl.vertexAttribDivisor(coordIn, 1)
     }
 
-    const indexIn = gl.getAttribLocation(renderData.prog, 'index')
     if(indexIn != -1) {
         gl.enableVertexAttribArray(indexIn)
         gl.vertexAttribDivisor(indexIn, 1)
     }
 
-    const sizeIn = gl.getAttribLocation(renderData.prog, 'size')
     if(sizeIn != -1) {
         gl.enableVertexAttribArray(sizeIn)
         gl.vertexAttribDivisor(sizeIn, 1)
     }
-    renderData.in = { coordIn, indexIn, sizeIn }
 
     gl.bindVertexArray(null)
-
 
     const markersBIndex = gl.getUniformBlockIndex(prog, "MarkersData")
     const ubo = gl.createBuffer()
