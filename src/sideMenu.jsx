@@ -67,7 +67,7 @@ function Object({ first }) {
         <Children obj={first}/>
         <div className="space"></div>
         <div>Components:</div>
-        <div>{components}</div>
+        <div className="components">{components}</div>
     </>
 }
 
@@ -95,8 +95,8 @@ function Children({ obj }) {
     </details>
 }
 
-function componentInfoToComponent(thisEmpty, childC) {
-    return <details className="component" open={thisEmpty}>
+function componentInfoToComponent(childC) {
+    return <details className="component" open={!childC.empty}>
         <summary className={childC.empty ? 'empty-component' : null}>{childC.name}</summary>
         {childC.component}
     </details>
@@ -118,7 +118,7 @@ function componentInfo(comp, obj) {
     var base = comp._base
     if(shouldDisplay(base)) {
         const baseInfo = componentInfo(base, obj)
-        inner = componentInfoToComponent(true, baseInfo)
+        inner = componentInfoToComponent(baseInfo)
         isEmpty = baseInfo.empty
     }
 
@@ -136,7 +136,7 @@ function shouldDisplay(comp) {
 
 function Component({ comp, obj }) {
     if(!shouldDisplay(comp)) return
-    return componentInfoToComponent(false, componentInfo(comp, obj))
+    return componentInfoToComponent(componentInfo(comp, obj))
 }
 
 const componentDecl = []
