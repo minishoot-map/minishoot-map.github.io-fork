@@ -12,6 +12,7 @@ layout(std140) uniform Camera {
 } cam;
 
 uniform float markerSize;
+uniform int drawType;
 
 struct MarkerData {
     uint xy, wh;
@@ -27,6 +28,7 @@ in uint index;
 in float size;
 
 out vec2 uv;
+flat out int type;
 
 const vec2 coords[4] = vec2[4](
     vec2(-1.0, -1.0),
@@ -42,7 +44,7 @@ void main(void) {
     uint xy = md.xy;
     uint wh = md.wh;
 
-    vec2 offset = coords[gl_VertexID] * markerSize * size;
+    vec2 offset = coords[gl_VertexID] * markerSize * (size + float(drawType & 1) * 0.4);
     if(texAspect < 0.0) offset.y *= -texAspect;
     else offset.x *= texAspect;
 
@@ -51,6 +53,8 @@ void main(void) {
 
     vec2 uvOff = vec2(wh & 65535u, wh >> 16u) * vec2(gl_VertexID & 1, 1 - (gl_VertexID >> 1));
     uv = (vec2(xy & 65535u, xy >> 16u) + uvOff) * intToFloat;
+
+    type = drawType;
 }
 `
 const fsSource = `#version 300 es
@@ -58,11 +62,21 @@ precision mediump float;
 
 uniform sampler2D tex;
 in vec2 uv;
+flat in int type;
 
 out vec4 color;
 
 void main(void) {
-    color = texture(tex, uv);
+    vec4 col = texture(tex, uv);
+    if((type & 1) != 0) {
+        col.rgb = vec3(1, 0, 0);
+    }
+    if(((type >> 1) & 1) != 0) {
+        col.rgb = mix(col.rgb, vec3(1.0), 0.2);
+    }
+
+
+    color = col;
 }
 `
 
@@ -113,11 +127,14 @@ export function setup(gl, context, markersDataP) {
         checkOk(context)
     })
 
+    const drawType = gl.getUniformLocation(prog, 'drawType')
     const markerSize = gl.getUniformLocation(prog, 'markerSize')
     const tex = gl.getUniformLocation(prog, 'tex')
     gl.uniform1i(tex, 1)
 
-    renderData.u = { markerSize }
+    gl.uniform1i(tex, 1)
+
+    renderData.u = { markerSize, drawType }
     renderData.prog = prog
 
     const dataB = gl.createBuffer()
@@ -192,11 +209,22 @@ export function render(context) {
 
     gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, endI)
     if(endI + 1 < rd.count) {
-        const offset = (endI + 1) * 16
+        let offset = (endI + 1) * 16
         gl.vertexAttribPointer(coordIn, 2, gl.FLOAT, false , 16, offset + 0)
         gl.vertexAttribIPointer(indexIn, 1, gl.UNSIGNED_INT, 16, offset + 8)
         gl.vertexAttribPointer(sizeIn, 1, gl.FLOAT, false  , 16, offset + 12)
 
         gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, rd.count - (endI + 1))
+
+        offset = endI * 16
+        gl.vertexAttribPointer(coordIn, 2, gl.FLOAT, false , 16, offset + 0)
+        gl.vertexAttribIPointer(indexIn, 1, gl.UNSIGNED_INT, 16, offset + 8)
+        gl.vertexAttribPointer(sizeIn, 1, gl.FLOAT, false  , 16, offset + 12)
+
+        gl.uniform1i(rd.u.drawType, 1)
+        gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, 1)
+        gl.uniform1i(rd.u.drawType, 2)
+        gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, 1)
+        gl.uniform1i(rd.u.drawType, 0)
     }
 }
