@@ -92,6 +92,7 @@ export function setup(gl, context, collidersDataP) {
     renderData.prog = prog
 
     const dataB = gl.createBuffer()
+    renderData.dataB = dataB
 
     const vao = gl.createVertexArray()
     renderData.vao = vao
@@ -125,10 +126,11 @@ export function setup(gl, context, collidersDataP) {
 export function render(context) {
     const rd = context.circular
     if(rd?.ok !== true) return
-    const { gl, camera } = context
+    const { gl } = context
 
     gl.useProgram(rd.prog)
     gl.bindVertexArray(rd.vao)
+    gl.bindBuffer(gl.ARRAY_BUFFER, rd.dataB)
     for(let i = 0; i < rd.drawData.length; i++) {
         const it = rd.drawData[i]
         gl.uniform1i(rd.u.layer, it.layer)

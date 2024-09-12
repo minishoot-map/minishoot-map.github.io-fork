@@ -121,6 +121,7 @@ export function setup(gl, context, markersDataP) {
     renderData.prog = prog
 
     const dataB = gl.createBuffer()
+    renderData.dataB = dataB
 
     const vao = gl.createVertexArray()
     renderData.vao = vao
@@ -178,12 +179,13 @@ export function render(context) {
 
     gl.uniform1f(rd.u.markerSize, Math.min(camera.scale, 200) * 0.03)
 
+    const endI = context.sideMenu?.currentObject?.first?.markerI ?? rd.count
+    const { coordIn, indexIn, sizeIn } = rd.in
+
     gl.bindVertexArray(rd.vao)
 
-    const endI = context.sideMenu?.currentObject?.first?.markerI ?? rd.count
-    console.log(endI, rd.count)
-
-    const { coordIn, indexIn, sizeIn } = rd.in
+    // same trick as in circularColliders.js
+    gl.bindBuffer(gl.ARRAY_BUFFER, rd.dataB)
     gl.vertexAttribPointer(coordIn, 2, gl.FLOAT, false , 16, 0)
     gl.vertexAttribIPointer(indexIn, 1, gl.UNSIGNED_INT, 16, 8)
     gl.vertexAttribPointer(sizeIn, 1, gl.FLOAT, false  , 16, 12)
