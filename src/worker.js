@@ -592,6 +592,7 @@ function onClick(x, y) {
         const c = closest[0]
         const obj = allMarkers[c[1]].object
         const first = serializeObject(obj)
+        first.markerI = c[1]
 
         const nearby = Array(closest.length - 1)
         for(let i = 1; i < closest.length; i++) {

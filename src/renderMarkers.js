@@ -129,24 +129,22 @@ export function setup(gl, context, markersDataP) {
     gl.bindBuffer(gl.ARRAY_BUFFER, dataB)
     const coordIn = gl.getAttribLocation(renderData.prog, 'coord')
     if(coordIn != -1) {
-        gl.vertexAttribPointer(coordIn, 2, gl.FLOAT, false, 16, 0)
         gl.enableVertexAttribArray(coordIn)
         gl.vertexAttribDivisor(coordIn, 1)
     }
 
     const indexIn = gl.getAttribLocation(renderData.prog, 'index')
     if(indexIn != -1) {
-        gl.vertexAttribIPointer(indexIn, 1, gl.UNSIGNED_INT, 16, 8)
         gl.enableVertexAttribArray(indexIn)
         gl.vertexAttribDivisor(indexIn, 1)
     }
 
     const sizeIn = gl.getAttribLocation(renderData.prog, 'size')
     if(sizeIn != -1) {
-        gl.vertexAttribPointer(sizeIn, 1, gl.FLOAT, false, 16, 12)
         gl.enableVertexAttribArray(sizeIn)
         gl.vertexAttribDivisor(sizeIn, 1)
     }
+    renderData.in = { coordIn, indexIn, sizeIn }
 
     gl.bindVertexArray(null)
 
@@ -181,5 +179,22 @@ export function render(context) {
     gl.uniform1f(rd.u.markerSize, Math.min(camera.scale, 200) * 0.03)
 
     gl.bindVertexArray(rd.vao)
-    gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, rd.count)
+
+    const endI = context.sideMenu?.currentObject?.first?.markerI ?? rd.count
+    console.log(endI, rd.count)
+
+    const { coordIn, indexIn, sizeIn } = rd.in
+    gl.vertexAttribPointer(coordIn, 2, gl.FLOAT, false , 16, 0)
+    gl.vertexAttribIPointer(indexIn, 1, gl.UNSIGNED_INT, 16, 8)
+    gl.vertexAttribPointer(sizeIn, 1, gl.FLOAT, false  , 16, 12)
+
+    gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, endI)
+    if(endI + 1 < rd.count) {
+        const offset = (endI + 1) * 16
+        gl.vertexAttribPointer(coordIn, 2, gl.FLOAT, false , 16, offset + 0)
+        gl.vertexAttribIPointer(indexIn, 1, gl.UNSIGNED_INT, 16, offset + 8)
+        gl.vertexAttribPointer(sizeIn, 1, gl.FLOAT, false  , 16, offset + 12)
+
+        gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, rd.count - (endI + 1))
+    }
 }

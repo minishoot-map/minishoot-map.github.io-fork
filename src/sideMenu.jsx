@@ -8,14 +8,22 @@ const useCurrentObject = Z.create(() => {})
 // TODO: transfer object id and use it as key so that values from previous objects do not affect it
 
 var gotoOther = () => { console.log('state?') }
+var context
+var renderData = { currentObject: null }
 
-export function setup(_gotoOther) {
-    gotoOther = _gotoOther
+export function setup(_context) {
+    context = _context
+    context.sideMenu = renderData
+    gotoOther = context.viewObject
+
     const root = reactDom.createRoot(window['side-menu'])
     root.render(<R.StrictMode><SideMenu /></R.StrictMode>)
 }
 
 export function setCurrentObject(obj) {
+    renderData.currentObject = obj
+    if(context) context.requestRender(1)
+
     // console.log(JSON.parse(JSON.stringify(obj)))
     useCurrentObject.setState(obj)
 }
@@ -109,10 +117,6 @@ function componentInfo(comp, obj) {
     }
 
     const res = <Props>{inner}</Props>
-
-    // <Component isEmpty={true} comp={c._base} obj={o}/>
-
-    // return fallbackComponent(comp, o
     return { empty: isEmpty, name: cname, component: res }
 }
 

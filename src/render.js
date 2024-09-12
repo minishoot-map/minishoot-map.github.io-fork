@@ -138,18 +138,31 @@ const context = {
         startt = performance.now()
         console.log('sending')
         worker?.postMessage({ type: 'click', x, y })
+    },
+    viewObject(index) {
+        if(index == null) return
+        worker?.postMessage({ type: 'getInfo', index })
     }
 }
 
-sideMenu.setup((index) => {
-    if(index == null) return
-    worker?.postMessage({ type: 'getInfo', index })
-})
-canvasDisplay.setup(context)
-backgroundsDisplay.setup(context)
-if(__setup_markers) markersDisplay.setup(gl, context, markersP)
-if(__setup_colliders) collidersDisplay.setup(gl, context, collidersP)
-if(__setup_circular) circularDisplay.setup(gl, context, collidersP)
+try { sideMenu.setup(context) }
+catch(e) { console.error(e) }
+
+try { canvasDisplay.setup(context) }
+catch(e) { console.error(e) }
+
+try { backgroundsDisplay.setup(context) }
+catch(e) { console.error(e) }
+
+try { if(__setup_markers) markersDisplay.setup(gl, context, markersP) }
+catch(e) { console.error(e) }
+
+try { if(__setup_colliders) collidersDisplay.setup(gl, context, collidersP) }
+catch(e) { console.error(e) }
+
+try { if(__setup_circular) circularDisplay.setup(gl, context, collidersP) }
+catch(e) { console.error(e) }
+
 
 /* prep Camera UBO */ {
     /*
