@@ -1,8 +1,8 @@
 import sharp from 'sharp'
 import * as fs from 'node:fs'
 import { join } from 'node:path'
-import random from 'random'
 import { backgroundColor } from '../data-raw/backgrounds/backgrounds.js'
+
 const bgr = parseInt(backgroundColor.slice(0, 2), 16)
 const bgg = parseInt(backgroundColor.slice(2, 4), 16)
 const bgb = parseInt(backgroundColor.slice(4, 6), 16)
@@ -14,10 +14,62 @@ const dstInfo = join(import.meta.dirname, '../data-processed/backgrounds.json')
 
 fs.mkdirSync(dstPath, { recursive: true })
 
-
 const filenames = fs.readdirSync(srcPath)
-const counts = {}
-const residedPixelsP = []
+const imagePixelsC = 512*512
+
+var done = 0
+function updateDone() {
+    done++
+    if(done % 10 === 0) console.log('done', done, 'of ~' + filenames.length)
+}
+
+function uint32ToString(value) {
+    return String.fromCharCode(
+        (value      ) & 0xff,
+        (value >>  8) & 0xff,
+        (value >> 16) & 0xff,
+        (value >> 24) & 0xff,
+    );
+}
+
+function findChunk(buffer, name) {
+    const nameInt = name.charCodeAt(0) | (name.charCodeAt(1) << 8) | (name.charCodeAt(2) << 16) | (name.charCodeAt(3) << 24)
+    const nameUint = nameInt >>> 0
+
+    var i = 8 // skip signature
+    while(i < buffer.length) {
+        const len = buffer.readUint32BE(i)
+        const chunkName = buffer.readUint32LE(i + 4)
+        if(chunkName == nameUint) return [len, i + 8]
+        i += 4 + 4 + len + 4
+    }
+}
+
+// https://web.archive.org/web/20150825201508/http://upokecenter.dreamhosters.com/articles/png-image-encoder-in-c/
+const crcTable = new Uint32Array(256)
+{
+    for(let i = 0; i < crcTable.length; i++) {
+        let c = i
+        for(var j = 0; j < 8; j++) {
+            if((c & 1) == 1) {
+                c = 0xEDB88320 ^ ((c >> 1) & 0x7FFFFFFF)
+            }
+            else {
+                c = ((c >> 1) & 0x7FFFFFFF)
+            }
+        }
+        crcTable[i] = c
+    }
+}
+
+function crc32(buf, begin, end, crc) {
+    var c = ~crc
+    for(var i = begin; i < end; i++) {
+        c = crcTable[(c ^ buf[i]) & 255] ^ (c >>> 8)
+    }
+    return ~c;
+}
+
 for(let i = 0; i < filenames.length; i++) {
     const fn = filenames[i]
     if(!fn.endsWith('.png')) {
@@ -25,182 +77,80 @@ for(let i = 0; i < filenames.length; i++) {
         continue
     }
 
+    const dstFn = join(dstPath, fn)
+
     const img = sharp(join(srcPath, fn))
-    residedPixelsP.push(
-        (async() => {
-            const resized = img.resize(512, 512, { kernel: 'lanczos2' })
-            const buf = await resized.raw().toBuffer()
-            if(buf.length !== 512*512*3) throw 'Size?' + fn + ' ' + buf.length
+    ;(async() => {
+        const resized = img.resize(512, 512, { kernel: 'lanczos2' })
+        const buf = await resized.raw().toBuffer()
+        if(buf.length !== imagePixelsC * 3) throw 'Size?' + fn + ' ' + buf.length
 
-            for(var i = 0; i < buf.length; i += 3) {
-                var v = buf[i] | (buf[i + 1] << 8) | (buf[i + 2] << 16)
-                counts[v] = (counts[v] ?? 0) + 1
+
+        // Note: we replace void color with transparent color, quantize the image,
+        // and then replace the transparent color with void color.
+        // This is done to preserve the void color between the images, as pinning
+        // colors is not provided by the library.
+
+        const resB = Buffer.alloc(imagePixelsC * 4)
+        var hasTransp = false
+        for(let i = 0; i < imagePixelsC; i++) {
+            const r = buf.readUint8(i * 3    )
+            const g = buf.readUint8(i * 3 + 1)
+            const b = buf.readUint8(i * 3 + 2)
+            if(Math.abs(r - bgr) < 3 && Math.abs(g - bgg) < 3 && Math.abs(b - bgb) < 3) {
+                resB.writeUint32LE(i*4, 0)
+                hasTransp = true
             }
-
-            return buf
-        })()
-    )
-}
-
-counts[bgInt] = (counts[bgInt] ?? 0) + 100/*arbitrary*/
-
-const resizedPixels = await Promise.all(residedPixelsP)
-console.log('counted pixels')
-
-const uniqueColors = Object.keys(counts)
-const colorsC = uniqueColors.length
-
-const centroidC = 256
-
-if(colorsC < centroidC) throw new Error('Not enough colors')
-function genCentroids() {
-    random.use(52)
-    const centroids = new Uint32Array(centroidC)
-
-    const taken = {}
-    for (let i = 0; i < centroidC; i++) {
-        do {
-            var ri = uniqueColors[random.int(0, colorsC -1)]
-        } while(taken[ri] != null)
-        taken[ri] = 0
-        centroids[i] = ri
-    }
-
-    return centroids
-}
-
-const centroids = genCentroids()
-
-const countsA = new Uint32Array(colorsC * 2)
-for(let i = 0; i < colorsC; i++) {
-    const c = uniqueColors[i]
-    countsA[i*2    ] = c
-    countsA[i*2 + 1] = counts[c]
-}
-
-function iterate() {
-    var totalDifferences = new Float32Array(centroidC * 3)
-    var totalCounts = new Uint32Array(centroidC)
-
-    for(var i = 0; i < countsA.length; i += 2) {
-        var count = countsA[i*2 + 1]
-
-        var col = countsA[i*2]
-        var r = (col      ) & 0xff
-        var g = (col >>  8) & 0xff
-        var b = (col >> 16) & 0xff
-
-        var minDist = 1 / 0
-        var minJ = -1
-
-        for(var j = 0; j < centroidC; j++) {
-            var ccol = centroids[j]
-            var dr = r - ((ccol      ) & 0xff)
-            var dg = g - ((ccol >>  8) & 0xff)
-            var db = b - ((ccol >> 16) & 0xff)
-            var dist = dr*dr + dg*dg + db*db
-            if(dist < minDist) {
-                minJ = j
-                minDist = dist
+            else {
+                resB.writeUint8(r, i*4    )
+                resB.writeUint8(g, i*4 + 1)
+                resB.writeUint8(b, i*4 + 2)
+                resB.writeUint8(0xff, i*4 + 3)
             }
         }
 
-        {
-            var ccol = centroids[minJ]
-            var dr = r - ((ccol      ) & 0xff)
-            var dg = g - ((ccol >>  8) & 0xff)
-            var db = b - ((ccol >> 16) & 0xff)
+        const pngImage = sharp(resB, { raw: { width: 512, height: 512, channels: 4 } })
+            .png({ compressionLevel: 9, palette: true })
 
-            totalDifferences[minJ*3    ] += dr * count
-            totalDifferences[minJ*3 + 1] += dg * count
-            totalDifferences[minJ*3 + 2] += db * count
-            totalCounts[minJ] += count
+        if(!hasTransp) {
+            pngImage.toFile(dstFn)
+            updateDone()
+            return
         }
-    }
 
-    for(var i = 0; i < centroidC; i++) {
-        var ccol = centroids[i]
-        var cr = (ccol      ) & 0xff
-        var cg = (ccol >>  8) & 0xff
-        var cb = (ccol >> 16) & 0xff
+        const pngB = await pngImage.toBuffer()
 
-        // console.log(totalDifferences[i*3], totalDifferences[i*3 + 1], totalDifferences[i*3 + 2], totalCounts[i])
-
-        if(totalCounts[i] == 0) continue
-        var tic = 1 / totalCounts[i]
-        var r = Math.min(Math.max(0, cr + Math.round(totalDifferences[i*3    ] * tic)), 255)
-        var g = Math.min(Math.max(0, cg + Math.round(totalDifferences[i*3 + 1] * tic)), 255)
-        var b = Math.min(Math.max(0, cb + Math.round(totalDifferences[i*3 + 2] * tic)), 255)
-
-        centroids[i] = r | (g << 8) | (b << 16)
-    }
-}
-
-for(let iter = 0; iter < 10; iter++) {
-    console.log('iteration', iter)
-    iterate()
-}
-
-// output centroids
-/*
-if(centroidC != 256) console.warn('skipping centroids image')
-else {
-    const buffer = Buffer.alloc(centroids.length * 4)
-    centroids.forEach((value, index) => {
-        buffer.writeUInt32LE(value, index * 4)
-        buffer.writeUint8(255, index * 4 + 3)
-    })
-    sharp(buffer, { raw: { width: 16, height: 16, channels: 4 } })
-        .png()
-        .toFile(join(dstPath, 'image' + iter + '.png'))
-}
-*/
-
-const palette = {}
-for(let i = 0; i < uniqueColors.length; i++) {
-    const col = uniqueColors[i]
-    const r = (col      ) & 0xff
-    const g = (col >>  8) & 0xff
-    const b = (col >> 16) & 0xff
-
-    let minDist = 1 / 0
-    let minJ = -1
-
-    for(let j = 0; j < centroidC; j++) {
-        const ccol = centroids[j]
-        const dr = r - ((ccol      ) & 0xff)
-        const dg = g - ((ccol >>  8) & 0xff)
-        const db = b - ((ccol >> 16) & 0xff)
-        const dist = dr*dr + dg*dg + db*db
-        if(dist < minDist) {
-            minJ = j
-            minDist = dist
+        const [tLen, ti] = findChunk(pngB, 'tRNS')
+        var lowestTransparencyI = 0, lowestTransparency = pngB.readUint8(ti)
+        for(let j = 1; j < tLen; j++) {
+            const transp = pngB.readUint8(ti + j)
+            if(transp < lowestTransparency) {
+                lowestTransparency = transp
+                lowestTransparencyI = j
+            }
         }
-    }
+        // pngB.writeUint8(255, ti + lowestTransparencyI)
 
-    palette[col] = centroids[minJ]
-}
+        const [pLen, pi] = findChunk(pngB, 'PLTE')
+        pngB.writeUint8(bgr, pi + lowestTransparencyI*3    )
+        pngB.writeUint8(bgg, pi + lowestTransparencyI*3 + 1)
+        pngB.writeUint8(bgb, pi + lowestTransparencyI*3 + 2)
+        const newCrc = crc32(pngB, pi - 4, pi + pLen, 0) >>> 0
+        // console.log(pngB.readUint32BE(pi + pLen), newCrc)
+        pngB.writeUint32BE(newCrc, pi + pLen)
 
-console.log('generating output')
+        // remove transparency chunk since orig didn't have any transparency and we no longer need it
+        const tChunkLen = 8 + tLen + 4
+        pngB.copy(pngB, ti - 8, ti - 8 + tChunkLen)
+        const finalB = pngB.subarray(0, pngB.length - tChunkLen)
+        fs.promises.writeFile(dstFn, finalB)
 
-// ouptut
-for(let i = 0; i < resizedPixels.length; i++) {
-    const rp = resizedPixels[i]
-    const res = Buffer.alloc(rp.length)
-    for(let j = 0; j < rp.length; j += 3) {
-        const col = rp[j    ] | (rp[j + 1] << 8) | (rp[j + 2] << 16)
-        const pcol = palette[col]
-        res.writeUint8((pcol      ) & 0xff, j    )
-        res.writeUint8((pcol >>  8) & 0xff, j + 1)
-        res.writeUint8((pcol >> 16) & 0xff, j + 2)
-    }
-    sharp(res, { raw: { width: 512, height: 512, channels: 3 } })
-        .png({ compressionLevel: 9, palette: true, colors: 256 }) // just hope it uses the same colors as us I guess
-        .toFile(join(dstPath, filenames[i]))
+        updateDone()
+    })()
 }
 
 const bgInfo = {}
-bgInfo.backgroundColor = palette[bgInt]
+bgInfo.backgroundColor = bgInt
 bgInfo.backgroundResolution = 512
 
 fs.writeFileSync(dstInfo, JSON.stringify(bgInfo))

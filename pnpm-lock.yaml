@@ -17,15 +17,9 @@ importers:
       json5:
         specifier: ^2.2.3
         version: 2.2.3
-      random:
-        specifier: ^5.0.1
-        version: 5.0.1
       sharp:
         specifier: ^0.33.5
         version: 0.33.5
-      vite-plugin-restart:
-        specifier: ^0.4.1
-        version: 0.4.1(vite@5.4.2)
     devDependencies:
       vite:
         specifier: ^5.4.2
@@ -531,10 +525,6 @@ packages:
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
-  random@5.0.1:
-    resolution: {integrity: sha512-RoDYHPoOBaxJ6x6aGixI3XI4GgyOMmbRdtK4jhj+bs8/uDn66NvKCAEOU6F8ZyO9gvlw3+chjUclcHdULMaP3w==}
-    engines: {node: '>=18'}
-
   rat-vec@1.1.1:
     resolution: {integrity: sha512-FbxGwkQxmw4Jx41LR7yMOR+g8M9TWCEmf/SUBQVLuK2eh0nThnffF7IUualr3XE2x5F8AdLiCVeSGwXd4snfgg==}
 
@@ -571,9 +561,6 @@ packages:
 
   run-parallel@1.2.0:
     resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
-
-  seedrandom@3.0.5:
-    resolution: {integrity: sha512-8OwmbklUNzwezjGInmZ+2clQmExQPvomqjL7LFqOYqtmuxRgQYqOD3mHaU+MvZn5FLUeVxVfQjwLZW/n/JFuqg==}
 
   semver@7.6.3:
     resolution: {integrity: sha512-oVekP1cKtI+CTDvHWYFUcMtsK/00wmAEfyqKfNdARm8u1wNVhSgaX7A8d4UuIlUI5e84iEwOhs7ZPYRmzU9U6A==}
@@ -616,11 +603,6 @@ packages:
   universalify@2.0.1:
     resolution: {integrity: sha512-gptHNQghINnc/vTGIk0SOFGFNXw7JVrlRUtConJRlvaw6DuX0wO5Jeko9sWrMBhh+PsYAZ7oXAiOnf/UKogyiw==}
     engines: {node: '>= 10.0.0'}
-
-  vite-plugin-restart@0.4.1:
-    resolution: {integrity: sha512-MYhDFaa2HMoSavr/2pShj6toKVFso+zqF6FAdWGC8JSIrsNig+4giy9EzoSySgGRJvsnbwZXKdjAvn8ag8rUkA==}
-    peerDependencies:
-      vite: ^2.9.0 || ^3.0.0 || ^4.0.0 || ^5.0.0
 
   vite-plugin-static-copy@1.0.6:
     resolution: {integrity: sha512-3uSvsMwDVFZRitqoWHj0t4137Kz7UynnJeq1EZlRW7e25h2068fyIZX4ORCCOAkfp1FklGxJNVJBkBOD+PZIew==}
@@ -1056,10 +1038,6 @@ snapshots:
 
   queue-microtask@1.2.3: {}
 
-  random@5.0.1:
-    dependencies:
-      seedrandom: 3.0.5
-
   rat-vec@1.1.1:
     dependencies:
       big-rat: 1.0.4
@@ -1123,8 +1101,6 @@ snapshots:
     dependencies:
       queue-microtask: 1.2.3
 
-  seedrandom@3.0.5: {}
-
   semver@7.6.3: {}
 
   sharp@0.33.5:
@@ -1180,11 +1156,6 @@ snapshots:
   uniq@1.0.1: {}
 
   universalify@2.0.1: {}
-
-  vite-plugin-restart@0.4.1(vite@5.4.2):
-    dependencies:
-      micromatch: 4.0.8
-      vite: 5.4.2
 
   vite-plugin-static-copy@1.0.6(vite@5.4.2):
     dependencies:

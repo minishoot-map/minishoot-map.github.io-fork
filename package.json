@@ -16,7 +16,6 @@
     "cdt2d": "^1.0.0",
     "clean-pslg": "^1.1.2",
     "json5": "^2.2.3",
-    "random": "^5.0.1",
     "sharp": "^0.33.5"
   },
   "devDependencies": {

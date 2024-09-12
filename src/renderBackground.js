@@ -245,12 +245,12 @@ export function render(context) {
             coordsCount++
         }
 
-        /* if(done && !rd.mimpaps) {
+        if(done && !rd.mimpaps) {
             rd.mimpaps = true
             gl.bindTexture(gl.TEXTURE_2D_ARRAY, rd.bgTextures)
             gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_LINEAR)
             gl.generateMipmap(gl.TEXTURE_2D_ARRAY)
-        }*/
+        }
 
         gl.bindBuffer(gl.ARRAY_BUFFER, rd.buf)
         gl.bufferSubData(gl.ARRAY_BUFFER, 0, dv, 0, coordsCount * 12)
