@@ -34,7 +34,7 @@ if(__worker) {
         }
         else if(d.type === 'getInfo') {
             console.log(JSON.parse(JSON.stringify(d)))
-            sideMenu.setCurrentObject({ first: d.object, nearby: [] })
+            sideMenu.setCurrentObject({ first: d.object })
         }
         else if(d.type === 'colliders-done') {
             const it = {

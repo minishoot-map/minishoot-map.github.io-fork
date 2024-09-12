@@ -259,6 +259,7 @@ const objectsProcessedP = objectsLoadedP.then(objects => {
 
         if(display != null) {
             allMarkers.push({ index: i, object: obj, displayI: markerObjects.length })
+            obj._markerI = markerObjects.length
             markerObjects.push(display)
         }
     }
@@ -553,6 +554,7 @@ function serializeObject(obj) {
         name: obj.name,
         pos: obj.pos,
         components: obj.components,
+        markerI: obj._markerI,
         referenceNames,
         children,
         parent: parentI,
@@ -592,22 +594,19 @@ function onClick(x, y) {
         const c = closest[0]
         const obj = allMarkers[c[1]].object
         const first = serializeObject(obj)
-        first.markerI = c[1]
 
         const nearby = Array(closest.length - 1)
+        nearby.length = 0
         for(let i = 1; i < closest.length; i++) {
             const c = closest[i]
             nearby.push({
                 name: allMarkers[c[1]].object.name,
                 distance: Math.sqrt(c[0]),
-                markerIndex: c[1],
+                index: allMarkers[c[1]].index,
             })
         }
 
-        postMessage({
-            type: 'click',
-            first, nearby: closest
-        })
+        postMessage({ type: 'click', first, nearby })
     }
     else {
         postMessage({ type: 'click' })

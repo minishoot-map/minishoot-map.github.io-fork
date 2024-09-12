@@ -3,9 +3,13 @@ import reactDom from 'react-dom/client'
 import * as Z from 'zustand'
 import { meta, getAsSchema, parsedSchema } from '/schema.js'
 
-const useCurrentObject = Z.create(() => {})
-
-// TODO: transfer object id and use it as key so that values from previous objects do not affect it
+const useCurrentObject = Z.create((set) => ({
+    data: {},
+    tick: 0,
+    update(newData) {
+        set((cur) => ({ data: newData, tick: cur.tick + 1 }))
+    },
+}))
 
 var gotoOther = () => { console.log('state?') }
 var context
@@ -25,14 +29,16 @@ export function setCurrentObject(obj) {
     if(context) context.requestRender(1)
 
     // console.log(JSON.parse(JSON.stringify(obj)))
-    useCurrentObject.setState(obj)
+    useCurrentObject.getState().update(obj)
 }
 
 function SideMenu() {
     const obj = useCurrentObject()
-    return <>
-        <Object first={obj?.first} />
-    </>
+    return <div key={obj.tick}>
+        <Object first={obj.data?.first}/>
+        <div className="space"></div>
+        <Other nearby={obj.data?.nearby}/>
+    </div>
 }
 
 function vec2s(v) {
@@ -147,7 +153,7 @@ ac(ti.Transform, (c, o) => {
     </Props>
 })
 
-ac(ti.crystalDestroyable, (c, o) => {
+ac(ti.CrystalDestroyable, (c, o) => {
     return <Props>
         <Prop>Drops XP:{c.dropXp ? 'yes' : 'no'}</Prop>
         <Prop>Size:{c.size}</Prop>
@@ -308,5 +314,27 @@ function Prop({ children }) {
             <div>{children[0]}</div>
             <div>{children[1]}</div>
         </div>
+    </div>
+}
+
+
+function Other({ nearby }) {
+    if(nearby == null) return
+    console.log(nearby)
+
+    const nearbyC = []
+    for(let i = 0; i < nearby.length; i++) {
+        const it = nearby[i]
+        nearbyC.push(
+            <div key={i} className="hanging">
+                <Link index={it.index} name={it.name}/>
+                <span> [away{nbsp}{it.distance.toFixed(2)}]</span>
+            </div>
+        )
+    }
+
+    return <div className="nearby">
+        Objects nearby:
+        {nearbyC}
     </div>
 }
