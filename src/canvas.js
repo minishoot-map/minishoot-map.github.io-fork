@@ -142,12 +142,15 @@ export function setup(context) {
         panning.prevY = yScreenToWorld(e.clientY, info)
     });
 
-    canvas.addEventListener('mouseup', () => {
+    window.addEventListener('mouseup', (e) => {
+        canvas.style.pointerEvents = ''
         panning.is = false
-    });
+    })
 
-    canvas.addEventListener('mousemove', (e) => {
+    window.addEventListener('mousemove', (e) => {
         if(!panning.is) return
+        // https://stackoverflow.com/a/59957886
+        canvas.style.pointerEvents = 'none'
         const bounds = canvas.getBoundingClientRect()
         const info = prepInfo(bounds, camera)
 
