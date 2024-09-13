@@ -1,5 +1,4 @@
 import { defineConfig } from 'vite'
-import { viteStaticCopy } from 'vite-plugin-static-copy'
 import react from '@vitejs/plugin-react-swc'
 
 import json5 from 'json5'
@@ -88,11 +87,6 @@ export default defineConfig(({ command, mode, isSsrBuild, isPreview }) => {
             },
         },
         assetsInclude: ['**/*.bp', '**/*.pak'],
-        plugins: [
-            viteStaticCopy({
-                targets: [{ src: 'data-processed/backgrounds/*.png', dest: 'data/backgrounds/' }],
-            }),
-            react(),
-        ],
+        plugins: [react()],
     }
 })
