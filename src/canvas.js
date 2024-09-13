@@ -1,10 +1,10 @@
 
 function shouldResize(c) {
-    const pw = Math.round(c.resizeData.prevCanvasSize[0])
-    const ph = Math.round(c.resizeData.prevCanvasSize[1])
+    const pw = Math.floor(c.resizeData.prevCanvasSize[0])
+    const ph = Math.floor(c.resizeData.prevCanvasSize[1])
 
-    const cw = Math.round(c.canvasSize[0])
-    const ch = Math.round(c.canvasSize[1])
+    const cw = Math.floor(c.canvasSize[0])
+    const ch = Math.floor(c.canvasSize[1])
 
     if(cw !== pw || ch !== ph) {
         return [cw, ch]
@@ -70,29 +70,8 @@ export function setup(context) {
     function onResize(entries) {
         const entry = entries[0]
         if(entry == null) return
-
-        var width
-        var height
-        var dpr = window.devicePixelRatio
-        if (entry.devicePixelContentBoxSize) {
-            width = entry.devicePixelContentBoxSize[0].inlineSize
-            height = entry.devicePixelContentBoxSize[0].blockSize
-            dpr = 1
-        } else if (entry.contentBoxSize) {
-            if (entry.contentBoxSize[0]) {
-                width = entry.contentBoxSize[0].inlineSize
-                height = entry.contentBoxSize[0].blockSize
-            } else {
-                width = entry.contentBoxSize.inlineSize
-                height = entry.contentBoxSize.blockSize
-            }
-        } else {
-            width = entry.contentRect.width
-            height = entry.contentRect.height
-        }
-
-        context.canvasSize[0] = width * dpr
-        context.canvasSize[1] = height * dpr
+        context.canvasSize[0] = entry.contentRect.width
+        context.canvasSize[1] = entry.contentRect.height
         if(shouldResize(context)) context.requestRender(0)
     }
     const resizeObserver = new ResizeObserver(onResize)

@@ -1,4 +1,5 @@
 import * as R from 'react'
+import { createPortal } from 'react-dom'
 import reactDom from 'react-dom/client'
 import * as Z from 'zustand'
 import { meta, getAsSchema, parsedSchema } from '/schema.js'
@@ -15,12 +16,17 @@ var gotoOther = () => { console.log('state?') }
 var context
 var renderData = { currentObject: null }
 
+var sideMenuElement, tabsElement
+
 export function setup(_context) {
     context = _context
     context.sideMenu = renderData
     gotoOther = context.viewObject
 
-    const root = reactDom.createRoot(window['side-menu'])
+    sideMenuElement = window['side-menu']
+    tabsElement = window['tabs']
+
+    const root = reactDom.createRoot(sideMenuElement)
     root.render(<R.StrictMode><SideMenu /></R.StrictMode>)
 }
 
@@ -32,9 +38,59 @@ export function setCurrentObject(obj) {
     useCurrentObject.getState().update(obj)
 }
 
+const useCurrentTab = Z.create(() => 0)
+
 function SideMenu() {
+
+    return <>
+        <Tabs/>
+        <div>
+            <ObjectMenu/>
+            <FilterMenu/>
+        </div>
+    </>
+}
+
+function Tabs() {
+    const currentTab = useCurrentTab()
+
+    function tab(e) {
+        useCurrentTab.setState(parseInt(e.target.value))
+    }
+    function setTab(target) {
+        if(!target) return
+        if(target.value === '' + currentTab) {
+            target.checked = true
+        }
+    }
+
+    return createPortal(
+        <div className='menu-type' data-map-selected>
+            <label className="map-button">
+                <input type='radio' name='menu' value='0'
+                    ref={setTab} onChange={tab}/>Map
+            </label>
+            <label>
+                <input type='radio' name='menu' value='1'
+                    ref={setTab} onChange={tab}/>Object
+            </label>
+            <label>
+                <input type='radio' name='menu' value='2'
+                    ref={setTab} onChange={tab}/>Filters
+            </label>
+        </div>,
+        tabsElement
+    )
+}
+
+function FilterMenu() {
+    return <div className='filter-menu'>
+    </div>
+}
+
+function ObjectMenu() {
     const obj = useCurrentObject()
-    return <div key={obj.tick}>
+    return <div key={obj.tick} className='object-menu'>
         <Object first={obj.data?.first}/>
         <div className="space"></div>
         <Other nearby={obj.data?.nearby}/>
