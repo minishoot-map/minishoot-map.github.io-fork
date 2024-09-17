@@ -66,13 +66,15 @@ export default defineConfig(({ command, mode, isSsrBuild, isPreview }) => {
         console.warn('Using default config for build')
         defines = { ...defaultDefs }
     }
-    for(const k in defines) defines['__' + k] = JSON.stringify(defines[k])
+    const finalDefines = {}
+
     delete defines.__use_default_in_builds
+    for(const k in defines) finalDefines['__' + k] = JSON.stringify(defines[k])
 
     return {
         root: './src',
         build: { outDir: '../dist', emptyOutDir: true },
-        define: defines,
+        define: finalDefines,
         resolve: {
             alias: {
                 '$/objects.bp' : srcPath('./data-raw/objects/objects.bp'),
