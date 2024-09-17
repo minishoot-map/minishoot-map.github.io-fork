@@ -1,6 +1,7 @@
 import * as bkg from '$/backgrounds.js'
 import * as bkg2 from '$/backgrounds.json'
 import { loadShader, checkProg } from './render_util.js'
+import backgroundsUrl from '$/backgrounds.pak'
 
 const actualResolution = bkg2.backgroundResolution
 const texturesC = bkg.backgrounds.length
@@ -86,13 +87,13 @@ function convToRGB565(gl, inputC) {
     return res
 }
 
-export function updateBackground(context, index, data) {
+function updateBackground(context, index, bytes) {
     const rd = context.backgrounds
     if(rd?.loadImages !== true) return
 
     const imgData = rd.images[index]
 
-    const blob = new Blob([data], { type: 'image/png' })
+    const blob = new Blob([bytes], { type: 'image/png' })
     const url = URL.createObjectURL(blob) // TODO: delete
     const img = new Image()
     img.src = url
@@ -127,7 +128,93 @@ export function updateBackground(context, index, data) {
 
 }
 
+async function downloadBackgrounds(context) {
+    const resp = await fetch(backgroundsUrl)
+    const body = resp.body
+    const reader = body.getReader()
+
+    var tmp = new Uint8Array()
+
+    function tryRead(length) {
+        if(tmp.length < length) return
+        const res = tmp.subarray(0, length)
+        tmp = tmp.subarray(length)
+        return res
+    }
+    async function read(length) {
+        const chunks = []
+        var totalLength = tmp.length
+        var last = tmp
+        while(totalLength < length) {
+            const { done, value } = await reader.read()
+            if(done) throw new Error('Trying to read ' + length + ' but reached EOF')
+
+            chunks.push(last)
+            last = value
+            totalLength += value.length
+        }
+
+        const res = new Uint8Array(length)
+        var off = 0
+        for(let i = 0; i < chunks.length; i++) {
+            res.set(chunks[i], off)
+            off += chunks[i].length
+        }
+
+        res.set(last.subarray(0, length - off), off)
+        tmp = last.subarray(length - off)
+
+        return res
+    }
+
+    const headerLenB = await read(4)
+    const headerLen = new DataView(
+        headerLenB.buffer,
+        headerLenB.byteOffset,
+        headerLenB.byteLength
+    ).getUint32(headerLenB, true)
+    const header = new Uint8Array(await read(headerLen))
+
+    var index = 0
+
+    // duplicate from load.js
+    function parseCompressedInt() {
+        var res = 0
+        var i = 0
+        do {
+            var cur = header[index++]
+            res = res | ((cur & 0b0111_1111) << (i * 7))
+            i++
+        } while((cur & 0b1000_0000) == 0)
+        return res
+    }
+
+    const len = parseCompressedInt()
+    const imageDatas = []
+    for(let i = 0; i < len; i++) {
+        const size = parseCompressedInt()
+        const ti = parseCompressedInt()
+        imageDatas.push({ size, index: ti })
+    }
+
+    for(let i = 0; i < imageDatas.length; i++) {
+        const id = imageDatas[i]
+        var bytes = tryRead(id.size)
+        if(bytes == null) bytes = await read(id.size)
+        updateBackground(context, id.index, bytes)
+    }
+}
+
 export function setup(context) {
+    if(__backgrounds) {
+        downloadBackgrounds(context).catch(e => {
+            console.error('Error processing backgrounds', e)
+        })
+    }
+    else {
+        console.warn('skipping backgrounds')
+    }
+
     const { gl } = context
 
     const renderData = { changed: [], curCount: 0 }

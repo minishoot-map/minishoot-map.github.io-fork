@@ -5,7 +5,6 @@ import { meta, getAsSchema, parsedSchema } from '/schema.js'
 
 import objectUrl from '$/objects.bp'
 import polygonsUrl from '$/polygons.bp'
-import backgroundsUrl from '$/backgrounds.pak'
 
 const ti = parsedSchema.typeSchemaI
 
@@ -51,11 +50,6 @@ async function load(path) {
 }
 
 
-const backgroundsP = shouldLoad(
-    __worker_backgrounds && __worker_objects,
-    () => fetch(backgroundsUrl).then(r => r.body).then(r => r.getReader()),
-    'skipping backgrounds'
-)
 const objectsP = shouldLoad(
     __worker_objects,
     () => load(objectUrl),
@@ -122,93 +116,6 @@ function premultiplyBy(n, m) {
 
     return n
 }
-
-backgroundsP.then(async(reader) => {
-    var tmp = new Uint8Array()
-
-    function tryRead(length) {
-        if(tmp.length < length) return
-        const res = new Uint8Array(length)
-        res.set(tmp.subarray(0, length))
-        tmp = tmp.subarray(length)
-        return res.buffer
-    }
-    async function read(length) {
-        const chunks = []
-        var totalLength = tmp.length
-        var last = tmp
-        while(totalLength < length) {
-            const { done, value } = await reader.read()
-            if(done) throw new Error('Trying to read ' + length + ' but reached EOF')
-
-            chunks.push(last)
-            last = value
-            totalLength += value.length
-        }
-
-        const res = new Uint8Array(length)
-        var off = 0
-        for(let i = 0; i < chunks.length; i++) {
-            res.set(chunks[i], off)
-            off += chunks[i].length
-        }
-
-        res.set(last.subarray(0, length - off), off)
-        tmp = last.subarray(length - off)
-
-        return res.buffer
-    }
-
-    const headerLenB = await read(4)
-    const headerLen = new DataView(headerLenB).getUint32(headerLenB, true)
-    const header = new Uint8Array(await read(headerLen))
-
-    var index = 0
-
-    // duplicate from load.js
-    function parseCompressedInt() {
-        var res = 0
-        var i = 0
-        do {
-            var cur = header[index++]
-            res = res | ((cur & 0b0111_1111) << (i * 7))
-            i++
-        } while((cur & 0b1000_0000) == 0)
-        return res
-    }
-
-    const len = parseCompressedInt()
-    const imageDatas = []
-    for(let i = 0; i < len; i++) {
-        const size = parseCompressedInt()
-        const ti = parseCompressedInt()
-        imageDatas.push({ size, index: ti })
-    }
-
-    var backgrounds = []
-    var buffers = []
-    for(let i = 0; i < imageDatas.length; i++) {
-        const id = imageDatas[i]
-        var buffer = tryRead(id.size)
-        if(buffer == null) {
-            message({ type: 'backgrounds-done', backgrounds }, buffers)
-            backgrounds = []
-            buffers = []
-            buffer = await read(id.size)
-        }
-
-        backgrounds.push({ index: id.index, buffer: buffer })
-        buffers.push(buffer)
-    }
-
-    if(backgrounds.length != 0) {
-        message({ type: 'backgrounds-done', backgrounds }, buffers)
-    }
-
-    console.log('backgrounds done')
-}).catch(e => {
-    console.error('Error processing backgrounds', e)
-})
 
 const objectsLoadedP = objectsP.then(objectsA => {
     scenes = Load.parse(parsedSchema, objectsA)

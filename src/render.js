@@ -49,13 +49,6 @@ if(__worker) {
             const it = { markers: d.markers, markersData: d.markersData, count: d.count }
             resolveMarkersDataP(it)
         }
-        else if(d.type == 'backgrounds-done') {
-            const bkgs = d.backgrounds
-            for(let i = 0; i < bkgs.length; i++) {
-                const it = bkgs[i]
-                backgroundsDisplay.updateBackground(context, it.index, it.buffer)
-            }
-        }
     }
     worker.postMessage({ type: 'ready' })
 }
