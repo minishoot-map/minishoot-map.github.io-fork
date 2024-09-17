@@ -60,6 +60,36 @@ for(const k in defaultDefs) {
     defines[k] = v
 }
 
+function injectPreloads(command) {
+    if(command !== 'build') return
+    return {
+        transformIndexHtml: {
+            order: 'pre',
+            handler() {
+                return [
+                    {
+                        tag: 'link',
+                        attrs: {
+                            rel: 'preload',
+                            href: './data-processed/backgrounds.pak',
+                            as: 'fetch',
+                            crossorigin: 'anonimous',
+                        },
+                    },
+                    {
+                        tag: 'link',
+                        attrs: {
+                            rel: 'preload',
+                            href: './data-raw/markers/markers.png',
+                            as: 'image',
+                        },
+                    },
+                ]
+            },
+        }
+    }
+}
+
 export default defineConfig(({ command, mode, isSsrBuild, isPreview }) => {
     const useDefault = defines.__use_default_in_builds
     if(command === 'build' && useDefault) {
@@ -97,6 +127,7 @@ export default defineConfig(({ command, mode, isSsrBuild, isPreview }) => {
                 workerPath: srcPath('worker.js'),
                 assignTo: 'window.worker',
             }),
+            injectPreloads(command),
         ],
     }
 })
