@@ -11,10 +11,25 @@ const ti = parsedSchema.typeSchemaI
 
 // NOTE: DO NOT send 30mb of objects w/ postMessage() :)
 
+var queue = []
+var ready
+function message(content, transfer) {
+    if(ready) postMessage(content, transfer)
+    else queue.push([content, transfer])
+}
+
 onmessage = (e) => {
     const d = e.data
     console.log('received from client', d.type)
-    if(d.type === 'click') {
+    if(d.type === 'ready') {
+        ready = true
+        queue.forEach(([c, t]) => {
+            try { postMessage(c, t) }
+            catch(e) { console.error(e) }
+        })
+        queue.length = 0
+    }
+    else if(d.type === 'click') {
         onClick(d.x, d.y)
     }
     else if(d.type === 'getInfo') {
@@ -176,7 +191,7 @@ backgroundsP.then(async(reader) => {
         const id = imageDatas[i]
         var buffer = tryRead(id.size)
         if(buffer == null) {
-            postMessage({ type: 'backgrounds-done', backgrounds }, buffers)
+            message({ type: 'backgrounds-done', backgrounds }, buffers)
             backgrounds = []
             buffers = []
             buffer = await read(id.size)
@@ -187,7 +202,7 @@ backgroundsP.then(async(reader) => {
     }
 
     if(backgrounds.length != 0) {
-        postMessage({ type: 'backgrounds-done', backgrounds }, buffers)
+        message({ type: 'backgrounds-done', backgrounds }, buffers)
     }
 
     console.log('backgrounds done')
@@ -307,7 +322,7 @@ objectsProcessedP.then(pObjects => {
         dv.setFloat32(i * 16 + 12, size, true)
     }
 
-    postMessage({
+    message({
         type: 'markers-done',
         markers: markersB,
         markersData: markerDataB,
@@ -489,7 +504,7 @@ Promise.all([objectsProcessedP, polygonsP]).then(([pObjects, polygonsA]) => {
         circularDrawData.push({ startIndexI: startCircI, length: circI - startCircI, layer: i })
     }
 
-    postMessage({
+    message({
         type: 'colliders-done',
         verts, indices, polyDrawData,
         circularData, circularDrawData,
@@ -606,15 +621,15 @@ function onClick(x, y) {
             })
         }
 
-        postMessage({ type: 'click', first, nearby })
+        message({ type: 'click', first, nearby })
     }
     else {
-        postMessage({ type: 'click' })
+        message({ type: 'click' })
     }
 }
 
 function getInfo(index) {
     console.log(index)
     const object = objects[index]
-    if(object) postMessage({ type: 'getInfo', object: serializeObject(object) })
+    if(object) message({ type: 'getInfo', object: serializeObject(object) })
 }

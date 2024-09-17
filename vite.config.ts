@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
+import inlineWorker from './inlineWorker.js'
 
 import json5 from 'json5'
 
@@ -87,6 +88,13 @@ export default defineConfig(({ command, mode, isSsrBuild, isPreview }) => {
             },
         },
         assetsInclude: ['**/*.bp', '**/*.pak'],
-        plugins: [react()],
+        plugins: [
+            react(),
+            inlineWorker({
+                htmlPath: srcPath('index.html'),
+                workerPath: srcPath('worker.js'),
+                assignTo: 'window.worker',
+            }),
+        ],
     }
 })

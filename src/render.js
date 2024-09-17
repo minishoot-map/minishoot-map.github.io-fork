@@ -5,7 +5,6 @@ import * as circularDisplay from './renderCircularColliders.js'
 import * as markersDisplay from './renderMarkers.js'
 import * as specMarkerDisplay from './renderSpecialMarker.js'
 import * as sideMenu from './sideMenu.jsx'
-import ParserWorker from './worker.js?worker'
 
 var resolveCollidersP
 const collidersP = new Promise((s, j) => {
@@ -21,7 +20,7 @@ var startt, endd
 
 var worker
 if(__worker) {
-    worker = new ParserWorker()
+    worker = window.worker
     worker.onmessage = (e) => {
         const d = e.data
         console.log('received from worker', d.type)
@@ -58,9 +57,7 @@ if(__worker) {
             }
         }
     }
-    worker.onerror = (e) => {
-        console.error('Error with webworker')
-    }
+    worker.postMessage({ type: 'ready' })
 }
 
 const canvas = document.getElementById('glCanvas')
