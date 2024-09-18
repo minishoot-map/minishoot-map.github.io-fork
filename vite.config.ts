@@ -15,7 +15,7 @@ const configPath = './config.json'
 
 var userDefsS: string | undefined
 try {
-    userDefsS = fs.readFileSync(configPath)
+    userDefsS = fs.readFileSync(configPath).toString('utf8')
 }
 catch(e) {
     console.warn('Config is not defined. Defaults will be used')
@@ -103,7 +103,17 @@ export default defineConfig(({ command, mode, isSsrBuild, isPreview }) => {
 
     return {
         root: './src',
-        build: { outDir: '../dist', emptyOutDir: true },
+        build: {
+            outDir: '../dist',
+            emptyOutDir: true,
+            rollupOptions: {
+                output: {
+                    manualChunks: {
+                        react: ['react', 'react-dom'],
+                    },
+                }
+            }
+        },
         define: finalDefines,
         resolve: {
             alias: {
