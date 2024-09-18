@@ -123,97 +123,97 @@ function requestRender(priority/* 0 - immediate, 1 - animation, 2 - idle */) {
 
 const filters = [
     [
-        '$Object', 'Show objects', 'filters',
+        '$Object', 'Show markers', true, 'filters',
         [
-            ['name', 'Filter by name containing', 'name'],
+            ['name', 'Filter by name containing', false, 'name'],
             [
-                'Enemy', 'Show enemies', 'filters',
+                'Enemy', 'Show enemies', true, 'filters',
                 [
-                    ['size', 'Filter by size', 'number'],
-                    ['tier', 'Filter by tier', 'number'],
+                    ['size', 'Filter by size', false, 'number', 3],
+                    ['tier', 'Filter by tier', false, 'number', 1],
                 ],
             ],
             [
-                'Jar', 'Show jars', 'filters',
+                'Jar', 'Show jars', true, 'filters',
                 [
-                    ['size', 'Filter by size', 'number'],
+                    ['size', 'Filter by size', false, 'number', true],
                     [
-                        'drop', 'Filter by drop type', 'enum',
+                        'drop', 'Filter by drop type', false, 'enum',
                         [
-                            [0, 'nothing [0]'],
-                            [1, 'hp [1]'],
-                            [2, 'random [2]'],
-                            [3, 'big crystal [3]'],
-                            [4, 'energy [4]'],
-                            [5, 'full energy [5]'],
-                            [6, '65 big crystals [6]'],
+                            [0, 'nothing [0]', false],
+                            [1, 'hp [1]', false],
+                            [2, 'random [2]', false],
+                            [3, 'big crystal [3]', true],
+                            [4, 'energy [4]', false],
+                            [5, 'full energy [5]', false],
+                            [6, '65 big crystals [6]', true],
                         ],
                     ]
                 ],
             ],
             [
-                'CrystalDestroyable', 'Show crystals', 'filters',
+                'CrystalDestroyable', 'Show crystals', true, 'filters',
                 [
-                    ['dropXp', 'Filter by xp drop', 'boolean'],
+                    ['dropXp', 'Filter by xp drop', false, 'boolean', [true, true]],
                     [
-                        'size', 'Filter by size', 'enum',
+                        'size', 'Filter by size', false, 'enum',
                         (() => {
                             const result = []
                             for(let i = 0; i < xpForCrystalSize.length; i++) {
-                                result.push([xpForCrystalSize[i], '' + i + ' [' + xpForCrystalSize[i] + ' xp]'])
+                                result.push([xpForCrystalSize[i], '' + i + ' [' + xpForCrystalSize[i] + ' xp]', true])
                             }
                             return result
                         })(),
                     ],
                 ],
             ],
-            ['ScarabPickup', 'Show scarabs', 'filters', []],
+            ['ScarabPickup', 'Show scarabs', true, 'filters', []],
         ],
     ],
     [
-        '$Collider', 'Show colliders', 'filters',
+        '$Collider', 'Show colliders', true, 'filters',
         [
             [
-                'layer', 'Filter by layer', 'enum',
+                'layer', 'Filter by layer', true, 'enum',
                 [
-                    [0, '0'],
-                    [1, '1'],
-                    [2, '2'],
-                    [3, '3'],
-                    [4, 'water [4]'],
-                    [5, '5'],
-                    [6, 'deep water [6]'],
-                    [7, '7'],
-                    [8, '8'],
-                    [9, '9'],
-                    [10, '10'],
-                    [11, '11'],
-                    [12, 'enemy [12]'],
-                    [13, 'enemy [13]'],
-                    [14, 'wall [14]'],
-                    [15, '15'],
-                    [16, 'hole [16]'],
-                    [17, 'trigger? [17]'],
-                    [18, '18'],
-                    [19, '19'],
-                    [20, '20'],
-                    [21, '21'],
-                    [22, '22'],
-                    [23, 'static [23]'],
-                    [24, '24'],
-                    [25, 'bridge [25]'],
-                    [26, 'enemy [26]'],
-                    [27, '27'],
-                    [28, '28'],
-                    [29, '29'],
-                    [30, '30'],
-                    [31, '31'],
+                    [0, '0', true],
+                    [1, '1', true],
+                    [2, '2', true],
+                    [3, '3', true],
+                    [4, 'water [4]', true],
+                    [5, '5', true],
+                    [6, 'deep water [6]', true],
+                    [7, '7', true],
+                    [8, '8', true],
+                    [9, '9', true],
+                    [10, '10', true],
+                    [11, '11', true],
+                    [12, 'enemy [12]', true],
+                    [13, 'enemy [13]', true],
+                    [14, 'wall [14]', true],
+                    [15, '15', true],
+                    [16, 'hole [16]', true],
+                    [17, 'trigger? [17]', true],
+                    [18, '18', true],
+                    [19, '19', true],
+                    [20, '20', true],
+                    [21, '21', true],
+                    [22, '22', true],
+                    [23, 'static [23]', true],
+                    [24, '24', true],
+                    [25, 'bridge [25]', true],
+                    [26, 'enemy [26]', true],
+                    [27, '27', true],
+                    [28, '28', true],
+                    [29, '29', true],
+                    [30, '30', true],
+                    [31, '31', true],
                 ],
             ]
         ],
     ],
     [
-        '$Background', 'Show backgrounds', 'filters',
+        '$Background', 'Show backgrounds', true, 'filters',
         []
     ]
 ]
@@ -224,9 +224,10 @@ const context = {
     requestRender,
     camera: { posX: 0, posY: 0, scale: 1000 },
     canvasSize: [],
-    filters: {
-        schema: filters,
-        values: [],
+    filters,
+    filtersUpdated() {
+        sideMenu.filtersUpdated()
+        console.log('filters changed')
     },
     onClick(x, y) {
         startt = performance.now()

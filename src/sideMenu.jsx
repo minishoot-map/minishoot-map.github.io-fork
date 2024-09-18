@@ -18,6 +18,11 @@ var renderData = { currentObject: null }
 
 var sideMenuElement, tabsElement
 
+const filtersRev = Z.create(() => 0)
+export function filtersUpdated() {
+    filtersRev.setState((s) => s + 1)
+}
+
 export function setup(_context) {
     context = _context
     context.sideMenu = renderData
@@ -84,7 +89,7 @@ function Tabs() {
 }
 
 function Filter({ filter }) {
-    const [name, displayName, type, param] = filter
+    const [name, displayName, enabled, type, param] = filter
     var inner, t = 'inline'
     if(type === 'filters') {
         t = 'newline'
@@ -95,37 +100,64 @@ function Filter({ filter }) {
         inner = <div>{filtersA}</div>
     }
     else if(type === 'number') {
-        inner = <input type='number' style={{width: '3rem'}}/>
+        const changed = (e) => {
+            filter[4] = e.target.value
+            context.filtersUpdated()
+        }
+        inner = <input type='number' style={{width: '3rem'}} onChange={changed} value={param}/>
     }
     else if(type === 'name') {
-        inner = <input type='text' style={{width: '5rem'}}/>
+        const changed = (e) => {
+            filter[4] = e.target.value
+            context.filtersUpdated()
+        }
+        inner = <input type='text' style={{width: '5rem'}} onChange={changed} value={param}/>
     }
     else if(type === 'boolean') {
         t = 'newline'
+        const changed = (v) => (e) => {
+            param[v] = e.target.checked
+            context.filtersUpdated()
+        }
         inner = <div className='filter-list'>
-            <label><input type='checkbox'/>no</label>
-            <label><input type='checkbox'/>yes</label>
+            <label><input type='checkbox' checked={param[0]} onChange={changed(0)}/>no</label>
+            <label><input type='checkbox' checked={param[1]} onChange={changed(1)}/>yes</label>
         </div>
     }
     else if(type === 'enum') {
         t = 'newline'
         const innerA = Array(param.length)
         for(let i = 0; i < param.length; i++) {
-            innerA[i] = <label key={i}><input type='checkbox'/>{param[i][1]}</label>
+            const p = param[i]
+            const changed = (e) => {
+                p[2] = e.target.checked
+                context.filtersUpdated()
+            }
+            innerA[i] = <label key={i}>
+                <input type='checkbox' checked={p[2]}
+                    onChange={changed}/>{p[1]}
+            </label>
         }
         inner = <div className='filter-list'>{innerA}</div>
     }
 
+    const filterChanged = (e) => {
+        filter[2] = e.target.checked
+        context.filtersUpdated()
+    }
+
     return <div key={name} className={'filter ' + t}>
-        <label><input type='checkbox'/>{displayName}</label>
+        <label><input type='checkbox' checked={enabled}
+            onChange={filterChanged}/>{displayName}</label>
         {inner}
     </div>
 }
 
 function FilterMenu() {
+    filtersRev()
     const filtersA = []
-    for(let i = 0; i < context.filters.schema.length; i++) {
-        filtersA.push(<Filter key={i} filter={context.filters.schema[i]}/>)
+    for(let i = 0; i < context.filters.length; i++) {
+        filtersA.push(<Filter key={i} filter={context.filters[i]}/>)
     }
     return <div className='filter-menu'>
         {filtersA}
