@@ -5,6 +5,7 @@ import * as circularDisplay from './renderCircularColliders.js'
 import * as markersDisplay from './renderMarkers.js'
 import * as specMarkerDisplay from './renderSpecialMarker.js'
 import * as sideMenu from './sideMenu.jsx'
+import { xpForCrystalSize } from '$/meta.json'
 
 var resolveCollidersP
 const collidersP = new Promise((s, j) => {
@@ -120,12 +121,113 @@ function requestRender(priority/* 0 - immediate, 1 - animation, 2 - idle */) {
     }
 }
 
+const filters = [
+    [
+        '$Object', 'Show objects', 'filters',
+        [
+            ['name', 'Filter by name containing', 'name'],
+            [
+                'Enemy', 'Show enemies', 'filters',
+                [
+                    ['size', 'Filter by size', 'number'],
+                    ['tier', 'Filter by tier', 'number'],
+                ],
+            ],
+            [
+                'Jar', 'Show jars', 'filters',
+                [
+                    ['size', 'Filter by size', 'number'],
+                    [
+                        'drop', 'Filter by drop type', 'enum',
+                        [
+                            [0, 'nothing [0]'],
+                            [1, 'hp [1]'],
+                            [2, 'random [2]'],
+                            [3, 'big crystal [3]'],
+                            [4, 'energy [4]'],
+                            [5, 'full energy [5]'],
+                            [6, '65 big crystals [6]'],
+                        ],
+                    ]
+                ],
+            ],
+            [
+                'CrystalDestroyable', 'Show crystals', 'filters',
+                [
+                    ['dropXp', 'Filter by xp drop', 'boolean'],
+                    [
+                        'size', 'Filter by size', 'enum',
+                        (() => {
+                            const result = []
+                            for(let i = 0; i < xpForCrystalSize.length; i++) {
+                                result.push([xpForCrystalSize[i], '' + i + ' [' + xpForCrystalSize[i] + ' xp]'])
+                            }
+                            return result
+                        })(),
+                    ],
+                ],
+            ],
+            ['ScarabPickup', 'Show scarabs', 'filters', []],
+        ],
+    ],
+    [
+        '$Collider', 'Show colliders', 'filters',
+        [
+            [
+                'layer', 'Filter by layer', 'enum',
+                [
+                    [0, '0'],
+                    [1, '1'],
+                    [2, '2'],
+                    [3, '3'],
+                    [4, 'water [4]'],
+                    [5, '5'],
+                    [6, 'deep water [6]'],
+                    [7, '7'],
+                    [8, '8'],
+                    [9, '9'],
+                    [10, '10'],
+                    [11, '11'],
+                    [12, 'enemy [12]'],
+                    [13, 'enemy [13]'],
+                    [14, 'wall [14]'],
+                    [15, '15'],
+                    [16, 'hole [16]'],
+                    [17, 'trigger? [17]'],
+                    [18, '18'],
+                    [19, '19'],
+                    [20, '20'],
+                    [21, '21'],
+                    [22, '22'],
+                    [23, 'static [23]'],
+                    [24, '24'],
+                    [25, 'bridge [25]'],
+                    [26, 'enemy [26]'],
+                    [27, '27'],
+                    [28, '28'],
+                    [29, '29'],
+                    [30, '30'],
+                    [31, '31'],
+                ],
+            ]
+        ],
+    ],
+    [
+        '$Background', 'Show backgrounds', 'filters',
+        []
+    ]
+]
+
 const context = {
     canvas, gl,
     renderRequest: null,
     requestRender,
     camera: { posX: 0, posY: 0, scale: 1000 },
     canvasSize: [],
+    filters: {
+        schema: filters,
+        values: [],
+    },
     onClick(x, y) {
         startt = performance.now()
         console.log('sending')

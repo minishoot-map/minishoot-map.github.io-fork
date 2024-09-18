@@ -174,3 +174,25 @@ body {
     }
 }
 
+.filter {
+    display: flex;
+    column-gap: 0.5rem;
+    margin-left: 1rem;
+    row-gap:
+}
+.filter > *:nth-child(1) {
+    margin-left: -1rem;
+}
+.filter.inline {
+    justify-content: stretch;
+    flex-wrap: wrap;
+}
+.filter.newline {
+    flex-direction: column;
+    justify-content: stretch;
+}
+
+.filter-list {
+    display: flex;
+    flex-direction: column;
+}

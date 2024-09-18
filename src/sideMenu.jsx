@@ -83,8 +83,52 @@ function Tabs() {
     )
 }
 
+function Filter({ filter }) {
+    const [name, displayName, type, param] = filter
+    var inner, t = 'inline'
+    if(type === 'filters') {
+        t = 'newline'
+        const filtersA = []
+        for(let i = 0; i < param.length; i++) {
+            filtersA.push(<Filter key={i} filter={param[i]}/>)
+        }
+        inner = <div>{filtersA}</div>
+    }
+    else if(type === 'number') {
+        inner = <input type='number' style={{width: '3rem'}}/>
+    }
+    else if(type === 'name') {
+        inner = <input type='text' style={{width: '5rem'}}/>
+    }
+    else if(type === 'boolean') {
+        t = 'newline'
+        inner = <div className='filter-list'>
+            <label><input type='checkbox'/>no</label>
+            <label><input type='checkbox'/>yes</label>
+        </div>
+    }
+    else if(type === 'enum') {
+        t = 'newline'
+        const innerA = Array(param.length)
+        for(let i = 0; i < param.length; i++) {
+            innerA[i] = <label key={i}><input type='checkbox'/>{param[i][1]}</label>
+        }
+        inner = <div className='filter-list'>{innerA}</div>
+    }
+
+    return <div key={name} className={'filter ' + t}>
+        <label><input type='checkbox'/>{displayName}</label>
+        {inner}
+    </div>
+}
+
 function FilterMenu() {
+    const filtersA = []
+    for(let i = 0; i < context.filters.schema.length; i++) {
+        filtersA.push(<Filter key={i} filter={context.filters.schema[i]}/>)
+    }
     return <div className='filter-menu'>
+        {filtersA}
     </div>
 }
 
