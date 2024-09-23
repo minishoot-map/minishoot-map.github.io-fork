@@ -70,8 +70,27 @@ export function setup(context) {
     function onResize(entries) {
         const entry = entries[0]
         if(entry == null) return
-        context.canvasSize[0] = entry.contentRect.width
-        context.canvasSize[1] = entry.contentRect.height
+        var width
+        var height
+        var dpr = window.devicePixelRatio
+        if (entry.devicePixelContentBoxSize) {
+            width = entry.devicePixelContentBoxSize[0].inlineSize
+            height = entry.devicePixelContentBoxSize[0].blockSize
+            dpr = 1
+        } else if (entry.contentBoxSize) {
+            if (entry.contentBoxSize[0]) {
+                width = entry.contentBoxSize[0].inlineSize
+                height = entry.contentBoxSize[0].blockSize
+            } else {
+                width = entry.contentBoxSize.inlineSize
+                height = entry.contentBoxSize.blockSize
+            }
+        } else {
+            width = entry.contentRect.width
+            height = entry.contentRect.height
+        }
+        context.canvasSize[0] = width * dpr
+        context.canvasSize[1] = height * dpr
         if(shouldResize(context)) context.requestRender(0)
     }
     const resizeObserver = new ResizeObserver(onResize)
