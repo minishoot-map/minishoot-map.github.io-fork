@@ -47,8 +47,11 @@ if(__worker) {
             resolveCollidersP(it)
         }
         else if(d.type == 'markers-done') {
-            const it = { markers: d.markers, markersData: d.markersData, count: d.count }
-            resolveMarkersDataP(it)
+            resolveMarkersDataP({ markersData: d.markersData })
+        }
+        else if(d.type == 'marker-filters') {
+            const it = { markers: d.markers, markersIndices: d.markersIndices, count: d.count }
+            markersDisplay.setMarkers(context, it)
         }
     }
     worker.postMessage({ type: 'ready' })
@@ -136,9 +139,9 @@ const filters = [
             [
                 'Jar', 'Show jars', true, 'filters',
                 [
-                    ['size', 'Filter by size', false, 'number', true],
+                    ['size', 'Filter by size', false, 'number', 0],
                     [
-                        'drop', 'Filter by drop type', false, 'enum',
+                        'dropType', 'Filter by drop type', false, 'enum',
                         [
                             [0, 'nothing [0]', false],
                             [1, 'hp [1]', false],
@@ -218,6 +221,56 @@ const filters = [
     ]
 ]
 
+function extractMarkerFilters(filters) {
+    const res = []
+    const ff = filters[0][4]
+    for(let i = 1; i < ff.length; i++) {
+        const filter = ff[i]
+
+        if(!filter[2]) continue
+        if(filter[3] !== 'filters') {
+            console.error('not filters?', filter)
+            continue
+        }
+
+        const propFilters = []
+        const fieldFilters = filter[4]
+        for(let j = 0; j < fieldFilters.length; j++) {
+            const fieldFilter = fieldFilters[j]
+            if(!fieldFilter[2]) continue
+
+            let values = []
+            if(fieldFilter[3] === 'enum') {
+                const filterValues = fieldFilter[4]
+                for(let k = 0; k < filterValues.length; k++) {
+                    const filterValue = filterValues[k]
+                    if(!filterValue[2]) continue
+                    values.push(filterValue[0])
+                }
+            }
+            else if(fieldFilter[3] === 'boolean') {
+                if(fieldFilter[4][0]) values.push(false)
+                if(fieldFilter[4][1]) values.push(true)
+            }
+            else {
+                values.push(fieldFilter[4])
+            }
+
+            propFilters.push([fieldFilter[0], values])
+        }
+
+        res.push([filter[0], propFilters])
+    }
+    return res
+}
+
+function sendFiltersUpdate(context) {
+    const markers = extractMarkerFilters(context.filters)
+
+    try { worker.postMessage({ type: 'filters', markers }) }
+    catch(e) { console.error(e) }
+}
+
 const context = {
     canvas, gl,
     renderRequest: null,
@@ -226,8 +279,10 @@ const context = {
     canvasSize: [],
     filters,
     filtersUpdated() {
-        sideMenu.filtersUpdated()
-        console.log('filters changed')
+        try { sideMenu.filtersUpdated() }
+        catch(e) { console.error(e) }
+
+        sendFiltersUpdate(this)
     },
     onClick(x, y) {
         startt = performance.now()
@@ -278,3 +333,6 @@ layout(std140) uniform Camera {
     context.cameraUbo = ubo
     context.cameraBuf = new Float32Array(4)
 }
+
+try { sendFiltersUpdate(context) }
+catch(e) { console.error(e) }

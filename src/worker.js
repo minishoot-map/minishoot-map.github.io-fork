@@ -1,7 +1,8 @@
-import * as Load from '/load.js'
+// @ts-check
+import * as Load from './load.js'
 import markersData from '$/markers.json'
 import markersMeta from '$/markers-meta.json'
-import { meta, getAsSchema, parsedSchema } from '/schema.js'
+import { meta, getAsSchema, parsedSchema } from './schema.js'
 
 import objectUrl from '$/objects.bp'
 import polygonsUrl from '$/polygons.bp'
@@ -33,6 +34,9 @@ onmessage = (e) => {
     }
     else if(d.type === 'getInfo') {
         getInfo(d.index)
+    }
+    else if(d.type == 'filters') {
+        calcMarkerFilters(d.markers)
     }
 }
 
@@ -130,14 +134,23 @@ const objectsLoadedP = objectsP.then(objectsA => {
     return objects
 })
 
-function createOneTex(obj, comp) {
-    return [obj, parsedSchema.schema[comp._schema].textureI]
+/** @returns {[textureI: number]} */
+function createOneTex(comp) {
+    return [parsedSchema.schema[comp._schema].textureI]
 }
 
+var lastMarkerFilters
 
+// index in objects
+/** @type {{
+    index: number,
+    object: any,
+    component: any,
+    display: [textureI: number, size?: number],
+}[] | undefined} */
+var markersInfo
 const objectsProcessedP = objectsLoadedP.then(objects => {
     const colliderObjects = []
-    const markerObjects = []
     const allMarkers = []
 
     const s = performance.now()
@@ -145,30 +158,36 @@ const objectsProcessedP = objectsLoadedP.then(objects => {
         var obj = objects[i]
         var cs = obj.components
 
+        /** @type [textureI: number, size?: number] | null */
         var display = null
+        var component = null
         for(var j = 0; j < cs.length; j++) {
             var comp = cs[j]
 
             var enemy = getAsSchema(comp, ti.Enemy)
             if(enemy != null) {
                 const size = comp._schema === ti.Boss ? 3 : 1 + 0.33 * enemy.size
-                display = [obj, enemy.spriteI, size]
+                display = [enemy.spriteI, size]
+                component = enemy
             }
 
             var jar = getAsSchema(comp, ti.Jar)
             if(jar != null) {
-                display = createOneTex(obj, jar)
+                display = createOneTex(jar)
+                component = jar
             }
 
             var crDes = getAsSchema(comp, ti.CrystalDestroyable)
             if(crDes != null) {
                 const ti = meta.crystalDestroyableTextures[crDes.dropXp ? 1 : 0]
-                display = [obj, ti, 1 + 0.5 * crDes.size]
+                display = [ti, 1 + 0.5 * crDes.size]
+                component = crDes
             }
 
             var scarab = getAsSchema(comp, ti.ScarabPickup)
             if(scarab != null) {
-                display = createOneTex(obj, scarab)
+                display = createOneTex(scarab)
+                component = scarab
             }
 
             var coll = getAsSchema(comp, ti.Collider2D)
@@ -180,24 +199,31 @@ const objectsProcessedP = objectsLoadedP.then(objects => {
         }
 
         if(display != null) {
-            allMarkers.push({ index: i, object: obj, displayI: markerObjects.length })
-            obj._markerI = markerObjects.length
-            markerObjects.push(display)
+            obj._markerI = allMarkers.length
+            allMarkers.push({
+                index: i,
+                object: obj,
+                component,
+                display
+            })
         }
     }
     const e = performance.now()
     console.log('objects done in', e - s)
 
-    return { colliderObjects, markerObjects, allMarkers }
+    if(__worker_markers) {
+        markersInfo = allMarkers
+        if(lastMarkerFilters != null) calcMarkerFilters(lastMarkerFilters)
+    }
+    else console.warn('skipping markers')
+
+    return { colliderObjects, allMarkers }
 }).catch(e => {
     console.error('Error processing objects', e)
     throw e
 })
 
-objectsProcessedP.then(pObjects => {
-    if(!__worker_markers) return void console.warn('skipping markers')
-
-    const { markerObjects } = pObjects
+if(__worker_markers) {
     const [markerDataC, texW, texH] = markersMeta
 
     // note: 4 bytes of padding for std140
@@ -216,28 +242,8 @@ objectsProcessedP.then(pObjects => {
         mddv.setFloat32(i * 16 + 8, aspect, true)
     }
 
-    const markersB = new ArrayBuffer(markerObjects.length * 16)
-    const dv = new DataView(markersB)
-    for(var i = 0; i < markerObjects.length; i++) {
-        const [obj, texI, size0] = markerObjects[i]
-        const size = size0 > 0 ? size0 : 1.0
-        const pos = obj.pos
-
-        dv.setFloat32(i * 16     , pos[0], true)
-        dv.setFloat32(i * 16 + 4 , pos[1], true)
-        dv.setUint32(i * 16 + 8 , texI, true)
-        dv.setFloat32(i * 16 + 12, size, true)
-    }
-
-    message({
-        type: 'markers-done',
-        markers: markersB,
-        markersData: markerDataB,
-        count: markerObjects.length
-    }, [markersB, markerDataB])
-}).catch(e => {
-    console.error('Error processing markers', e)
-})
+    message({ type: 'markers-done', markersData: markerDataB }, [markerDataB])
+}
 
 const boxPoints = [[-0.5, -0.5], [0.5, -0.5], [-0.5, 0.5], [0.5, 0.5]]
 
@@ -420,10 +426,14 @@ Promise.all([objectsProcessedP, polygonsP]).then(([pObjects, polygonsA]) => {
     console.error('Error processing colliders', e)
 })
 
-var lastX, lastY, allMarkers
+function checkOnClick() {
+    if(lastX != null) onClick(lastX, lastY)
+}
+
+var lastX, lastY, allMarkers, filteredMarkersIndices
 objectsProcessedP.then(d => {
     allMarkers = d.allMarkers
-    if(lastX != null) onClick(lastX, lastY)
+    checkOnClick()
 })
 
 function serializeObject(obj) {
@@ -486,15 +496,16 @@ function serializeObject(obj) {
 function onClick(x, y) {
     lastX = x
     lastY = y
-    if(allMarkers == null) return
+    if(allMarkers == null || filteredMarkersIndices == null) return
 
     const closest = Array(5)
     for(let i = 0; i < closest.length; i++) {
         closest[i] = [1/0, -1]
     }
 
-    for(let i = 0; i < allMarkers.length; i++) {
-        const obj = allMarkers[i].object
+    for(let i = 0; i < filteredMarkersIndices.length; i++) {
+        const index = filteredMarkersIndices[i]
+        const obj = allMarkers[index].object
         const pos = obj.pos
         const dx = pos[0] - x
         const dy = pos[1] - y
@@ -504,7 +515,7 @@ function onClick(x, y) {
         while(insertI < closest.length && closest[insertI][0] < sqDist) insertI++
 
         if(insertI < closest.length) {
-            closest.splice(insertI, 1, [sqDist, i])
+            closest.splice(insertI, 1, [sqDist, index])
         }
     }
 
@@ -539,4 +550,60 @@ function getInfo(index) {
     console.log(index)
     const object = objects[index]
     if(object) message({ type: 'getInfo', object: serializeObject(object) })
+}
+
+function setMarkerFromDisplay(dv, i, object, display) {
+    const size = display[1] > 0 ? display[1] : 1.0
+    dv.setFloat32(i * 16     , object.pos[0], true)
+    dv.setFloat32(i * 16 + 4 , object.pos[1], true)
+    dv.setUint32(i * 16 + 8 , display[0], true)
+    dv.setFloat32(i * 16 + 12, size, true)
+}
+
+function calcMarkerFilters(filters) {
+    lastMarkerFilters = filters
+    if(markersInfo == null) return;
+    ; // I am neovim and I can't indent correctly (actually nvim-treesitter)
+
+    const fs = {}
+    for(let i = 0; i < filters.length; i++) {
+        fs[ti[filters[i][0]]] = filters[i][1]
+    }
+
+    const addIndices = Array(markersInfo.length)
+    addIndices.length = 0
+    for(let i = 0; i < markersInfo.length; i++) {
+        const marker = markersInfo[i];
+        const comp = marker.component
+        const fieldsFilter = fs[comp._schema]
+        if(!fieldsFilter) continue
+
+        let add = true
+        for(let j = 0; j < fieldsFilter.length; j++) {
+            const ff = fieldsFilter[j]
+            if(ff[1].includes(comp[ff[0]])) continue
+
+            add = false
+            break
+        }
+
+        if(add) addIndices.push(i)
+    }
+
+    const markersB = new ArrayBuffer(addIndices.length * 16)
+    const dv = new DataView(markersB)
+    for(let i = 0; i < addIndices.length; i++) {
+        const mi = addIndices[i]
+        setMarkerFromDisplay(dv, i, markersInfo[mi].object, markersInfo[mi].display)
+    }
+
+    message({
+        type: 'marker-filters',
+        markers: markersB,
+        markersIndices: addIndices,
+        count: addIndices.length,
+    }, [markersB]);
+
+    filteredMarkersIndices = addIndices
+    checkOnClick()
 }

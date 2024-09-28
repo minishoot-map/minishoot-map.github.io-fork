@@ -76,8 +76,9 @@ void main(void) {
 `
 
 function checkOk(context) {
-    if(context.markers.texOk && context.markers.bufOk) {
-        context.markers.ok = true
+    const m = context.markers
+    if(m.texOk && m.uboOk && m.bufOk) {
+        m.ok = true
         context.requestRender(1)
     }
 }
@@ -171,13 +172,24 @@ export function setup(gl, context, markersDataP) {
         gl.bindBuffer(gl.UNIFORM_BUFFER, ubo)
         gl.bufferSubData(gl.UNIFORM_BUFFER, 0, data.markersData)
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, dataB)
-        gl.bufferData(gl.ARRAY_BUFFER, data.markers, gl.STATIC_DRAW)
-
-        renderData.count = data.count
-        renderData.bufOk = true
+        renderData.uboOk = true
         checkOk(context)
     })
+}
+
+export function setMarkers(context, { markers, markersIndices, count }) {
+    const renderData = context?.markers
+    const gl = context?.gl
+    if(!renderData) return
+    const dataB = renderData.dataB
+    if(dataB == null) return
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, dataB)
+    gl.bufferData(gl.ARRAY_BUFFER, markers, gl.DYNAMIC_DRAW)
+    renderData.count = count
+    renderData.markersIndices = markersIndices
+    renderData.bufOk = true
+    checkOk(context)
 }
 
 export function render(context) {
@@ -189,7 +201,15 @@ export function render(context) {
 
     gl.uniform1f(rd.u.markerSize, Math.min(camera.scale, 200) * 0.03)
 
-    const endI = context.sideMenu?.currentObject?.first?.markerI ?? rd.count
+    let endI;
+    const markerI = context.sideMenu?.currentObject?.first?.markerI
+    if(markerI != null) {
+        endI = rd.markersIndices.indexOf(markerI)
+        if(endI == -1) endI = undefined
+    }
+
+    if(endI == null) endI = rd.count
+
     const { coordIn, indexIn, sizeIn } = rd.in
 
     gl.bindVertexArray(rd.vao)
