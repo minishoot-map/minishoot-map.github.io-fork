@@ -301,6 +301,15 @@ export function setup(context) {
     }
 
     renderData.loadImages = true
+    renderData.showImages = true
+}
+
+export function setFiltered(context, showImages) {
+    const renderData = context.backgrounds
+    if(!renderData) return console.error('renderData where?')
+
+    renderData.showImages = showImages
+    context.requestRender(1)
 }
 
 export function render(context) {
@@ -346,6 +355,8 @@ export function render(context) {
         rd.changed.length = 0
     }
 
-    gl.bindVertexArray(rd.vao)
-    gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, rd.curCount)
+    if(rd.showImages) {
+        gl.bindVertexArray(rd.vao)
+        gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, rd.curCount)
+    }
 }

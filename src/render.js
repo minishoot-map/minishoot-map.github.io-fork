@@ -316,6 +316,8 @@ function sendFiltersUpdate(context) {
         collidersDisplay.setFiltered(context, colliders)
         circularDisplay.setFiltered(context, colliders)
     }
+
+    backgroundsDisplay.setFiltered(context, context.filters[2][2])
 }
 
 const context = {
