@@ -162,7 +162,7 @@ const filters = [
                         (() => {
                             const result = []
                             for(let i = 0; i < xpForCrystalSize.length; i++) {
-                                result.push([xpForCrystalSize[i], '' + i + ' [' + xpForCrystalSize[i] + ' xp]', true])
+                                result.push([i, '' + i + ' [' + xpForCrystalSize[i] + ' xp]', true])
                             }
                             return result
                         })(),
