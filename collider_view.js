@@ -19,6 +19,7 @@ const styles = {
     31: "fill: #11656360", // static
 }
 const fallbackStyle = "fill: #9400f920"
+const transitionStyle = "fill: #ff00ff80"
 
 function createSvg(minx, miny, maxx, maxy) {
     const width = maxx - minx, height = maxy - miny
@@ -50,7 +51,8 @@ function addPath(it, obj, minx, miny, maxx, maxy, element) {
     return el
 }
 
-function createCollider(it, obj, linefrom, lineto) {
+function createCollider(it, obj, isTransition/*hack*/) {
+    const style = isTransition ? transitionStyle : (styles[it.layer] ?? fallbackStyle)
     if(it.type == colliderTypes.composite) {
         const polygons = it.polygons
 
@@ -77,7 +79,7 @@ function createCollider(it, obj, linefrom, lineto) {
         const path = document.createElementNS(svgNS, 'path')
         path.setAttribute('d', pathData)
         path.setAttribute('fill-rule', 'evenodd')
-        path.setAttribute('style', styles[it.layer] ?? fallbackStyle)
+        path.setAttribute('style', style)
 
         return addPath(it, obj, minx, miny, maxx, maxy, path)
     }
@@ -103,7 +105,7 @@ function createCollider(it, obj, linefrom, lineto) {
         const path = document.createElementNS(svgNS, 'path')
         path.setAttribute('d', pathData)
         path.setAttribute('fill-rule', 'evenodd')
-        path.setAttribute('style', styles[it.layer] ?? fallbackStyle)
+        path.setAttribute('style', style)
 
         return addPath(it, obj, minx, miny, maxx, maxy, path)
     }
@@ -116,7 +118,7 @@ function createCollider(it, obj, linefrom, lineto) {
         rect.setAttribute("y", -h2 + it.off[1] * dd);
         rect.setAttribute("width", width);
         rect.setAttribute("height", height);
-        rect.setAttribute('style', styles[it.layer] ?? fallbackStyle)
+        rect.setAttribute('style', style)
 
         return addPath(it, obj, -w2 + it.off[0] * dd, -h2 + it.off[1] * dd, w2 + it.off[0] * dd, h2 + it.off[1] * dd, rect)
     }
@@ -130,7 +132,7 @@ function createCollider(it, obj, linefrom, lineto) {
         rect.setAttribute("y", -h2 + it.off[1] * dd);
         rect.setAttribute("width", width);
         rect.setAttribute("height", height);
-        rect.setAttribute('style', styles[it.layer] ?? fallbackStyle)
+        rect.setAttribute('style', style)
         rect.setAttribute('rx', m);
         rect.setAttribute('ry', m);
 
@@ -143,7 +145,7 @@ function createCollider(it, obj, linefrom, lineto) {
         circle.setAttribute('cx', it.off[0] * dd)
         circle.setAttribute('cy', it.off[1] * dd)
         circle.setAttribute('r', r)
-        circle.setAttribute('style', styles[it.layer] ?? fallbackStyle)
+        circle.setAttribute('style', style)
 
         return addPath(it, obj, it.off[0] * dd - r, it.off[1] * dd - r, it.off[0] * dd + r, it.off[1] * dd + r, circle)
     }

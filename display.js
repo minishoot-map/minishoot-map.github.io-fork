@@ -966,7 +966,7 @@ objectsLoaded.then(() => {
 
             const itc = c.CompositeCollider2D ?? c.BoxCollider2D ?? c.CircleCollider2D ?? c.CapsuleCollider2D ?? c.PolygonCollider2D
             if(itc) {
-                let coll = createCollider(itc, obj)
+                let coll = createCollider(itc, obj, true)
                 if(!coll) {
                     coll = document.createElement('span')
                     coll.classList.add('dot')
