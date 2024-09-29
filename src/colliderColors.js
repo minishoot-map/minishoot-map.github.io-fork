@@ -1,16 +1,16 @@
 const colliderColors = {
     0 : "0a590320", // destroyable (no)
-    4 : "6a97dd20", // water
-    6 : "35009920", // deep water
-    12: "f9000040", // enemy
-    13: "f9000040", // enemy
-    14: "c14a0320", // wall
-    16: "02002020", // hole
-    17: "ff00ff30", // trigger?
-    23: "11656360", // static
-    25: "4f3c0140", // bridge
-    26: "f9005040", // enemy (stationary)
-    31: "11656360", // static
+    4 : "6a97dd40", // water
+    6 : "35009940", // deep water
+    12: "f9000060", // enemy
+    13: "f9000060", // enemy
+    14: "c14a0340", // wall
+    16: "02002040", // hole
+    17: "ff00ff20", // trigger?
+    23: "11656380", // static
+    25: "4f3c0160", // bridge
+    26: "f9005060", // enemy (stationary)
+    31: "11656380", // static
     fallback: "9400f920"
 }
 

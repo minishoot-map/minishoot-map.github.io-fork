@@ -69,9 +69,19 @@ void main(void) {
 }
 `
 
+function checkOk(context) {
+    const m = context?.circular
+    if(m && m.buffersOk && m.filtersOk) {
+        m.ok = true
+        context.requestRender(1)
+    }
+}
+
 export function setup(gl, context, collidersDataP) {
     const renderData = {}
     context.circular = renderData
+
+    if(!__setup_circular) return
 
     const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource, 'circular colliders v')
     const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource, 'circular colliders f')
@@ -117,10 +127,24 @@ export function setup(gl, context, collidersDataP) {
         gl.bindBuffer(gl.ARRAY_BUFFER, dataB)
         gl.bufferData(gl.ARRAY_BUFFER, collidersData.circularData, gl.STATIC_DRAW)
 
-        renderData.drawData = collidersData.circularDrawData
-        renderData.ok = true
-        context.requestRender(1)
+        renderData.drawData = Array(32).fill(null)
+        const pd = collidersData.circularDrawData
+        for(let i = 0; i < pd.length; i++) {
+            renderData.drawData[pd[i].layer] = pd[i]
+        }
+
+        renderData.buffersOk = true
+        checkOk(context)
     })
+}
+
+export function setFiltered(context, layers) {
+    const renderData = context?.circular
+    if(!renderData) return console.error('renderData where?')
+
+    renderData.layers = layers
+    renderData.filtersOk = true
+    checkOk(context)
 }
 
 export function render(context) {
@@ -131,8 +155,11 @@ export function render(context) {
     gl.useProgram(rd.prog)
     gl.bindVertexArray(rd.vao)
     gl.bindBuffer(gl.ARRAY_BUFFER, rd.dataB)
-    for(let i = 0; i < rd.drawData.length; i++) {
-        const it = rd.drawData[i]
+    for(let i = 0; i < rd.layers.length; i++) {
+        const layerI = rd.layers[i]
+        const it = rd.drawData[layerI]
+        if(!it) continue
+
         gl.uniform1i(rd.u.layer, it.layer)
 
         // webgl2 does not suck

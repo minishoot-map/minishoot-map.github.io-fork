@@ -128,7 +128,6 @@ const filters = [
     [
         '$Object', 'Show markers', true, 'filters',
         [
-            ['name', 'Filter by name containing', false, 'name'],
             [
                 'Enemy', 'Show enemies', true, 'filters',
                 [
@@ -174,43 +173,44 @@ const filters = [
         ],
     ],
     [
-        '$Collider', 'Show colliders', true, 'filters',
+        '$Collider', 'Show colliders', false, 'filters',
         [
             [
                 'layer', 'Filter by layer', true, 'enum',
                 [
-                    [0, '0', true],
-                    [1, '1', true],
-                    [2, '2', true],
-                    [3, '3', true],
+                    // TODO: auto calculate which layers are absent from colliders
+                    [0, '0', false],
+                    // [1, '1', true],
+                    // [2, '2', true],
+                    [3, '3', false],
                     [4, 'water [4]', true],
-                    [5, '5', true],
+                    [5, '5', false],
                     [6, 'deep water [6]', true],
-                    [7, '7', true],
-                    [8, '8', true],
-                    [9, '9', true],
-                    [10, '10', true],
-                    [11, '11', true],
-                    [12, 'enemy [12]', true],
-                    [13, 'enemy [13]', true],
+                    // [7, '7', true],
+                    // [8, '8', true],
+                    // [9, '9', true],
+                    // [10, '10', true],
+                    [11, '11', false],
+                    [12, 'destroyable [12]', true],
+                    [13, 'destroyable [13]', true],
                     [14, 'wall [14]', true],
-                    [15, '15', true],
+                    [15, '15', false],
                     [16, 'hole [16]', true],
-                    [17, 'trigger? [17]', true],
-                    [18, '18', true],
-                    [19, '19', true],
-                    [20, '20', true],
-                    [21, '21', true],
-                    [22, '22', true],
+                    [17, 'trigger? [17]', false],
+                    [18, '18', false],
+                    // [19, '19', true],
+                    [20, '20', false],
+                    [21, '21', false],
+                    // [22, '22', true],
                     [23, 'static [23]', true],
-                    [24, '24', true],
+                    // [24, '24', true],
                     [25, 'bridge [25]', true],
-                    [26, 'enemy [26]', true],
-                    [27, '27', true],
-                    [28, '28', true],
-                    [29, '29', true],
-                    [30, '30', true],
-                    [31, '31', true],
+                    [26, 'destroyable [26]', true],
+                    // [27, '27', true],
+                    // [28, '28', true],
+                    [29, '29', false],
+                    // [30, '30', true],
+                    [31, '31', false],
                 ],
             ]
         ],
@@ -223,8 +223,10 @@ const filters = [
 
 function extractMarkerFilters(filters) {
     const res = []
+    if(!filters[0][2]) return res
+
     const ff = filters[0][4]
-    for(let i = 1; i < ff.length; i++) {
+    for(let i = 0; i < ff.length; i++) {
         const filter = ff[i]
 
         if(!filter[2]) continue
@@ -264,11 +266,56 @@ function extractMarkerFilters(filters) {
     return res
 }
 
-function sendFiltersUpdate(context) {
-    const markers = extractMarkerFilters(context.filters)
+function checkEquality(a, b) {
+    if(Array.isArray(a) && Array.isArray(b)) {
+        if(a.length !== b.length) return false
+        for(let i = 0; i < a.length; i++) {
+            if(!checkEquality(a[i], b[i])) return false
+        }
+        return true
+    }
+    else return a === b
+}
 
-    try { worker.postMessage({ type: 'filters', markers }) }
-    catch(e) { console.error(e) }
+function extractColliderFilters(filters) {
+    const res = []
+
+    if(!filters[1][2]) {
+    }
+    else if(filters[1][4][0][2]) {
+        const ff = filters[1][4][0][4]
+        for(let i = 0; i < ff.length; i++) {
+            const f = ff[i]
+            if(f[2]) res.push(f[0])
+        }
+    }
+    else {
+        for(let i = 0; i < 32; i++) {
+            res.push(i)
+        }
+    }
+
+    return res
+}
+
+function sendFiltersUpdate(context) {
+    const lastFilters = context.lastFilters
+
+    const markers = extractMarkerFilters(context.filters)
+    if(!checkEquality(markers, lastFilters.markers)) {
+        lastFilters.markers = markers
+
+        try { worker.postMessage({ type: 'filters', markers }) }
+        catch(e) { console.error(e) }
+    }
+
+    const colliders = extractColliderFilters(context.filters)
+    if(!checkEquality(colliders, lastFilters.colliders)) {
+        lastFilters.colliders = colliders
+
+        collidersDisplay.setFiltered(context, colliders)
+        circularDisplay.setFiltered(context, colliders)
+    }
 }
 
 const context = {
@@ -278,6 +325,7 @@ const context = {
     camera: { posX: 0, posY: 0, scale: 1000 },
     canvasSize: [],
     filters,
+    lastFilters: {},
     filtersUpdated() {
         try { sideMenu.filtersUpdated() }
         catch(e) { console.error(e) }
@@ -307,13 +355,13 @@ catch(e) { console.error(e) }
 try { if(__setup_markers) markersDisplay.setup(gl, context, markersP) }
 catch(e) { console.error(e) }
 
-try { if(__setup_markers) specMarkerDisplay.setup(context) }
+try { specMarkerDisplay.setup(context) }
 catch(e) { console.error(e) }
 
-try { if(__setup_colliders) collidersDisplay.setup(gl, context, collidersP) }
+try { collidersDisplay.setup(gl, context, collidersP) }
 catch(e) { console.error(e) }
 
-try { if(__setup_circular) circularDisplay.setup(gl, context, collidersP) }
+try { circularDisplay.setup(gl, context, collidersP) }
 catch(e) { console.error(e) }
 
 

@@ -76,8 +76,8 @@ void main(void) {
 `
 
 function checkOk(context) {
-    const m = context.markers
-    if(m.texOk && m.buffersOk && m.indicesOk) {
+    const m = context?.markers
+    if(m && m.texOk && m.buffersOk && m.indicesOk) {
         m.ok = true
         context.requestRender(1)
     }
@@ -120,6 +120,8 @@ function createVao(gl, renderData) {
 export function setup(gl, context, markersDataP) {
     const renderData = {}
     context.markers = renderData
+
+    if(!__setup_markers) return
 
     const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource, 'markers v')
     const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource, 'markers f')
@@ -215,8 +217,6 @@ function recalcCurrentMarkers(context) {
     const srcB = renderData.markersArray
     const resB = renderData.tempMarkersArray
 
-    console.log('!', selectedI)
-
     let resI = 0
     for(let i = 0; i < indices.length; i++) {
         const index = indices[i]
@@ -247,7 +247,7 @@ function recalcCurrentMarkers(context) {
 
 export function setFiltered(context, { markersIndices }) {
     const renderData = context?.markers
-    if(!renderData) return
+    if(!renderData) return console.error('renderData where?')
 
     renderData.markersIndices = markersIndices
     renderData.indicesOk = true

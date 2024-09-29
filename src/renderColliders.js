@@ -31,9 +31,19 @@ void main(void) {
 }
 `
 
+function checkOk(context) {
+    const m = context?.polygons
+    if(m && m.buffersOk && m.filtersOk) {
+        m.ok = true
+        context.requestRender(1)
+    }
+}
+
 export function setup(gl, context, collidersDataP) {
     const renderData = {}
     context.polygons = renderData
+
+    if(!__setup_colliders) return
 
     const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource, 'polygons v')
     const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource, 'polygons f')
@@ -74,21 +84,37 @@ export function setup(gl, context, collidersDataP) {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesB)
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, collidersData.indices, gl.STATIC_DRAW)
 
-        renderData.drawData = collidersData.polyDrawData
-        renderData.ok = true
-        context.requestRender(1)
+        renderData.drawData = Array(32).fill(null)
+        const pd = collidersData.polyDrawData
+        for(let i = 0; i < pd.length; i++) {
+            renderData.drawData[pd[i].layer] = pd[i]
+        }
+
+        renderData.buffersOk = true
+        checkOk(context)
     })
+}
+
+export function setFiltered(context, layers) {
+    const renderData = context?.polygons
+    if(!renderData) return console.error('renderData where?')
+
+    renderData.layers = layers
+    renderData.filtersOk = true
+    checkOk(context)
 }
 
 export function render(context) {
     const rd = context.polygons
     if(rd?.ok !== true) return
-    const { gl, camera } = context
+    const { gl } = context
 
     gl.useProgram(rd.prog)
     gl.bindVertexArray(rd.vao)
-    for(let i = 0; i < rd.drawData.length; i++) {
-        const it = rd.drawData[i]
+    for(let i = 0; i < rd.layers.length; i++) {
+        const layerI = rd.layers[i]
+        const it = rd.drawData[layerI]
+        if(!it) continue
         gl.uniform1i(rd.u.layer, it.layer)
         gl.drawElements(gl.TRIANGLES, it.length, gl.UNSIGNED_INT, it.startIndexI * 4)
     }
