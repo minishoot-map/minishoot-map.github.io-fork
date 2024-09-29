@@ -77,10 +77,44 @@ void main(void) {
 
 function checkOk(context) {
     const m = context.markers
-    if(m.texOk && m.uboOk && m.bufOk) {
+    if(m.texOk && m.buffersOk && m.indicesOk) {
         m.ok = true
         context.requestRender(1)
     }
+}
+
+function createVao(gl, renderData) {
+    const result = { count: 0 }
+
+    const dataB = gl.createBuffer()
+    result.dataB = dataB
+
+    const vao = gl.createVertexArray()
+    result.vao = vao
+    gl.bindVertexArray(vao)
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, dataB)
+    const { coordIn, indexIn, sizeIn } = renderData.in
+    if(coordIn != -1) {
+        gl.enableVertexAttribArray(coordIn)
+        gl.vertexAttribPointer(coordIn, 2, gl.FLOAT, false , markerByteC, 0)
+        gl.vertexAttribDivisor(coordIn, 1)
+    }
+
+    if(indexIn != -1) {
+        gl.enableVertexAttribArray(indexIn)
+        gl.vertexAttribIPointer(indexIn, 1, gl.UNSIGNED_INT, markerByteC, 8)
+        gl.vertexAttribDivisor(indexIn, 1)
+    }
+
+    if(sizeIn != -1) {
+        gl.enableVertexAttribArray(sizeIn)
+        gl.vertexAttribPointer(sizeIn, 1, gl.FLOAT, false  , markerByteC, 12)
+        gl.vertexAttribDivisor(sizeIn, 1)
+    }
+    gl.bindVertexArray(null)
+
+    return result
 }
 
 export function setup(gl, context, markersDataP) {
@@ -136,30 +170,12 @@ export function setup(gl, context, markersDataP) {
     const sizeIn  = gl.getAttribLocation(prog, 'size')
     renderData.in = { coordIn, indexIn, sizeIn }
 
-    const dataB = gl.createBuffer()
-    renderData.dataB = dataB
+    renderData.currentO = createVao(gl, renderData)
+    renderData.selectedO = createVao(gl, renderData)
+    renderData.selectedI = null
 
-    const vao = gl.createVertexArray()
-    renderData.vao = vao
-    gl.bindVertexArray(vao)
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, dataB)
-    if(coordIn != -1) {
-        gl.enableVertexAttribArray(coordIn)
-        gl.vertexAttribDivisor(coordIn, 1)
-    }
-
-    if(indexIn != -1) {
-        gl.enableVertexAttribArray(indexIn)
-        gl.vertexAttribDivisor(indexIn, 1)
-    }
-
-    if(sizeIn != -1) {
-        gl.enableVertexAttribArray(sizeIn)
-        gl.vertexAttribDivisor(sizeIn, 1)
-    }
-
-    gl.bindVertexArray(null)
+    gl.bindBuffer(gl.ARRAY_BUFFER, renderData.selectedO.dataB)
+    gl.bufferData(gl.ARRAY_BUFFER, markerByteC, gl.DYNAMIC_DRAW)
 
     const markersBIndex = gl.getUniformBlockIndex(prog, "MarkersData")
     const ubo = gl.createBuffer()
@@ -172,23 +188,72 @@ export function setup(gl, context, markersDataP) {
         gl.bindBuffer(gl.UNIFORM_BUFFER, ubo)
         gl.bufferSubData(gl.UNIFORM_BUFFER, 0, data.markersData)
 
-        renderData.uboOk = true
+        gl.bindBuffer(gl.ARRAY_BUFFER, renderData.currentO.dataB)
+        gl.bufferData(gl.ARRAY_BUFFER, data.markers.byteLength, gl.DYNAMIC_DRAW)
+
+        renderData.markersArray = new Uint8Array(data.markers)
+        renderData.tempMarkersArray = new Uint8Array(data.markers.byteLength)
+        renderData.buffersOk = true
+        renderData.currentInvalid = true
+
+        recalcCurrentMarkers(context)
         checkOk(context)
     })
 }
 
-export function setMarkers(context, { markers, markersIndices, count }) {
-    const renderData = context?.markers
-    const gl = context?.gl
-    if(!renderData) return
-    const dataB = renderData.dataB
-    if(dataB == null) return
+const markerByteC = 16
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, dataB)
-    gl.bufferData(gl.ARRAY_BUFFER, markers, gl.DYNAMIC_DRAW)
-    renderData.count = count
+function recalcCurrentMarkers(context) {
+    const renderData = context?.markers
+    if(!renderData) return
+    if(!renderData.buffersOk || !renderData.indicesOk) return
+    if(!renderData.currentInvalid) return
+    const { gl } = context
+
+    const selectedI = renderData.selectedI
+    const indices = renderData.markersIndices
+    const srcB = renderData.markersArray
+    const resB = renderData.tempMarkersArray
+
+    console.log('!', selectedI)
+
+    let resI = 0
+    for(let i = 0; i < indices.length; i++) {
+        const index = indices[i]
+        if(index === selectedI) continue
+        for(let j = 0; j < markerByteC; j++) {
+            resB[resI*markerByteC + j] = srcB[index*markerByteC + j]
+        }
+        resI++
+    }
+
+    const currentO = renderData.currentO
+    gl.bindBuffer(gl.ARRAY_BUFFER, currentO.dataB)
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, resB, 0, resI * markerByteC)
+    currentO.count = resI
+
+    const selectedO = renderData.selectedO
+    if(selectedI != null) {
+        gl.bindBuffer(gl.ARRAY_BUFFER, selectedO.dataB)
+        gl.bufferSubData(gl.ARRAY_BUFFER, 0, srcB, selectedI*markerByteC, markerByteC)
+        selectedO.count = 1
+    }
+    else {
+        selectedO.count = 0
+    }
+
+    renderData.currentInvalid = false
+}
+
+export function setFiltered(context, { markersIndices }) {
+    const renderData = context?.markers
+    if(!renderData) return
+
     renderData.markersIndices = markersIndices
-    renderData.bufOk = true
+    renderData.indicesOk = true
+    renderData.currentInvalid = true
+
+    recalcCurrentMarkers(context)
     checkOk(context)
 }
 
@@ -197,47 +262,35 @@ export function render(context) {
     if(rd?.ok !== true) return
     const { gl, camera } = context
 
+    const curSelectedI = context.sideMenu?.currentObject?.first?.markerI
+    if(curSelectedI != rd.selectedI) {
+        rd.selectedI = curSelectedI
+        rd.currentInvalid = true
+    }
+
+    recalcCurrentMarkers(context)
+    if(rd.currentInvalid) return
+
     gl.useProgram(rd.prog)
 
     gl.uniform1f(rd.u.markerSize, Math.min(camera.scale, 200) * 0.03)
 
-    let endI;
-    const markerI = context.sideMenu?.currentObject?.first?.markerI
-    if(markerI != null) {
-        endI = rd.markersIndices.indexOf(markerI)
-        if(endI == -1) endI = undefined
+    const currentO = rd.currentO
+    if(currentO.count !== 0) {
+        gl.bindVertexArray(currentO.vao)
+        gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, currentO.count)
     }
 
-    if(endI == null) endI = rd.count
-
-    const { coordIn, indexIn, sizeIn } = rd.in
-
-    gl.bindVertexArray(rd.vao)
-
-    // same trick as in circularColliders.js
-    gl.bindBuffer(gl.ARRAY_BUFFER, rd.dataB)
-    gl.vertexAttribPointer(coordIn, 2, gl.FLOAT, false , 16, 0)
-    gl.vertexAttribIPointer(indexIn, 1, gl.UNSIGNED_INT, 16, 8)
-    gl.vertexAttribPointer(sizeIn, 1, gl.FLOAT, false  , 16, 12)
-
-    gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, endI)
-    if(endI + 1 < rd.count) {
-        let offset = (endI + 1) * 16
-        gl.vertexAttribPointer(coordIn, 2, gl.FLOAT, false , 16, offset + 0)
-        gl.vertexAttribIPointer(indexIn, 1, gl.UNSIGNED_INT, 16, offset + 8)
-        gl.vertexAttribPointer(sizeIn, 1, gl.FLOAT, false  , 16, offset + 12)
-
-        gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, rd.count - (endI + 1))
-
-        offset = endI * 16
-        gl.vertexAttribPointer(coordIn, 2, gl.FLOAT, false , 16, offset + 0)
-        gl.vertexAttribIPointer(indexIn, 1, gl.UNSIGNED_INT, 16, offset + 8)
-        gl.vertexAttribPointer(sizeIn, 1, gl.FLOAT, false  , 16, offset + 12)
-
+    const selectedO = rd.selectedO
+    if(selectedO.count !== 0) {
         gl.uniform1i(rd.u.drawType, 1)
-        gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, 1)
+        gl.bindVertexArray(selectedO.vao)
+        gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, selectedO.count)
+
         gl.uniform1i(rd.u.drawType, 2)
-        gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, 1)
+        gl.bindVertexArray(selectedO.vao)
+        gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, selectedO.count)
+
         gl.uniform1i(rd.u.drawType, 0)
     }
 }

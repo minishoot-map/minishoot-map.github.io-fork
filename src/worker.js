@@ -223,7 +223,9 @@ const objectsProcessedP = objectsLoadedP.then(objects => {
     throw e
 })
 
-if(__worker_markers) {
+objectsProcessedP.then(({ allMarkers }) => {
+    if(!__worker_markers) return void(console.warn('skipping markers'))
+
     const [markerDataC, texW, texH] = markersMeta
 
     // note: 4 bytes of padding for std140
@@ -242,8 +244,26 @@ if(__worker_markers) {
         mddv.setFloat32(i * 16 + 8, aspect, true)
     }
 
-    message({ type: 'markers-done', markersData: markerDataB }, [markerDataB])
-}
+    const markersB = new ArrayBuffer(allMarkers.length * 16)
+    const dv = new DataView(markersB)
+    for(let i = 0; i < allMarkers.length; i++) {
+        const { display, object } = allMarkers[i]
+
+        const size = display[1] > 0 ? display[1] : 1.0
+        dv.setFloat32(i * 16     , object.pos[0], true)
+        dv.setFloat32(i * 16 + 4 , object.pos[1], true)
+        dv.setUint32 (i * 16 + 8 , display[0], true)
+        dv.setFloat32(i * 16 + 12, size, true)
+    }
+
+    message({
+        type: 'markers-done',
+        markersData: markerDataB,
+        markers: markersB,
+    }, [markerDataB, markersB])
+}).catch(e => {
+    console.error('error processing markers', e)
+})
 
 const boxPoints = [[-0.5, -0.5], [0.5, -0.5], [-0.5, 0.5], [0.5, 0.5]]
 
@@ -497,6 +517,8 @@ function onClick(x, y) {
     lastX = x
     lastY = y
     if(allMarkers == null || filteredMarkersIndices == null) return
+    lastX = null
+    lastY = null
 
     const closest = Array(5)
     for(let i = 0; i < closest.length; i++) {
@@ -515,7 +537,8 @@ function onClick(x, y) {
         while(insertI < closest.length && closest[insertI][0] < sqDist) insertI++
 
         if(insertI < closest.length) {
-            closest.splice(insertI, 1, [sqDist, index])
+            closest.pop()
+            closest.splice(insertI, 0, [sqDist, index])
         }
     }
 
@@ -535,7 +558,7 @@ function onClick(x, y) {
             nearby.push({
                 name: allMarkers[c[1]].object.name,
                 distance: Math.sqrt(c[0]),
-                index: allMarkers[c[1]].index,
+                index: c[1],
             })
         }
 
@@ -552,26 +575,19 @@ function getInfo(index) {
     if(object) message({ type: 'getInfo', object: serializeObject(object) })
 }
 
-function setMarkerFromDisplay(dv, i, object, display) {
-    const size = display[1] > 0 ? display[1] : 1.0
-    dv.setFloat32(i * 16     , object.pos[0], true)
-    dv.setFloat32(i * 16 + 4 , object.pos[1], true)
-    dv.setUint32(i * 16 + 8 , display[0], true)
-    dv.setFloat32(i * 16 + 12, size, true)
-}
-
 function calcMarkerFilters(filters) {
     lastMarkerFilters = filters
     if(markersInfo == null) return;
     ; // I am neovim and I can't indent correctly (actually nvim-treesitter)
+    lastMarkerFilters = null
 
     const fs = {}
     for(let i = 0; i < filters.length; i++) {
         fs[ti[filters[i][0]]] = filters[i][1]
     }
 
-    const addIndices = Array(markersInfo.length)
-    addIndices.length = 0
+    const filteredIndices = Array(markersInfo.length)
+    filteredIndices.length = 0
     for(let i = 0; i < markersInfo.length; i++) {
         const marker = markersInfo[i];
         const comp = marker.component
@@ -587,23 +603,11 @@ function calcMarkerFilters(filters) {
             break
         }
 
-        if(add) addIndices.push(i)
+        if(add) filteredIndices.push(i)
     }
 
-    const markersB = new ArrayBuffer(addIndices.length * 16)
-    const dv = new DataView(markersB)
-    for(let i = 0; i < addIndices.length; i++) {
-        const mi = addIndices[i]
-        setMarkerFromDisplay(dv, i, markersInfo[mi].object, markersInfo[mi].display)
-    }
+    message({ type: 'marker-filters', markersIndices: filteredIndices });
 
-    message({
-        type: 'marker-filters',
-        markers: markersB,
-        markersIndices: addIndices,
-        count: addIndices.length,
-    }, [markersB]);
-
-    filteredMarkersIndices = addIndices
+    filteredMarkersIndices = filteredIndices
     checkOnClick()
 }

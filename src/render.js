@@ -47,11 +47,11 @@ if(__worker) {
             resolveCollidersP(it)
         }
         else if(d.type == 'markers-done') {
-            resolveMarkersDataP({ markersData: d.markersData })
+            resolveMarkersDataP({ markersData: d.markersData, markers: d.markers })
         }
         else if(d.type == 'marker-filters') {
-            const it = { markers: d.markers, markersIndices: d.markersIndices, count: d.count }
-            markersDisplay.setMarkers(context, it)
+            const it = { markersIndices: d.markersIndices }
+            markersDisplay.setFiltered(context, it)
         }
     }
     worker.postMessage({ type: 'ready' })
