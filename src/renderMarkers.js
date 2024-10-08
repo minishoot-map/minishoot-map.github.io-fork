@@ -216,11 +216,12 @@ function recalcCurrentMarkers(context) {
     const indices = renderData.markersIndices
     const srcB = renderData.markersArray
     const resB = renderData.tempMarkersArray
+    const regularC = srcB.length / markerByteC
 
     let resI = 0
     for(let i = 0; i < indices.length; i++) {
         const index = indices[i]
-        if(index === selectedI) continue
+        if(index === selectedI || index >= regularC) continue
         for(let j = 0; j < markerByteC; j++) {
             resB[resI*markerByteC + j] = srcB[index*markerByteC + j]
         }
@@ -233,7 +234,7 @@ function recalcCurrentMarkers(context) {
     currentO.count = resI
 
     const selectedO = renderData.selectedO
-    if(selectedI != null) {
+    if(selectedI != null && selectedI < regularC) {
         gl.bindBuffer(gl.ARRAY_BUFFER, selectedO.dataB)
         gl.bufferSubData(gl.ARRAY_BUFFER, 0, srcB, selectedI*markerByteC, markerByteC)
         selectedO.count = 1

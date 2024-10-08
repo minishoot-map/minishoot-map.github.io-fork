@@ -2,7 +2,7 @@
 import * as Load from './load.js'
 import markersData from '$/markers.json'
 import markersMeta from '$/markers-meta.json'
-import { meta, getAsSchema, parsedSchema } from './schema.js'
+import { meta, getAsSchema, parsedSchema, stepsToBase, getBase } from './schema.js'
 
 import objectUrl from '$/objects.bp'
 import polygonsUrl from '$/polygons.bp'
@@ -141,53 +141,87 @@ function createOneTex(comp) {
 
 var lastMarkerFilters
 
-// index in objects
-/** @type {{
-    index: number,
-    object: any,
-    component: any,
-    display: [textureI: number, size?: number],
-}[] | undefined} */
-var markersInfo
+/** @type {{ [schemaI: number]: (component: any, actualComponent: any) => [textureI: number, size?: number] }} */
+const displayFuncs = {
+    [ti.Enemy]: (it, comp) => {
+        const size = comp._schema === ti.Boss ? 3 : 1 + 0.33 * it.size
+        return [it.spriteI, size]
+    },
+    [ti.Jar]: (it, comp) => {
+        return createOneTex(it)
+    },
+    [ti.CrystalDestroyable]: (it, comp) => {
+        const ti = meta.crystalDestroyableTextures[it.dropXp ? 1 : 0]
+        return [ti, 1 + 0.5 * it.size]
+    },
+    [ti.ScarabPickup]: (it, comp) => {
+        return createOneTex(it)
+    },
+}
+
+/** @typedef {[textureI: number, x: number, y: number, size: number]} RegularDisplay */
+/** @typedef {{ object: any, component: any }} MarkerInfo */
+
+/** @type {MarkerInfo[]} */
+var allMarkersInfo
+
+/** @type {Promise<{
+    colliderObjects: Array<[object: any, component: any]>,
+    regularDisplays: Array<RegularDisplay>,
+}>} */
+
 const objectsProcessedP = objectsLoadedP.then(objects => {
     const colliderObjects = []
-    const allMarkers = []
+
+    /** @type {RegularDisplay[]} */
+    const regularDisplays = []
+
+    /** @type {MarkerInfo[]} */
+    const regularMarkers = []
+    /** @type {MarkerInfo[]} */
+    const specialMarkers = []
+
+    /** @type {[baseSteps: number, funcI: number][]} */
+    const schemaDisplayFuncI = Array(meta.schemas.length)
+    for(let i = 0; i < meta.schemas.length; i++) {
+        let added = false
+        for(const schemaI in displayFuncs) {
+            const s = stepsToBase(i, schemaI)
+            if(s == null) continue
+            schemaDisplayFuncI[i] = [s, parseInt(schemaI)]
+            added = true
+            break
+        }
+        if(!added) {
+            const s = stepsToBase(i, ti.Transition)
+            if(s != null) {
+                schemaDisplayFuncI[i] = [s, -1]
+            }
+        }
+    }
 
     const s = performance.now()
     for(var i = 0; i < objects.length; i++) {
         var obj = objects[i]
         var cs = obj.components
 
-        /** @type [textureI: number, size?: number] | null */
-        var display = null
-        var component = null
         for(var j = 0; j < cs.length; j++) {
             var comp = cs[j]
 
-            var enemy = getAsSchema(comp, ti.Enemy)
-            if(enemy != null) {
-                const size = comp._schema === ti.Boss ? 3 : 1 + 0.33 * enemy.size
-                display = [enemy.spriteI, size]
-                component = enemy
-            }
-
-            var jar = getAsSchema(comp, ti.Jar)
-            if(jar != null) {
-                display = createOneTex(jar)
-                component = jar
-            }
-
-            var crDes = getAsSchema(comp, ti.CrystalDestroyable)
-            if(crDes != null) {
-                const ti = meta.crystalDestroyableTextures[crDes.dropXp ? 1 : 0]
-                display = [ti, 1 + 0.5 * crDes.size]
-                component = crDes
-            }
-
-            var scarab = getAsSchema(comp, ti.ScarabPickup)
-            if(scarab != null) {
-                display = createOneTex(scarab)
-                component = scarab
+            const info = schemaDisplayFuncI[comp._schema]
+            if(info != null) {
+                const [steps, funcI] = info
+                const it = getBase(comp, steps)
+                if(funcI == -1) {
+                    specialMarkers.push({ object: obj, component: it })
+                }
+                else {
+                    obj._markerI = regularMarkers.length
+                    obj._markerType = 0
+                    regularMarkers.push({ object: obj, component: it })
+                    const r = displayFuncs[funcI](it, comp)
+                    regularDisplays.push([r[0], obj.pos[0], obj.pos[1], r[1] ?? 1])
+                }
             }
 
             var coll = getAsSchema(comp, ti.Collider2D)
@@ -197,33 +231,33 @@ const objectsProcessedP = objectsLoadedP.then(objects => {
                 }
             }
         }
-
-        if(display != null) {
-            obj._markerI = allMarkers.length
-            allMarkers.push({
-                index: i,
-                object: obj,
-                component,
-                display
-            })
-        }
     }
     const e = performance.now()
     console.log('objects done in', e - s)
 
-    if(__worker_markers) {
-        markersInfo = allMarkers
-        if(lastMarkerFilters != null) calcMarkerFilters(lastMarkerFilters)
-    }
-    else console.warn('skipping markers')
+    allMarkersInfo = regularMarkers
 
-    return { colliderObjects, allMarkers }
+    const startC = allMarkersInfo.length
+    for(let i = 0; i < specialMarkers.length; i++) {
+        const s = specialMarkers[i]
+        s.object._markerI = startC + i
+        s.object._markerType = 1
+        allMarkersInfo.push(s)
+    }
+
+    return { colliderObjects, regularDisplays }
 }).catch(e => {
     console.error('Error processing objects', e)
     throw e
 })
 
-objectsProcessedP.then(({ allMarkers }) => {
+objectsProcessedP.then(() => {
+    if(__worker_markers) {
+        if(lastMarkerFilters != null) calcMarkerFilters(lastMarkerFilters)
+    }
+})
+
+objectsProcessedP.then(({ regularDisplays }) => {
     if(!__worker_markers) return void(console.warn('skipping markers'))
 
     const [markerDataC, texW, texH] = markersMeta
@@ -244,23 +278,31 @@ objectsProcessedP.then(({ allMarkers }) => {
         mddv.setFloat32(i * 16 + 8, aspect, true)
     }
 
-    const markersB = new ArrayBuffer(allMarkers.length * 16)
+    const markersB = new ArrayBuffer(regularDisplays.length * 16)
     const dv = new DataView(markersB)
-    for(let i = 0; i < allMarkers.length; i++) {
-        const { display, object } = allMarkers[i]
+    for(let i = 0; i < regularDisplays.length; i++) {
+        const r = regularDisplays[i]
+        dv.setFloat32(i * 16     , r[1], true)
+        dv.setFloat32(i * 16 + 4 , r[2], true)
+        dv.setUint32 (i * 16 + 8 , r[0], true)
+        dv.setFloat32(i * 16 + 12, r[3], true)
+    }
 
-        const size = display[1] > 0 ? display[1] : 1.0
-        dv.setFloat32(i * 16     , object.pos[0], true)
-        dv.setFloat32(i * 16 + 4 , object.pos[1], true)
-        dv.setUint32 (i * 16 + 8 , display[0], true)
-        dv.setFloat32(i * 16 + 12, size, true)
+    const specialC = allMarkersInfo.length - regularDisplays.length
+    const specialMarkersB = new ArrayBuffer(specialC * 8)
+    const sdv = new DataView(specialMarkersB)
+    for(let i = 0; i < specialC; i++) {
+        const mi = allMarkersInfo[regularDisplays.length + i]
+        sdv.setFloat32(i * 8    , mi.object.pos[0], true)
+        sdv.setFloat32(i * 8 + 4, mi.object.pos[1], true)
     }
 
     message({
         type: 'markers-done',
         markersData: markerDataB,
         markers: markersB,
-    }, [markerDataB, markersB])
+        specialMarkers: specialMarkersB,
+    }, [markerDataB, markersB, specialMarkersB])
 }).catch(e => {
     console.error('error processing markers', e)
 })
@@ -450,9 +492,8 @@ function checkOnClick() {
     if(lastX != null) onClick(lastX, lastY)
 }
 
-var lastX, lastY, allMarkers, filteredMarkersIndices
+var lastX, lastY, filteredMarkersIndices
 objectsProcessedP.then(d => {
-    allMarkers = d.allMarkers
     checkOnClick()
 })
 
@@ -507,6 +548,7 @@ function serializeObject(obj) {
         pos: obj.pos,
         components: obj.components,
         markerI: obj._markerI,
+        markerType: obj._markerType,
         referenceNames,
         children,
         parent: parentI,
@@ -516,7 +558,7 @@ function serializeObject(obj) {
 function onClick(x, y) {
     lastX = x
     lastY = y
-    if(allMarkers == null || filteredMarkersIndices == null) return
+    if(allMarkersInfo == null || filteredMarkersIndices == null) return
     lastX = null
     lastY = null
 
@@ -527,7 +569,7 @@ function onClick(x, y) {
 
     for(let i = 0; i < filteredMarkersIndices.length; i++) {
         const index = filteredMarkersIndices[i]
-        const obj = allMarkers[index].object
+        const obj = allMarkersInfo[index].object
         const pos = obj.pos
         const dx = pos[0] - x
         const dy = pos[1] - y
@@ -548,7 +590,7 @@ function onClick(x, y) {
 
     if(closest.length !== 0) {
         const c = closest[0]
-        const obj = allMarkers[c[1]].object
+        const obj = allMarkersInfo[c[1]].object
         const first = serializeObject(obj)
 
         const nearby = Array(closest.length - 1)
@@ -556,7 +598,7 @@ function onClick(x, y) {
         for(let i = 1; i < closest.length; i++) {
             const c = closest[i]
             nearby.push({
-                name: allMarkers[c[1]].object.name,
+                name: allMarkersInfo[c[1]].object.name,
                 distance: Math.sqrt(c[0]),
                 index: c[1],
             })
@@ -577,7 +619,7 @@ function getInfo(index) {
 
 function calcMarkerFilters(filters) {
     lastMarkerFilters = filters
-    if(markersInfo == null) return;
+    if(allMarkersInfo == null) return;
     ; // I am neovim and I can't indent correctly (actually nvim-treesitter)
     lastMarkerFilters = null
 
@@ -586,10 +628,10 @@ function calcMarkerFilters(filters) {
         fs[ti[filters[i][0]]] = filters[i][1]
     }
 
-    const filteredIndices = Array(markersInfo.length)
+    const filteredIndices = Array(allMarkersInfo.length)
     filteredIndices.length = 0
-    for(let i = 0; i < markersInfo.length; i++) {
-        const marker = markersInfo[i];
+    for(let i = 0; i < allMarkersInfo.length; i++) {
+        const marker = allMarkersInfo[i];
         const comp = marker.component
         const fieldsFilter = fs[comp._schema]
         if(!fieldsFilter) continue

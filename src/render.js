@@ -47,11 +47,16 @@ if(__worker) {
             resolveCollidersP(it)
         }
         else if(d.type == 'markers-done') {
-            resolveMarkersDataP({ markersData: d.markersData, markers: d.markers })
+            resolveMarkersDataP({
+                markersData: d.markersData,
+                markers: d.markers,
+                specialMarkers: d.specialMarkers,
+            })
         }
         else if(d.type == 'marker-filters') {
             const it = { markersIndices: d.markersIndices }
             markersDisplay.setFiltered(context, it)
+            specMarkerDisplay.setFiltered(context, it)
         }
     }
     worker.postMessage({ type: 'ready' })
@@ -86,9 +91,10 @@ function render(context) {
 
     backgroundsDisplay.render(context)
     if(__render_colliders) collidersDisplay.render(context)
+    specMarkerDisplay.renderVisible(context)
     if(__render_circular) circularDisplay.render(context)
     if(__render_markers) markersDisplay.render(context)
-    specMarkerDisplay.render(context)
+    specMarkerDisplay.renderSelected(context)
 }
 
 function requestRender(priority/* 0 - immediate, 1 - animation, 2 - idle */) {
@@ -170,6 +176,7 @@ const filters = [
                 ],
             ],
             ['ScarabPickup', 'Show scarabs', true, 'filters', []],
+            ['Transition', 'Show transitions', true, 'filters', []],
         ],
     ],
     [
@@ -357,7 +364,7 @@ catch(e) { console.error(e) }
 try { if(__setup_markers) markersDisplay.setup(gl, context, markersP) }
 catch(e) { console.error(e) }
 
-try { specMarkerDisplay.setup(context) }
+try { specMarkerDisplay.setup(context, markersP) }
 catch(e) { console.error(e) }
 
 try { collidersDisplay.setup(gl, context, collidersP) }

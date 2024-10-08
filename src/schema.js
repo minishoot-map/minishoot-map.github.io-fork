@@ -25,3 +25,12 @@ export function getAsSchema(it, schemaI) {
     return it
 }
 
+/** @returns {number | undefined} */
+export function stepsToBase(schemaI, baseSchemaI) {
+    return schemaBaseClasses[schemaI][baseSchemaI]
+}
+
+export function getBase(it, steps) {
+    for(; steps > 0; steps--) it = it._base
+    return it
+}
