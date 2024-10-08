@@ -189,7 +189,14 @@ function Object({ first }) {
         components[i] = <Component key={i} comp={first.components[i]} obj={first} />
     }
 
+    function focus() {
+        context.camera.posX = first.pos[0]
+        context.camera.posY = first.pos[1]
+        context.requestRender(1)
+    }
+
     return <>
+        <button onClick={focus}>Focus</button>
         <Props>
             <Prop>Name:{first.name}</Prop>
             <Prop>Position:{vec2s(first.pos)}</Prop>
@@ -335,7 +342,7 @@ function Link({ index, name }) {
     // index < 0 is scenes, we can't display info about them yet
     if(index != null && index >= 0) {
         function onClick() { gotoOther(index) }
-        return <a href="javascript:void('sorry')" onClick={onClick}>{displayName}</a>
+        return <a href="javascript:void(0)" onClick={onClick}>{displayName}</a>
     }
     else {
         return <span>{displayName}</span>
