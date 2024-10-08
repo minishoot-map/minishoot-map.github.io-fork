@@ -51,6 +51,7 @@ if(__worker) {
                 markersData: d.markersData,
                 markers: d.markers,
                 specialMarkers: d.specialMarkers,
+                restMarkers: d.restMarkers,
             })
         }
         else if(d.type == 'marker-filters') {
@@ -91,6 +92,7 @@ function render(context) {
 
     backgroundsDisplay.render(context)
     if(__render_colliders) collidersDisplay.render(context)
+    if(context.filters[1][2]) specMarkerDisplay.renderRest(context)
     specMarkerDisplay.renderVisible(context)
     if(__render_circular) circularDisplay.render(context)
     if(__render_markers) markersDisplay.render(context)
@@ -178,6 +180,9 @@ const filters = [
             ['ScarabPickup', 'Show scarabs', true, 'filters', []],
             ['Transition', 'Show transitions', true, 'filters', []],
         ],
+    ],
+    [
+        '$Rest', 'Show all other objects (slow!)', false, 'filters', [],
     ],
     [
         '$Collider', 'Show colliders', false, 'filters',
@@ -287,10 +292,10 @@ function checkEquality(a, b) {
 function extractColliderFilters(filters) {
     const res = []
 
-    if(!filters[1][2]) {
+    if(!filters[2][2]) {
     }
-    else if(filters[1][4][0][2]) {
-        const ff = filters[1][4][0][4]
+    else if(filters[2][4][0][2]) {
+        const ff = filters[2][4][0][4]
         for(let i = 0; i < ff.length; i++) {
             const f = ff[i]
             if(f[2]) res.push(f[0])
@@ -309,7 +314,10 @@ function sendFiltersUpdate(context) {
     const lastFilters = context.lastFilters
 
     const markers = extractMarkerFilters(context.filters)
-    if(!checkEquality(markers, lastFilters.markers)) {
+    markers.includeRest = context.filters[1][2]
+    if(!checkEquality(markers, lastFilters.markers)
+        || markers.includeRest !== lastFilters.includeRest
+    ) {
         lastFilters.markers = markers
 
         try { worker.postMessage({ type: 'filters', markers }) }
@@ -324,7 +332,7 @@ function sendFiltersUpdate(context) {
         circularDisplay.setFiltered(context, colliders)
     }
 
-    backgroundsDisplay.setFiltered(context, context.filters[2][2])
+    backgroundsDisplay.setFiltered(context, context.filters[3][2])
 }
 
 const context = {

@@ -19,7 +19,8 @@ flat out int type;
 const vec2 coords[4] = vec2[4](vec2(-1.0, -1.0), vec2(1.0, -1.0), vec2(-1.0, 1.0), vec2(1.0, 1.0));
 
 void main(void) {
-    vec2 offset = coords[gl_VertexID] * markerSize * (1.0 + float(drawType & 1) * 0.4);
+    vec2 offset = coords[gl_VertexID] * markerSize;
+    if(drawType == 1) offset *= 1.4;
 
     vec2 pos = (coord + offset) * cam.multiply + cam.add;
     gl_Position = vec4(pos, 1.0, 1.0);
@@ -38,18 +39,25 @@ flat in int type;
 out vec4 color;
 
 void main(void) {
-    vec4 col = vec4(0.5, 0.5, 0.9, 0);
-
     float sd = dot(uv, uv);
     float edgeWidth = fwidth(sd); ${''/* I hope square length is fine */}
     float alpha = smoothstep(1.0 - edgeWidth, 1.0 + edgeWidth, sd);
+
+    vec4 col = vec4(0.5, 0.5, 0.9, 0);
     col.a = 1.0 - alpha;
 
-    if((type & 1) != 0) {
+    if(type == 3) {
+        col.rgb = vec3(0.5, 0.9, 0.5);
+    }
+
+    if(type == 1) {
         col.rgb = vec3(1, 0, 0);
     }
-    if(((type >> 1) & 1) != 0) {
-        col.rgb = mix(col.rgb, vec3(1.0), 0.2);
+    else  {
+        col.rgb = mix(col.rgb, col.rgb * 0.7, sd * sd);
+        if(type == 2) {
+            col.rgb = mix(col.rgb, vec3(1.0), 0.2);
+        }
     }
 
     color = col;
@@ -131,9 +139,32 @@ export function setup(context, markersP) {
         gl.bindVertexArray(null)
     }
 
+    {
+        const params = {}
+        renderData.rest = params
+        params.dataB = gl.createBuffer()
+
+        const vao = gl.createVertexArray()
+        params.vao = vao
+
+        gl.bindVertexArray(vao)
+        gl.bindBuffer(gl.ARRAY_BUFFER, params.dataB)
+        if(coordIn != -1) {
+            gl.vertexAttribPointer(coordIn, 2, gl.FLOAT, false, 8, 0)
+            gl.enableVertexAttribArray(coordIn)
+            gl.vertexAttribDivisor(coordIn, 1)
+        }
+        gl.bindVertexArray(null)
+    }
+
     renderData.setupOk = true
 
     markersP.then(data => {
+        gl.bindBuffer(gl.ARRAY_BUFFER, renderData.rest.dataB)
+        gl.bufferData(gl.ARRAY_BUFFER, data.restMarkers, gl.DYNAMIC_DRAW)
+        renderData.restOk = true
+        renderData.rest.count = data.restMarkers.byteLength / markerByteC
+
         gl.bindBuffer(gl.ARRAY_BUFFER, renderData.visible.dataB)
         gl.bufferData(gl.ARRAY_BUFFER, data.specialMarkers.byteLength, gl.DYNAMIC_DRAW)
 
@@ -150,9 +181,9 @@ export function setup(context, markersP) {
     renderData.selectedI = null
 }
 
-export function renderVisible(context) {
+export function renderRest(context) {
     const rd = context.specialMarker
-    if(rd?.visibleOk !== true) return
+    if(rd?.restOk !== true) return
     const { gl, camera } = context
 
     const curSelectedI = context.sideMenu?.currentObject?.first?.markerI
@@ -163,6 +194,20 @@ export function renderVisible(context) {
 
     recalcCurrentMarkers(context)
     if(rd.currentInvalid) return
+
+    gl.useProgram(rd.prog)
+    gl.uniform1f(rd.u.markerSize, Math.min(camera.scale, 200) * 0.03)
+
+    gl.bindVertexArray(rd.rest.vao)
+    gl.uniform1i(rd.u.drawType, 3)
+    gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, rd.rest.count)
+    gl.bindVertexArray(null)
+}
+
+export function renderVisible(context) {
+    const rd = context.specialMarker
+    if(rd?.visibleOk !== true) return
+    const { gl, camera } = context
 
     gl.useProgram(rd.prog)
     gl.uniform1f(rd.u.markerSize, Math.min(camera.scale, 200) * 0.03)
@@ -189,7 +234,7 @@ export function setFiltered(context, { markersIndices }) {
 export function renderSelected(context) {
     const rd = context.specialMarker
     if(rd?.selectedOk !== true) return
-    const gl = context.gl
+    const { gl, camera } = context
 
     const first = context.sideMenu?.currentObject?.first
     if(first && (first.markerType != 0 || !context.markers?.ok)) {
@@ -199,10 +244,12 @@ export function renderSelected(context) {
         gl.bufferSubData(gl.ARRAY_BUFFER, 0, rd.selected.data)
 
         gl.useProgram(rd.prog)
+        gl.uniform1f(rd.u.markerSize, Math.min(camera.scale, 200) * 0.03)
+
         gl.bindVertexArray(rd.selected.vao)
         gl.uniform1i(rd.u.drawType, 1)
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
-        gl.uniform1i(rd.u.drawType, 0)
+        gl.uniform1i(rd.u.drawType, 2)
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
     }
 }

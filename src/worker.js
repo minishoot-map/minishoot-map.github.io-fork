@@ -164,6 +164,8 @@ const displayFuncs = {
 
 /** @type {MarkerInfo[]} */
 var allMarkersInfo
+/** @type {object[]} */
+var restMarkersInfo
 
 /** @type {Promise<{
     colliderObjects: Array<[object: any, component: any]>,
@@ -180,56 +182,72 @@ const objectsProcessedP = objectsLoadedP.then(objects => {
     const regularMarkers = []
     /** @type {MarkerInfo[]} */
     const specialMarkers = []
+    /** @type {object[]} */
+    const restMarkers = []
 
-    /** @type {[baseSteps: number, funcI: number][]} */
+    /** @type {[baseSteps: number, funcI: number, priority: number][]} */
     const schemaDisplayFuncI = Array(meta.schemas.length)
     for(let i = 0; i < meta.schemas.length; i++) {
         let added = false
+        let si = 0
         for(const schemaI in displayFuncs) {
             const s = stepsToBase(i, schemaI)
-            if(s == null) continue
-            schemaDisplayFuncI[i] = [s, parseInt(schemaI)]
-            added = true
-            break
+            if(s != null) {
+                schemaDisplayFuncI[i] = [s, parseInt(schemaI), si]
+                added = true
+                break
+            }
+            si++
         }
         if(!added) {
             const s = stepsToBase(i, ti.Transition)
             if(s != null) {
-                schemaDisplayFuncI[i] = [s, -1]
+                schemaDisplayFuncI[i] = [s, -1, si]
             }
         }
     }
 
     const s = performance.now()
-    for(var i = 0; i < objects.length; i++) {
-        var obj = objects[i]
-        var cs = obj.components
+    for(let i = 0; i < objects.length; i++) {
+        const obj = objects[i]
+        const cs = obj.components
 
-        for(var j = 0; j < cs.length; j++) {
-            var comp = cs[j]
+        let minPriority = Infinity
+        let minInfo = null
+        for(let j = 0; j < cs.length; j++) {
+            let comp = cs[j]
 
             const info = schemaDisplayFuncI[comp._schema]
-            if(info != null) {
-                const [steps, funcI] = info
-                const it = getBase(comp, steps)
-                if(funcI == -1) {
-                    specialMarkers.push({ object: obj, component: it })
-                }
-                else {
-                    obj._markerI = regularMarkers.length
-                    obj._markerType = 0
-                    regularMarkers.push({ object: obj, component: it })
-                    const r = displayFuncs[funcI](it, comp)
-                    regularDisplays.push([r[0], obj.pos[0], obj.pos[1], r[1] ?? 1])
-                }
+            if(info != null && info[2] < minPriority) {
+                minInfo = { info, comp }
+                minPriority = info[2]
             }
 
-            var coll = getAsSchema(comp, ti.Collider2D)
+            const coll = getAsSchema(comp, ti.Collider2D)
             if(coll != null) {
                 if(coll._schema !== ti.TilemapCollider2D) {
                     colliderObjects.push([obj, comp])
                 }
             }
+        }
+
+        if(minInfo != null) {
+            const [steps, funcI] = minInfo.info
+            const comp = minInfo.comp
+            const it = getBase(comp, steps)
+            if(funcI == -1) {
+                specialMarkers.push({ object: obj, component: it })
+            }
+            else {
+                obj._markerI = regularMarkers.length
+                obj._markerType = 0
+                regularMarkers.push({ object: obj, component: it })
+                const r = displayFuncs[funcI](it, comp)
+                regularDisplays.push([r[0], obj.pos[0], obj.pos[1], r[1] ?? 1])
+            }
+        }
+        else {
+            restMarkers.push(obj)
         }
     }
     const e = performance.now()
@@ -244,6 +262,8 @@ const objectsProcessedP = objectsLoadedP.then(objects => {
         s.object._markerType = 1
         allMarkersInfo.push(s)
     }
+
+    restMarkersInfo = restMarkers
 
     return { colliderObjects, regularDisplays }
 }).catch(e => {
@@ -297,12 +317,22 @@ objectsProcessedP.then(({ regularDisplays }) => {
         sdv.setFloat32(i * 8 + 4, mi.object.pos[1], true)
     }
 
+    const restC = restMarkersInfo.length
+    const restMarkersB = new ArrayBuffer(restC * 8)
+    const rdv = new DataView(restMarkersB)
+    for(let i = 0; i < restC; i++) {
+        const mi = restMarkersInfo[i]
+        rdv.setFloat32(i * 8    , mi.pos[0], true)
+        rdv.setFloat32(i * 8 + 4, mi.pos[1], true)
+    }
+
     message({
         type: 'markers-done',
         markersData: markerDataB,
         markers: markersB,
         specialMarkers: specialMarkersB,
-    }, [markerDataB, markersB, specialMarkersB])
+        restMarkers: restMarkersB
+    }, [markerDataB, markersB, specialMarkersB, restMarkersB])
 }).catch(e => {
     console.error('error processing markers', e)
 })
@@ -562,9 +592,10 @@ function onClick(x, y) {
     lastX = null
     lastY = null
 
-    const closest = Array(5)
+    /** @type {Array<[distance: number, object: object | null]>} */
+    const closest = Array(20)
     for(let i = 0; i < closest.length; i++) {
-        closest[i] = [1/0, -1]
+        closest[i] = [1/0, null]
     }
 
     for(let i = 0; i < filteredMarkersIndices.length; i++) {
@@ -580,8 +611,27 @@ function onClick(x, y) {
 
         if(insertI < closest.length) {
             closest.pop()
-            closest.splice(insertI, 0, [sqDist, index])
+            closest.splice(insertI, 0, [sqDist, obj])
         }
+    }
+
+    if(filteredMarkersIndices.includeRest) {
+        for(let i = 0; i < restMarkersInfo.length; i++) {
+            const obj = restMarkersInfo[i]
+            const pos = obj.pos
+            const dx = pos[0] - x
+            const dy = pos[1] - y
+            const sqDist = dx*dx + dy*dy
+
+            var insertI = 0
+            while(insertI < closest.length && closest[insertI][0] < sqDist) insertI++
+
+            if(insertI < closest.length) {
+                closest.pop()
+                closest.splice(insertI, 0, [sqDist, obj])
+            }
+        }
+
     }
 
     let endI = 0
@@ -590,7 +640,7 @@ function onClick(x, y) {
 
     if(closest.length !== 0) {
         const c = closest[0]
-        const obj = allMarkersInfo[c[1]].object
+        const obj = c[1]
         const first = serializeObject(obj)
 
         const nearby = Array(closest.length - 1)
@@ -598,9 +648,9 @@ function onClick(x, y) {
         for(let i = 1; i < closest.length; i++) {
             const c = closest[i]
             nearby.push({
-                name: allMarkersInfo[c[1]].object.name,
+                name: c[1].name,
                 distance: Math.sqrt(c[0]),
-                index: c[1],
+                index: c[1]._index,
             })
         }
 
@@ -651,5 +701,6 @@ function calcMarkerFilters(filters) {
     message({ type: 'marker-filters', markersIndices: filteredIndices });
 
     filteredMarkersIndices = filteredIndices
+    filteredMarkersIndices.includeRest = filters.includeRest
     checkOnClick()
 }
