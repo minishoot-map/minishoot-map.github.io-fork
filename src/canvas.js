@@ -43,8 +43,8 @@ function clampScale(scale, old) {
 
 function prepInfo(bounds, camera) {
     return {
-        cx: bounds.width * 0.5,
-        cy: bounds.height * 0.5,
+        cx: bounds.left + bounds.width * 0.5,
+        cy: bounds.top + bounds.height * 0.5,
         posX: camera.posX,
         posY: camera.posY,
         scale: camera.scale * 2 / bounds.height,
