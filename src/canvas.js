@@ -13,10 +13,11 @@ function shouldResize(c) {
 
 export function resize(context) {
     const resizeInfo = shouldResize(context)
+
+    context.resizeData.prevCanvasSize[0] = context.canvasSize[0]
+    context.resizeData.prevCanvasSize[1] = context.canvasSize[1]
     if(resizeInfo) {
         if(resizeInfo[0] >= 1 && resizeInfo[1] >= 1) {
-            context.resizeData.prevCanvasSize[0] = context.canvasSize[0]
-            context.resizeData.prevCanvasSize[1] = context.canvasSize[1]
             context.canvas.width = resizeInfo[0]
             context.canvas.height = resizeInfo[1]
             context.gl.viewport(0, 0, resizeInfo[0], resizeInfo[1])
