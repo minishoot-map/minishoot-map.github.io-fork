@@ -101,8 +101,11 @@ export default defineConfig(({ command, mode, isSsrBuild, isPreview }) => {
     delete defines.__use_default_in_builds
     for(const k in defines) finalDefines['__' + k] = JSON.stringify(defines[k])
 
+    const gh = process?.env?.MY_GITHUB_PAGES
+
     return {
         root: './src',
+        base: gh != null ? gh : '/',
         build: {
             outDir: '../dist',
             emptyOutDir: true,
