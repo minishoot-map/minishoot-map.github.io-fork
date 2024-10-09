@@ -31,10 +31,12 @@ if(__worker) {
             console.log('in', endd - startt)
             console.log(JSON.parse(JSON.stringify(d)))
             sideMenu.setCurrentObject({ first: d.first, nearby: d.nearby })
+            updUrl(d.first)
         }
         else if(d.type === 'getInfo') {
             console.log(JSON.parse(JSON.stringify(d)))
             sideMenu.setCurrentObject({ first: d.object })
+            updUrl(d.object)
         }
         else if(d.type === 'colliders-done') {
             const it = {
@@ -339,7 +341,7 @@ const context = {
     canvas, gl,
     renderRequest: null,
     requestRender,
-    camera: { posX: 0, posY: 0, scale: 1000 },
+    camera: { posX: 0, posY: 0, scale: 10 },
     canvasSize: [],
     filters,
     lastFilters: {},
@@ -401,3 +403,31 @@ layout(std140) uniform Camera {
 
 try { sendFiltersUpdate(context) }
 catch(e) { console.error(e) }
+
+try {
+    const url = new URL(window.location.href)
+    const posx = parseFloat(url.searchParams.get('posx'))
+    const posy = parseFloat(url.searchParams.get('posy'))
+    if(isFinite(posx) && isFinite(posy)) {
+        context.camera.posX = posx
+        context.camera.posY = posy
+        context.requestRender(1)
+    }
+}
+catch(e) {
+    console.error(e)
+}
+
+function updUrl(obj) {
+    const posx = obj.pos[0]
+    const posy = obj.pos[1]
+
+    const url = new URL(window.location.href)
+    const prevPosx = parseFloat(url.searchParams.get('posx'))
+    const prevPosy = parseFloat(url.searchParams.get('posy'))
+    if(isFinite(posx) && isFinite(posy) && (posx != prevPosx || posy != prevPosy)) {
+        url.searchParams.set('posx', posx)
+        url.searchParams.set('posy', posy)
+        window.history.pushState({}, '', url)
+    }
+}
