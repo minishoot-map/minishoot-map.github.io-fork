@@ -266,11 +266,7 @@ function componentInfo(comp, obj) {
 }
 
 function shouldDisplay(comp) {
-    if(comp == null) return false
-    if(comp._schema === ti.Component) return false
-    if(comp._schema === ti.MonoBehaviour) return false
-    if(comp._schema === ti.MiniBehaviour) return false
-    return true
+    return comp != null;
 }
 
 function Component({ comp, obj }) {
