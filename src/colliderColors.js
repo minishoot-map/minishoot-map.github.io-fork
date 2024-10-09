@@ -5,7 +5,7 @@ const colliderColors = {
     12: "f9000060", // enemy
     13: "f9000060", // enemy
     14: "c14a0340", // wall
-    16: "02002040", // hole
+    16: "ffffff20", // hole
     17: "ff00ff20", // trigger?
     23: "11656380", // static
     25: "4f3c0160", // bridge
