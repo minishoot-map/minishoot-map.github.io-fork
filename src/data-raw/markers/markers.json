@@ -2,8 +2,8 @@
   "frames": {
     "Dungeon5 167 Boss4 T3 S3.png": {
       "frame": {
-        "x": 2,
-        "y": 2,
+        "x": 4,
+        "y": 4,
         "w": 1660,
         "h": 1575
       },
@@ -18,54 +18,6 @@
       "sourceSize": {
         "w": 1660,
         "h": 1575
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Dungeon2 209 Boss2 T1 S3.png": {
-      "frame": {
-        "x": 2,
-        "y": 1581,
-        "w": 640,
-        "h": 727
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 640,
-        "h": 727
-      },
-      "sourceSize": {
-        "w": 640,
-        "h": 727
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 249 JunkerT3 S2.png": {
-      "frame": {
-        "x": 1666,
-        "y": 2,
-        "w": 350,
-        "h": 378
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 350,
-        "h": 378
-      },
-      "sourceSize": {
-        "w": 350,
-        "h": 378
       },
       "pivot": {
         "x": 0.5,
@@ -74,8 +26,8 @@
     },
     "Overworld 410 Miniboss Busher T1 S3.png": {
       "frame": {
-        "x": 2,
-        "y": 2312,
+        "x": 4,
+        "y": 1587,
         "w": 627,
         "h": 505
       },
@@ -90,54 +42,6 @@
       "sourceSize": {
         "w": 627,
         "h": 505
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Dungeon3 085 Boss3 T3 S3.png": {
-      "frame": {
-        "x": 646,
-        "y": 1581,
-        "w": 591,
-        "h": 385
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 591,
-        "h": 385
-      },
-      "sourceSize": {
-        "w": 591,
-        "h": 385
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 170 JarrerT2 S3.png": {
-      "frame": {
-        "x": 1666,
-        "y": 384,
-        "w": 321,
-        "h": 322
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 321,
-        "h": 322
-      },
-      "sourceSize": {
-        "w": 321,
-        "h": 322
       },
       "pivot": {
         "x": 0.5,
@@ -146,8 +50,8 @@
     },
     "Dungeon5 068 ShooterT3 S3 Giant.png": {
       "frame": {
-        "x": 2,
-        "y": 2821,
+        "x": 639,
+        "y": 1587,
         "w": 402,
         "h": 483
       },
@@ -168,2064 +72,24 @@
         "y": 0.5
       }
     },
-    "Overworld 414 Miniboss Sheller T3 S3.png": {
+    "Dungeon3 085 Boss3 T3 S3.png": {
       "frame": {
-        "x": 633,
-        "y": 2312,
-        "w": 439,
-        "h": 319
+        "x": 1049,
+        "y": 1587,
+        "w": 591,
+        "h": 385
       },
       "rotated": false,
       "trimmed": false,
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 439,
-        "h": 319
+        "w": 591,
+        "h": 385
       },
       "sourceSize": {
-        "w": 439,
-        "h": 319
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Temple1 075 Miniboss ScarabA T1 S3.png": {
-      "frame": {
-        "x": 1241,
-        "y": 1581,
-        "w": 436,
-        "h": 363
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 436,
-        "h": 363
-      },
-      "sourceSize": {
-        "w": 436,
-        "h": 363
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Dungeon5 066 Miniboss Darker T3 S3.png": {
-      "frame": {
-        "x": 1991,
-        "y": 384,
-        "w": 46,
-        "h": 47
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 46,
-        "h": 47
-      },
-      "sourceSize": {
-        "w": 46,
-        "h": 47
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "CaveArena 349 SquiderT2 S3.png": {
-      "frame": {
-        "x": 2,
-        "y": 3308,
-        "w": 209,
-        "h": 360
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 209,
-        "h": 360
-      },
-      "sourceSize": {
-        "w": 209,
-        "h": 360
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Cave 328 Miniboss Blober T3 S3.png": {
-      "frame": {
-        "x": 408,
-        "y": 2821,
-        "w": 417,
-        "h": 344
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 417,
-        "h": 344
-      },
-      "sourceSize": {
-        "w": 417,
-        "h": 344
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 067 CrosserT2 S3 Gamma.png": {
-      "frame": {
-        "x": 646,
-        "y": 1970,
-        "w": 300,
-        "h": 312
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 300,
-        "h": 312
-      },
-      "sourceSize": {
-        "w": 300,
-        "h": 312
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Dungeon3 005 FisherT3 S3.png": {
-      "frame": {
-        "x": 1076,
-        "y": 1970,
-        "w": 319,
-        "h": 273
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 319,
-        "h": 273
-      },
-      "sourceSize": {
-        "w": 319,
-        "h": 273
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Dungeon3 107 FisherT2 S3.png": {
-      "frame": {
-        "x": 1666,
-        "y": 710,
-        "w": 319,
-        "h": 273
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 319,
-        "h": 273
-      },
-      "sourceSize": {
-        "w": 319,
-        "h": 273
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "CaveArena 044 PiercerT3 S3.png": {
-      "frame": {
-        "x": 2,
-        "y": 3672,
-        "w": 294,
-        "h": 308
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 294,
-        "h": 308
-      },
-      "sourceSize": {
-        "w": 294,
-        "h": 308
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Dungeon1 055 PiercerT1 S3.png": {
-      "frame": {
-        "x": 408,
-        "y": 3169,
-        "w": 294,
-        "h": 308
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 294,
-        "h": 308
-      },
-      "sourceSize": {
-        "w": 294,
-        "h": 308
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Cave 218 PiercerT1 S2.png": {
-      "frame": {
-        "x": 633,
-        "y": 2635,
-        "w": 170,
-        "h": 177
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 170,
-        "h": 177
-      },
-      "sourceSize": {
-        "w": 170,
-        "h": 177
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 034 SneakerT2 S3.png": {
-      "frame": {
-        "x": 829,
-        "y": 2635,
-        "w": 318,
-        "h": 291
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 318,
-        "h": 291
-      },
-      "sourceSize": {
-        "w": 318,
-        "h": 291
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 268 SneakerT1 S3.png": {
-      "frame": {
-        "x": 1399,
-        "y": 1948,
-        "w": 316,
-        "h": 291
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 316,
-        "h": 291
-      },
-      "sourceSize": {
-        "w": 316,
-        "h": 291
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Dungeon1 092 Boss1 T1 S3.png": {
-      "frame": {
-        "x": 950,
-        "y": 1970,
-        "w": 116,
-        "h": 119
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 116,
-        "h": 119
-      },
-      "sourceSize": {
-        "w": 116,
-        "h": 119
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 361 DodgerT2 S3.png": {
-      "frame": {
-        "x": 1666,
-        "y": 987,
-        "w": 294,
-        "h": 292
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 294,
-        "h": 292
-      },
-      "sourceSize": {
-        "w": 294,
-        "h": 292
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Dungeon3 041 SquiderT3 S2.png": {
-      "frame": {
-        "x": 2,
-        "y": 3984,
-        "w": 124,
-        "h": 202
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 124,
-        "h": 202
-      },
-      "sourceSize": {
-        "w": 124,
-        "h": 202
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 378 PiercerT2 S3.png": {
-      "frame": {
-        "x": 706,
-        "y": 3169,
-        "w": 294,
-        "h": 308
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 294,
-        "h": 308
-      },
-      "sourceSize": {
-        "w": 294,
-        "h": 308
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "CaveArena 415 PiercerT3 S2.png": {
-      "frame": {
-        "x": 215,
-        "y": 3481,
-        "w": 170,
-        "h": 177
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 170,
-        "h": 177
-      },
-      "sourceSize": {
-        "w": 170,
-        "h": 177
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Cave 199 FighterT1 S3.png": {
-      "frame": {
-        "x": 1076,
-        "y": 2247,
-        "w": 287,
-        "h": 307
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 287,
-        "h": 307
-      },
-      "sourceSize": {
-        "w": 287,
-        "h": 307
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 637 DodgerT1 S3.png": {
-      "frame": {
-        "x": 1399,
-        "y": 2243,
-        "w": 294,
-        "h": 292
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 294,
-        "h": 292
-      },
-      "sourceSize": {
-        "w": 294,
-        "h": 292
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 322 PiercerT1 S1.png": {
-      "frame": {
-        "x": 950,
-        "y": 2093,
-        "w": 110,
-        "h": 111
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 110,
-        "h": 111
-      },
-      "sourceSize": {
-        "w": 110,
-        "h": 111
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 281 StrollerT1 S3.png": {
-      "frame": {
-        "x": 1666,
-        "y": 1283,
-        "w": 284,
-        "h": 275
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 284,
-        "h": 275
-      },
-      "sourceSize": {
-        "w": 284,
-        "h": 275
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 025 CreeperT2 S1 Crazy.png": {
-      "frame": {
-        "x": 1964,
-        "y": 987,
-        "w": 74,
-        "h": 82
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 74,
-        "h": 82
-      },
-      "sourceSize": {
-        "w": 74,
-        "h": 82
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 389 Frogger T3 S3.png": {
-      "frame": {
-        "x": 829,
-        "y": 2930,
-        "w": 278,
-        "h": 227
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 278,
-        "h": 227
-      },
-      "sourceSize": {
-        "w": 278,
-        "h": 227
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 089 SquiderT1 S2.png": {
-      "frame": {
-        "x": 130,
-        "y": 3984,
-        "w": 124,
-        "h": 202
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 124,
-        "h": 202
-      },
-      "sourceSize": {
-        "w": 124,
-        "h": 202
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Dungeon5 126 FighterT3 S2.png": {
-      "frame": {
-        "x": 215,
-        "y": 3308,
-        "w": 150,
-        "h": 163
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 150,
-        "h": 163
-      },
-      "sourceSize": {
-        "w": 150,
-        "h": 163
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Cave 304 FighterT3 S3.png": {
-      "frame": {
-        "x": 300,
-        "y": 3662,
-        "w": 287,
-        "h": 307
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 287,
-        "h": 307
-      },
-      "sourceSize": {
-        "w": 287,
-        "h": 307
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 179 BusherT1 S2.png": {
-      "frame": {
-        "x": 1076,
-        "y": 2558,
-        "w": 109,
-        "h": 69
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 109,
-        "h": 69
-      },
-      "sourceSize": {
-        "w": 109,
-        "h": 69
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "CaveArena 057 FighterT2 S3.png": {
-      "frame": {
-        "x": 1697,
-        "y": 2243,
-        "w": 287,
-        "h": 307
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 287,
-        "h": 307
-      },
-      "sourceSize": {
-        "w": 287,
-        "h": 307
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 000 StrollerT1 S1.png": {
-      "frame": {
-        "x": 950,
-        "y": 2208,
-        "w": 95,
-        "h": 99
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 95,
-        "h": 99
-      },
-      "sourceSize": {
-        "w": 95,
-        "h": 99
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 290 StrollerT2 S3.png": {
-      "frame": {
-        "x": 1681,
-        "y": 1562,
-        "w": 284,
-        "h": 275
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 284,
-        "h": 275
-      },
-      "sourceSize": {
-        "w": 284,
-        "h": 275
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Tower 194 StrollerT3 S3.png": {
-      "frame": {
-        "x": 1004,
-        "y": 3161,
-        "w": 284,
-        "h": 275
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 284,
-        "h": 275
-      },
-      "sourceSize": {
-        "w": 284,
-        "h": 275
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 160 JarrerT2 S2.png": {
-      "frame": {
-        "x": 300,
-        "y": 3973,
-        "w": 214,
-        "h": 215
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 214,
-        "h": 215
-      },
-      "sourceSize": {
-        "w": 214,
-        "h": 215
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 366 PiercerT2 S2.png": {
-      "frame": {
-        "x": 389,
-        "y": 3481,
-        "w": 170,
-        "h": 177
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 170,
-        "h": 177
-      },
-      "sourceSize": {
-        "w": 170,
-        "h": 177
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 031 CreeperT2 S3 Crazy.png": {
-      "frame": {
-        "x": 591,
-        "y": 3481,
-        "w": 242,
-        "h": 273
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 242,
-        "h": 273
-      },
-      "sourceSize": {
-        "w": 242,
-        "h": 273
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Tower 112 Frogger T1 S3.png": {
-      "frame": {
-        "x": 1367,
-        "y": 2554,
-        "w": 279,
-        "h": 227
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 279,
-        "h": 227
-      },
-      "sourceSize": {
-        "w": 279,
-        "h": 227
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 075 TimberT2 S3.png": {
-      "frame": {
-        "x": 1681,
-        "y": 1841,
-        "w": 158,
-        "h": 100
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 158,
-        "h": 100
-      },
-      "sourceSize": {
-        "w": 158,
-        "h": 100
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Cave 367 DodgerT3 S1.png": {
-      "frame": {
-        "x": 1954,
-        "y": 1283,
-        "w": 92,
-        "h": 95
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 92,
-        "h": 95
-      },
-      "sourceSize": {
-        "w": 92,
-        "h": 95
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 257 CreeperT3 S3 Giant.png": {
-      "frame": {
-        "x": 1004,
-        "y": 3440,
-        "w": 242,
-        "h": 273
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 242,
-        "h": 273
-      },
-      "sourceSize": {
-        "w": 242,
-        "h": 273
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 269 SquiderT2 S2.png": {
-      "frame": {
-        "x": 1111,
-        "y": 2930,
-        "w": 124,
-        "h": 202
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 124,
-        "h": 202
-      },
-      "sourceSize": {
-        "w": 124,
-        "h": 202
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Dungeon2 126 BouncerT2 S3.png": {
-      "frame": {
-        "x": 518,
-        "y": 3973,
-        "w": 251,
-        "h": 193
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 251,
-        "h": 193
-      },
-      "sourceSize": {
-        "w": 251,
-        "h": 193
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 312 CreeperT1 S3.png": {
-      "frame": {
-        "x": 1650,
-        "y": 2554,
-        "w": 242,
-        "h": 273
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 242,
-        "h": 273
-      },
-      "sourceSize": {
-        "w": 242,
-        "h": 273
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 076 ShooterT2 S3.png": {
-      "frame": {
-        "x": 1719,
-        "y": 1945,
-        "w": 202,
-        "h": 244
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 202,
-        "h": 244
-      },
-      "sourceSize": {
-        "w": 202,
-        "h": 244
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 065 DodgerT2 S1.png": {
-      "frame": {
-        "x": 1954,
-        "y": 1382,
-        "w": 92,
-        "h": 95
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 92,
-        "h": 95
-      },
-      "sourceSize": {
-        "w": 92,
-        "h": 95
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 045 CreeperT1 S1.png": {
-      "frame": {
-        "x": 1964,
-        "y": 1073,
-        "w": 74,
-        "h": 82
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 74,
-        "h": 82
-      },
-      "sourceSize": {
-        "w": 74,
-        "h": 82
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 093 ShooterT1 S3.png": {
-      "frame": {
-        "x": 1250,
-        "y": 3440,
-        "w": 202,
-        "h": 244
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 202,
-        "h": 244
-      },
-      "sourceSize": {
-        "w": 202,
-        "h": 244
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 221 ShooterT3 S3.png": {
-      "frame": {
-        "x": 837,
-        "y": 3717,
-        "w": 202,
-        "h": 244
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 202,
-        "h": 244
-      },
-      "sourceSize": {
-        "w": 202,
-        "h": 244
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "OverworldDestroyable422.png": {
-      "frame": {
-        "x": 1151,
-        "y": 2631,
-        "w": 195,
-        "h": 121
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 195,
-        "h": 121
-      },
-      "sourceSize": {
-        "w": 195,
-        "h": 121
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 124 FighterT1 S2.png": {
-      "frame": {
-        "x": 1896,
-        "y": 2554,
-        "w": 150,
-        "h": 163
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 150,
-        "h": 163
-      },
-      "sourceSize": {
-        "w": 150,
-        "h": 163
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 350 DodgerT1 S1.png": {
-      "frame": {
-        "x": 1151,
-        "y": 2831,
-        "w": 92,
-        "h": 95
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 92,
-        "h": 95
-      },
-      "sourceSize": {
-        "w": 92,
-        "h": 95
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 434 StrollerT2 S1.png": {
-      "frame": {
-        "x": 1843,
-        "y": 1841,
-        "w": 95,
-        "h": 99
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 95,
-        "h": 99
-      },
-      "sourceSize": {
-        "w": 95,
-        "h": 99
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 077 SquiderT1 S1.png": {
-      "frame": {
-        "x": 1969,
-        "y": 1481,
-        "w": 74,
-        "h": 104
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 74,
-        "h": 104
-      },
-      "sourceSize": {
-        "w": 74,
-        "h": 104
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 090 SquiderT2 S1.png": {
-      "frame": {
-        "x": 1964,
-        "y": 1159,
-        "w": 74,
-        "h": 104
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 74,
-        "h": 104
-      },
-      "sourceSize": {
-        "w": 74,
-        "h": 104
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "OverworldDestroyable111.png": {
-      "frame": {
-        "x": 1250,
-        "y": 3688,
-        "w": 181,
-        "h": 176
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 181,
-        "h": 176
-      },
-      "sourceSize": {
-        "w": 181,
-        "h": 176
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "OverworldDestroyable86.png": {
-      "frame": {
-        "x": 1292,
-        "y": 2831,
-        "w": 181,
-        "h": 176
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 181,
-        "h": 176
-      },
-      "sourceSize": {
-        "w": 181,
-        "h": 176
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Dungeon2 166 CrosserT2 S2 Gamma.png": {
-      "frame": {
-        "x": 837,
-        "y": 3481,
-        "w": 152,
-        "h": 155
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 152,
-        "h": 155
-      },
-      "sourceSize": {
-        "w": 152,
-        "h": 155
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 035 SneakerT2 S2.png": {
-      "frame": {
-        "x": 591,
-        "y": 3758,
-        "w": 180,
-        "h": 163
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 180,
-        "h": 163
-      },
-      "sourceSize": {
-        "w": 180,
-        "h": 163
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 242 SpitterT3 S3.png": {
-      "frame": {
-        "x": 773,
-        "y": 3965,
-        "w": 179,
-        "h": 163
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 179,
-        "h": 163
-      },
-      "sourceSize": {
-        "w": 179,
-        "h": 163
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 475 FighterT2 S2.png": {
-      "frame": {
-        "x": 1896,
-        "y": 2721,
-        "w": 150,
-        "h": 163
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 150,
-        "h": 163
-      },
-      "sourceSize": {
-        "w": 150,
-        "h": 163
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Dungeon2 097 BouncerT1 S1.png": {
-      "frame": {
-        "x": 1189,
-        "y": 2558,
-        "w": 96,
-        "h": 64
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 96,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 96,
-        "h": 64
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Dungeon2 107 BouncerT2 S1.png": {
-      "frame": {
-        "x": 1151,
-        "y": 2756,
-        "w": 96,
-        "h": 64
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 96,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 96,
-        "h": 64
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 364 PiercerT2 S1.png": {
-      "frame": {
-        "x": 1925,
-        "y": 1944,
-        "w": 110,
-        "h": 111
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 110,
-        "h": 111
-      },
-      "sourceSize": {
-        "w": 110,
-        "h": 111
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Temple1 024 SneakerT1 S2.png": {
-      "frame": {
-        "x": 1435,
-        "y": 3688,
-        "w": 178,
-        "h": 163
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 178,
-        "h": 163
-      },
-      "sourceSize": {
-        "w": 178,
-        "h": 163
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Cave 373 DodgerT3 S2.png": {
-      "frame": {
-        "x": 1043,
-        "y": 3868,
-        "w": 167,
-        "h": 159
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 167,
-        "h": 159
-      },
-      "sourceSize": {
-        "w": 167,
-        "h": 159
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 064 DodgerT1 S2.png": {
-      "frame": {
-        "x": 1292,
-        "y": 3011,
-        "w": 167,
-        "h": 159
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 167,
-        "h": 159
-      },
-      "sourceSize": {
-        "w": 167,
-        "h": 159
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 617 PiercerT3 S1.png": {
-      "frame": {
-        "x": 1925,
-        "y": 2059,
-        "w": 110,
-        "h": 111
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 110,
-        "h": 111
-      },
-      "sourceSize": {
-        "w": 110,
-        "h": 111
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 612 StrollerT3 S1.png": {
-      "frame": {
-        "x": 1942,
-        "y": 1841,
-        "w": 95,
-        "h": 99
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 95,
-        "h": 99
-      },
-      "sourceSize": {
-        "w": 95,
-        "h": 99
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 068 ShooterT2 S2.png": {
-      "frame": {
-        "x": 1435,
-        "y": 3855,
-        "w": 126,
-        "h": 159
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 126,
-        "h": 159
-      },
-      "sourceSize": {
-        "w": 126,
-        "h": 159
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Temple1 057 DodgerT2 S2.png": {
-      "frame": {
-        "x": 1477,
-        "y": 2785,
-        "w": 167,
-        "h": 159
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 167,
-        "h": 159
-      },
-      "sourceSize": {
-        "w": 167,
-        "h": 159
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Cave 047 CreeperT1 S2.png": {
-      "frame": {
-        "x": 1043,
-        "y": 3717,
-        "w": 130,
-        "h": 147
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 130,
-        "h": 147
-      },
-      "sourceSize": {
-        "w": 130,
-        "h": 147
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 073 ShooterT1 S2 Solid.png": {
-      "frame": {
-        "x": 956,
-        "y": 4031,
-        "w": 126,
-        "h": 159
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 126,
-        "h": 159
-      },
-      "sourceSize": {
-        "w": 126,
-        "h": 159
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 081 ShooterT1 S2.png": {
-      "frame": {
-        "x": 1292,
-        "y": 3174,
-        "w": 126,
-        "h": 159
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 126,
-        "h": 159
-      },
-      "sourceSize": {
-        "w": 126,
-        "h": 159
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 411 ShooterT3 S2.png": {
-      "frame": {
-        "x": 1456,
-        "y": 3174,
-        "w": 126,
-        "h": 159
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 126,
-        "h": 159
-      },
-      "sourceSize": {
-        "w": 126,
-        "h": 159
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 270 SquiderT3 S1.png": {
-      "frame": {
-        "x": 1969,
-        "y": 1589,
-        "w": 74,
-        "h": 104
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 74,
-        "h": 104
-      },
-      "sourceSize": {
-        "w": 74,
-        "h": 104
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 044 CrosserT1 S2 Solid.png": {
-      "frame": {
-        "x": 1565,
-        "y": 3855,
-        "w": 152,
-        "h": 155
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 152,
-        "h": 155
-      },
-      "sourceSize": {
-        "w": 152,
-        "h": 155
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 280 CrosserT1 S2 Gamma.png": {
-      "frame": {
-        "x": 1214,
-        "y": 4018,
-        "w": 152,
-        "h": 155
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 152,
-        "h": 155
-      },
-      "sourceSize": {
-        "w": 152,
-        "h": 155
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "CaveArena 452 BossTrueLastHardcore T3 S3.png": {
-      "frame": {
-        "x": 1292,
-        "y": 3337,
-        "w": 128,
-        "h": 96
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 128,
-        "h": 96
-      },
-      "sourceSize": {
-        "w": 128,
-        "h": 96
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 665 CrosserT3 S2 Gamma.png": {
-      "frame": {
-        "x": 1456,
-        "y": 3337,
-        "w": 152,
-        "h": 155
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 152,
-        "h": 155
-      },
-      "sourceSize": {
-        "w": 152,
-        "h": 155
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Dungeon3 062 FisherT3 S2.png": {
-      "frame": {
-        "x": 1463,
-        "y": 3011,
-        "w": 179,
-        "h": 148
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 179,
-        "h": 148
-      },
-      "sourceSize": {
-        "w": 179,
-        "h": 148
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Dungeon3 112 FisherT2 S2.png": {
-      "frame": {
-        "x": 1565,
-        "y": 4014,
-        "w": 179,
-        "h": 148
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 179,
-        "h": 148
-      },
-      "sourceSize": {
-        "w": 179,
-        "h": 148
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 504 FisherT1 S2.png": {
-      "frame": {
-        "x": 1648,
-        "y": 2888,
-        "w": 179,
-        "h": 148
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 179,
-        "h": 148
-      },
-      "sourceSize": {
-        "w": 179,
-        "h": 148
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 635 BloberT3 S2 Crazy.png": {
-      "frame": {
-        "x": 1214,
-        "y": 3868,
-        "w": 170,
-        "h": 140
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 170,
-        "h": 140
-      },
-      "sourceSize": {
-        "w": 170,
-        "h": 140
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 161 JarrerT2 S1.png": {
-      "frame": {
-        "x": 1086,
-        "y": 4031,
-        "w": 109,
-        "h": 110
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 109,
-        "h": 110
-      },
-      "sourceSize": {
-        "w": 109,
-        "h": 110
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 303 CreeperT2 S2.png": {
-      "frame": {
-        "x": 1456,
-        "y": 3496,
-        "w": 130,
-        "h": 147
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 130,
-        "h": 147
-      },
-      "sourceSize": {
-        "w": 130,
-        "h": 147
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Dungeon2 112 BouncerT2 S2.png": {
-      "frame": {
-        "x": 1617,
-        "y": 3163,
-        "w": 142,
-        "h": 107
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 142,
-        "h": 107
-      },
-      "sourceSize": {
-        "w": 142,
-        "h": 107
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 337 StrollerT2 S2.png": {
-      "frame": {
-        "x": 1370,
-        "y": 4018,
-        "w": 140,
-        "h": 147
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 140,
-        "h": 147
-      },
-      "sourceSize": {
-        "w": 140,
-        "h": 147
+        "w": 591,
+        "h": 385
       },
       "pivot": {
         "x": 0.5,
@@ -2234,8 +98,8 @@
     },
     "Overworld 140 Frogger T3 S2.png": {
       "frame": {
-        "x": 1831,
-        "y": 2888,
+        "x": 1049,
+        "y": 1980,
         "w": 142,
         "h": 116
       },
@@ -2250,30 +114,6 @@
       "sourceSize": {
         "w": 142,
         "h": 116
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 424 StrollerT1 S2.png": {
-      "frame": {
-        "x": 1590,
-        "y": 3496,
-        "w": 140,
-        "h": 147
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 140,
-        "h": 147
-      },
-      "sourceSize": {
-        "w": 140,
-        "h": 147
       },
       "pivot": {
         "x": 0.5,
@@ -2282,8 +122,8 @@
     },
     "Overworld 134 Frogger T1 S2.png": {
       "frame": {
-        "x": 1646,
-        "y": 3040,
+        "x": 1199,
+        "y": 1980,
         "w": 141,
         "h": 115
       },
@@ -2306,8 +146,8 @@
     },
     "Overworld 135 Frogger T2 S2.png": {
       "frame": {
-        "x": 1748,
-        "y": 3274,
+        "x": 1348,
+        "y": 1980,
         "w": 141,
         "h": 115
       },
@@ -2328,58 +168,298 @@
         "y": 0.5
       }
     },
-    "Overworld 611 StrollerT3 S2.png": {
+    "Overworld 322 PiercerT1 S1.png": {
       "frame": {
-        "x": 1617,
-        "y": 3647,
-        "w": 140,
-        "h": 147
+        "x": 1497,
+        "y": 1980,
+        "w": 110,
+        "h": 111
       },
       "rotated": false,
       "trimmed": false,
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 140,
-        "h": 147
+        "w": 110,
+        "h": 111
       },
       "sourceSize": {
-        "w": 140,
-        "h": 147
+        "w": 110,
+        "h": 111
       },
       "pivot": {
         "x": 0.5,
         "y": 0.5
       }
     },
-    "Overworld 684 CreeperT3 S3.png": {
+    "Overworld 364 PiercerT2 S1.png": {
       "frame": {
-        "x": 1831,
-        "y": 3008,
-        "w": 130,
-        "h": 147
+        "x": 1615,
+        "y": 1980,
+        "w": 110,
+        "h": 111
       },
       "rotated": false,
       "trimmed": false,
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 130,
-        "h": 147
+        "w": 110,
+        "h": 111
       },
       "sourceSize": {
-        "w": 130,
-        "h": 147
+        "w": 110,
+        "h": 111
       },
       "pivot": {
         "x": 0.5,
         "y": 0.5
       }
     },
-    "Snow 003 BossTrueLast T3 S3.png": {
+    "Overworld 617 PiercerT3 S1.png": {
       "frame": {
-        "x": 1612,
-        "y": 3393,
+        "x": 1733,
+        "y": 1980,
+        "w": 110,
+        "h": 111
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 110,
+        "h": 111
+      },
+      "sourceSize": {
+        "w": 110,
+        "h": 111
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 249 JunkerT3 S2.png": {
+      "frame": {
+        "x": 1648,
+        "y": 1587,
+        "w": 350,
+        "h": 378
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 350,
+        "h": 378
+      },
+      "sourceSize": {
+        "w": 350,
+        "h": 378
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "OverworldDestroyable422.png": {
+      "frame": {
+        "x": 1851,
+        "y": 1973,
+        "w": 195,
+        "h": 121
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 195,
+        "h": 121
+      },
+      "sourceSize": {
+        "w": 195,
+        "h": 121
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Dungeon2 209 Boss2 T1 S3.png": {
+      "frame": {
+        "x": 1672,
+        "y": 4,
+        "w": 640,
+        "h": 727
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 640,
+        "h": 727
+      },
+      "sourceSize": {
+        "w": 640,
+        "h": 727
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Temple1 075 Miniboss ScarabA T1 S3.png": {
+      "frame": {
+        "x": 1672,
+        "y": 739,
+        "w": 436,
+        "h": 363
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 436,
+        "h": 363
+      },
+      "sourceSize": {
+        "w": 436,
+        "h": 363
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "CaveArena 349 SquiderT2 S3.png": {
+      "frame": {
+        "x": 1672,
+        "y": 1110,
+        "w": 209,
+        "h": 360
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 209,
+        "h": 360
+      },
+      "sourceSize": {
+        "w": 209,
+        "h": 360
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 075 TimberT2 S3.png": {
+      "frame": {
+        "x": 1672,
+        "y": 1478,
+        "w": 158,
+        "h": 100
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 158,
+        "h": 100
+      },
+      "sourceSize": {
+        "w": 158,
+        "h": 100
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 000 StrollerT1 S1.png": {
+      "frame": {
+        "x": 1838,
+        "y": 1478,
+        "w": 95,
+        "h": 99
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 95,
+        "h": 99
+      },
+      "sourceSize": {
+        "w": 95,
+        "h": 99
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 434 StrollerT2 S1.png": {
+      "frame": {
+        "x": 1941,
+        "y": 1478,
+        "w": 95,
+        "h": 99
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 95,
+        "h": 99
+      },
+      "sourceSize": {
+        "w": 95,
+        "h": 99
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 612 StrollerT3 S1.png": {
+      "frame": {
+        "x": 2044,
+        "y": 1478,
+        "w": 95,
+        "h": 99
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 95,
+        "h": 99
+      },
+      "sourceSize": {
+        "w": 95,
+        "h": 99
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "CaveArena 452 BossTrueLastHardcore T3 S3.png": {
+      "frame": {
+        "x": 2147,
+        "y": 1478,
         "w": 128,
         "h": 96
       },
@@ -2394,6 +474,126 @@
       "sourceSize": {
         "w": 128,
         "h": 96
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Cave 328 Miniboss Blober T3 S3.png": {
+      "frame": {
+        "x": 1889,
+        "y": 1110,
+        "w": 417,
+        "h": 344
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 417,
+        "h": 344
+      },
+      "sourceSize": {
+        "w": 417,
+        "h": 344
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 170 JarrerT2 S3.png": {
+      "frame": {
+        "x": 2283,
+        "y": 739,
+        "w": 321,
+        "h": 322
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 321,
+        "h": 322
+      },
+      "sourceSize": {
+        "w": 321,
+        "h": 322
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Dungeon2 166 CrosserT2 S2 Gamma.png": {
+      "frame": {
+        "x": 2116,
+        "y": 739,
+        "w": 152,
+        "h": 155
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 152,
+        "h": 155
+      },
+      "sourceSize": {
+        "w": 152,
+        "h": 155
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 044 CrosserT1 S2 Solid.png": {
+      "frame": {
+        "x": 2116,
+        "y": 902,
+        "w": 152,
+        "h": 155
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 152,
+        "h": 155
+      },
+      "sourceSize": {
+        "w": 152,
+        "h": 155
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 414 Miniboss Sheller T3 S3.png": {
+      "frame": {
+        "x": 2006,
+        "y": 1585,
+        "w": 439,
+        "h": 319
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 439,
+        "h": 319
+      },
+      "sourceSize": {
+        "w": 439,
+        "h": 319
       },
       "pivot": {
         "x": 0.5,
@@ -2402,8 +602,8 @@
     },
     "Overworld 119 FighterT2 S1.png": {
       "frame": {
-        "x": 1763,
-        "y": 3159,
+        "x": 2283,
+        "y": 1462,
         "w": 100,
         "h": 111
       },
@@ -2418,6 +618,150 @@
       "sourceSize": {
         "w": 100,
         "h": 111
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Dungeon5 066 Miniboss Darker T3 S3.png": {
+      "frame": {
+        "x": 2006,
+        "y": 1912,
+        "w": 46,
+        "h": 47
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 46,
+        "h": 47
+      },
+      "sourceSize": {
+        "w": 46,
+        "h": 47
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Cave 218 PiercerT1 S2.png": {
+      "frame": {
+        "x": 2060,
+        "y": 1912,
+        "w": 170,
+        "h": 177
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 170,
+        "h": 177
+      },
+      "sourceSize": {
+        "w": 170,
+        "h": 177
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "CaveArena 415 PiercerT3 S2.png": {
+      "frame": {
+        "x": 2238,
+        "y": 1912,
+        "w": 170,
+        "h": 177
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 170,
+        "h": 177
+      },
+      "sourceSize": {
+        "w": 170,
+        "h": 177
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 366 PiercerT2 S2.png": {
+      "frame": {
+        "x": 2416,
+        "y": 1912,
+        "w": 170,
+        "h": 177
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 170,
+        "h": 177
+      },
+      "sourceSize": {
+        "w": 170,
+        "h": 177
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 067 CrosserT2 S3 Gamma.png": {
+      "frame": {
+        "x": 2314,
+        "y": 1069,
+        "w": 300,
+        "h": 312
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 300,
+        "h": 312
+      },
+      "sourceSize": {
+        "w": 300,
+        "h": 312
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Dungeon2 097 BouncerT1 S1.png": {
+      "frame": {
+        "x": 2314,
+        "y": 1389,
+        "w": 96,
+        "h": 64
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 96,
+        "h": 64
+      },
+      "sourceSize": {
+        "w": 96,
+        "h": 64
       },
       "pivot": {
         "x": 0.5,
@@ -2426,8 +770,8 @@
     },
     "Overworld 258 FighterT3 S1.png": {
       "frame": {
-        "x": 1721,
-        "y": 3798,
+        "x": 2391,
+        "y": 1461,
         "w": 100,
         "h": 111
       },
@@ -2448,35 +792,59 @@
         "y": 0.5
       }
     },
-    "Cave 278 DoublerT3 S1 Bounce Pattern.png": {
+    "Dungeon2 107 BouncerT2 S1.png": {
       "frame": {
-        "x": 1893,
-        "y": 3159,
-        "w": 108,
-        "h": 106
+        "x": 2418,
+        "y": 1389,
+        "w": 96,
+        "h": 64
       },
       "rotated": false,
       "trimmed": false,
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 108,
-        "h": 106
+        "w": 96,
+        "h": 64
       },
       "sourceSize": {
-        "w": 108,
-        "h": 106
+        "w": 96,
+        "h": 64
       },
       "pivot": {
         "x": 0.5,
         "y": 0.5
       }
     },
-    "Overworld 114 FighterT1 S1.png": {
+    "CaveArena 044 PiercerT3 S3.png": {
       "frame": {
-        "x": 1612,
-        "y": 3274,
-        "w": 100,
+        "x": 2453,
+        "y": 1580,
+        "w": 294,
+        "h": 308
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 294,
+        "h": 308
+      },
+      "sourceSize": {
+        "w": 294,
+        "h": 308
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 161 JarrerT2 S1.png": {
+      "frame": {
+        "x": 2499,
+        "y": 1461,
+        "w": 109,
         "h": 110
       },
       "rotated": false,
@@ -2484,11 +852,11 @@
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 100,
+        "w": 109,
         "h": 110
       },
       "sourceSize": {
-        "w": 100,
+        "w": 109,
         "h": 110
       },
       "pivot": {
@@ -2496,24 +864,432 @@
         "y": 0.5
       }
     },
-    "Dungeon3 040 ShooterT3 S1 Sniper.png": {
+    "Dungeon2 126 BouncerT2 S3.png": {
       "frame": {
-        "x": 1734,
-        "y": 3493,
-        "w": 90,
-        "h": 109
+        "x": 2594,
+        "y": 1896,
+        "w": 251,
+        "h": 193
       },
       "rotated": false,
       "trimmed": false,
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 90,
-        "h": 109
+        "w": 251,
+        "h": 193
       },
       "sourceSize": {
-        "w": 90,
-        "h": 109
+        "w": 251,
+        "h": 193
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "OverworldDestroyable111.png": {
+      "frame": {
+        "x": 2616,
+        "y": 1389,
+        "w": 181,
+        "h": 176
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 181,
+        "h": 176
+      },
+      "sourceSize": {
+        "w": 181,
+        "h": 176
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Dungeon1 055 PiercerT1 S3.png": {
+      "frame": {
+        "x": 2755,
+        "y": 1573,
+        "w": 294,
+        "h": 308
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 294,
+        "h": 308
+      },
+      "sourceSize": {
+        "w": 294,
+        "h": 308
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Dungeon3 041 SquiderT3 S2.png": {
+      "frame": {
+        "x": 2853,
+        "y": 1889,
+        "w": 124,
+        "h": 202
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 124,
+        "h": 202
+      },
+      "sourceSize": {
+        "w": 124,
+        "h": 202
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 089 SquiderT1 S2.png": {
+      "frame": {
+        "x": 2985,
+        "y": 1889,
+        "w": 124,
+        "h": 202
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 124,
+        "h": 202
+      },
+      "sourceSize": {
+        "w": 124,
+        "h": 202
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 378 PiercerT2 S3.png": {
+      "frame": {
+        "x": 2320,
+        "y": 4,
+        "w": 294,
+        "h": 308
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 294,
+        "h": 308
+      },
+      "sourceSize": {
+        "w": 294,
+        "h": 308
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Cave 199 FighterT1 S3.png": {
+      "frame": {
+        "x": 2320,
+        "y": 320,
+        "w": 287,
+        "h": 307
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 287,
+        "h": 307
+      },
+      "sourceSize": {
+        "w": 287,
+        "h": 307
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Snow 003 BossTrueLast T3 S3.png": {
+      "frame": {
+        "x": 2320,
+        "y": 635,
+        "w": 128,
+        "h": 96
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 96
+      },
+      "sourceSize": {
+        "w": 128,
+        "h": 96
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Cave 367 DodgerT3 S1.png": {
+      "frame": {
+        "x": 2456,
+        "y": 635,
+        "w": 92,
+        "h": 95
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 92,
+        "h": 95
+      },
+      "sourceSize": {
+        "w": 92,
+        "h": 95
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 065 DodgerT2 S1.png": {
+      "frame": {
+        "x": 2556,
+        "y": 635,
+        "w": 92,
+        "h": 95
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 92,
+        "h": 95
+      },
+      "sourceSize": {
+        "w": 92,
+        "h": 95
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Cave 304 FighterT3 S3.png": {
+      "frame": {
+        "x": 2615,
+        "y": 320,
+        "w": 287,
+        "h": 307
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 287,
+        "h": 307
+      },
+      "sourceSize": {
+        "w": 287,
+        "h": 307
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "CaveArena 057 FighterT2 S3.png": {
+      "frame": {
+        "x": 2910,
+        "y": 320,
+        "w": 287,
+        "h": 307
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 287,
+        "h": 307
+      },
+      "sourceSize": {
+        "w": 287,
+        "h": 307
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 361 DodgerT2 S3.png": {
+      "frame": {
+        "x": 3205,
+        "y": 320,
+        "w": 294,
+        "h": 292
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 294,
+        "h": 292
+      },
+      "sourceSize": {
+        "w": 294,
+        "h": 292
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 637 DodgerT1 S3.png": {
+      "frame": {
+        "x": 2622,
+        "y": 4,
+        "w": 294,
+        "h": 292
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 294,
+        "h": 292
+      },
+      "sourceSize": {
+        "w": 294,
+        "h": 292
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 034 SneakerT2 S3.png": {
+      "frame": {
+        "x": 2924,
+        "y": 4,
+        "w": 318,
+        "h": 291
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 318,
+        "h": 291
+      },
+      "sourceSize": {
+        "w": 318,
+        "h": 291
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 268 SneakerT1 S3.png": {
+      "frame": {
+        "x": 3250,
+        "y": 4,
+        "w": 316,
+        "h": 291
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 316,
+        "h": 291
+      },
+      "sourceSize": {
+        "w": 316,
+        "h": 291
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 281 StrollerT1 S3.png": {
+      "frame": {
+        "x": 2612,
+        "y": 738,
+        "w": 284,
+        "h": 275
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 284,
+        "h": 275
+      },
+      "sourceSize": {
+        "w": 284,
+        "h": 275
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 350 DodgerT1 S1.png": {
+      "frame": {
+        "x": 2656,
+        "y": 635,
+        "w": 92,
+        "h": 95
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 92,
+        "h": 95
+      },
+      "sourceSize": {
+        "w": 92,
+        "h": 95
       },
       "pivot": {
         "x": 0.5,
@@ -2522,8 +1298,8 @@
     },
     "Overworld 032 SneakerT2 S1.png": {
       "frame": {
-        "x": 1721,
-        "y": 3913,
+        "x": 2756,
+        "y": 635,
         "w": 102,
         "h": 91
       },
@@ -2538,30 +1314,6 @@
       "sourceSize": {
         "w": 102,
         "h": 91
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 020 DoublerT1 S1 Solid Static.png": {
-      "frame": {
-        "x": 1893,
-        "y": 3269,
-        "w": 108,
-        "h": 107
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 108,
-        "h": 107
-      },
-      "sourceSize": {
-        "w": 108,
-        "h": 107
       },
       "pivot": {
         "x": 0.5,
@@ -2570,8 +1322,8 @@
     },
     "Overworld 069 SpitterT1 S1.png": {
       "frame": {
-        "x": 1744,
-        "y": 3393,
+        "x": 2866,
+        "y": 635,
         "w": 102,
         "h": 91
       },
@@ -2592,144 +1344,48 @@
         "y": 0.5
       }
     },
-    "Overworld 007 ShooterT1 S1 Sniper.png": {
+    "Overworld 290 StrollerT2 S3.png": {
       "frame": {
-        "x": 1761,
-        "y": 3606,
-        "w": 90,
-        "h": 109
+        "x": 2622,
+        "y": 1021,
+        "w": 284,
+        "h": 275
       },
       "rotated": false,
       "trimmed": false,
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 90,
-        "h": 109
+        "w": 284,
+        "h": 275
       },
       "sourceSize": {
-        "w": 90,
-        "h": 109
+        "w": 284,
+        "h": 275
       },
       "pivot": {
         "x": 0.5,
         "y": 0.5
       }
     },
-    "Overworld 052 ShooterT2 S1 Sniper.png": {
+    "Tower 194 StrollerT3 S3.png": {
       "frame": {
-        "x": 1748,
-        "y": 4008,
-        "w": 90,
-        "h": 109
+        "x": 2904,
+        "y": 734,
+        "w": 284,
+        "h": 275
       },
       "rotated": false,
       "trimmed": false,
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 90,
-        "h": 109
+        "w": 284,
+        "h": 275
       },
       "sourceSize": {
-        "w": 90,
-        "h": 109
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 079 DoublerT1 S1 Bounce Aim.png": {
-      "frame": {
-        "x": 1893,
-        "y": 3380,
-        "w": 108,
-        "h": 106
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 108,
-        "h": 106
-      },
-      "sourceSize": {
-        "w": 108,
-        "h": 106
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 362 ShooterT1 S1 Solid Triple.png": {
-      "frame": {
-        "x": 1825,
-        "y": 3719,
-        "w": 90,
-        "h": 109
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 90,
-        "h": 109
-      },
-      "sourceSize": {
-        "w": 90,
-        "h": 109
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "OverworldScarabPickup0.png": {
-      "frame": {
-        "x": 1828,
-        "y": 3490,
-        "w": 108,
-        "h": 108
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 108,
-        "h": 108
-      },
-      "sourceSize": {
-        "w": 108,
-        "h": 108
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "Overworld 097 CrosserT2 S1 Gamma Patrol Horiz Variant.png": {
-      "frame": {
-        "x": 1827,
-        "y": 3832,
-        "w": 108,
-        "h": 106
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 108,
-        "h": 106
-      },
-      "sourceSize": {
-        "w": 108,
-        "h": 106
+        "w": 284,
+        "h": 275
       },
       "pivot": {
         "x": 0.5,
@@ -2738,8 +1394,8 @@
     },
     "Overworld 130 SpitterT3 S1.png": {
       "frame": {
-        "x": 1855,
-        "y": 3602,
+        "x": 2976,
+        "y": 635,
         "w": 102,
         "h": 91
       },
@@ -2762,8 +1418,8 @@
     },
     "Dungeon3 056 FisherT2 S1.png": {
       "frame": {
-        "x": 1842,
-        "y": 3942,
+        "x": 3086,
+        "y": 635,
         "w": 102,
         "h": 83
       },
@@ -2784,10 +1440,418 @@
         "y": 0.5
       }
     },
+    "Overworld 179 BusherT1 S2.png": {
+      "frame": {
+        "x": 2622,
+        "y": 1304,
+        "w": 109,
+        "h": 69
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 109,
+        "h": 69
+      },
+      "sourceSize": {
+        "w": 109,
+        "h": 69
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 076 ShooterT2 S3.png": {
+      "frame": {
+        "x": 2805,
+        "y": 1304,
+        "w": 202,
+        "h": 244
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 202,
+        "h": 244
+      },
+      "sourceSize": {
+        "w": 202,
+        "h": 244
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Dungeon3 005 FisherT3 S3.png": {
+      "frame": {
+        "x": 2914,
+        "y": 1017,
+        "w": 319,
+        "h": 273
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 319,
+        "h": 273
+      },
+      "sourceSize": {
+        "w": 319,
+        "h": 273
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 093 ShooterT1 S3.png": {
+      "frame": {
+        "x": 3015,
+        "y": 1298,
+        "w": 202,
+        "h": 244
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 202,
+        "h": 244
+      },
+      "sourceSize": {
+        "w": 202,
+        "h": 244
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Dungeon3 107 FisherT2 S3.png": {
+      "frame": {
+        "x": 3057,
+        "y": 1550,
+        "w": 319,
+        "h": 273
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 319,
+        "h": 273
+      },
+      "sourceSize": {
+        "w": 319,
+        "h": 273
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 221 ShooterT3 S3.png": {
+      "frame": {
+        "x": 3225,
+        "y": 1298,
+        "w": 202,
+        "h": 244
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 202,
+        "h": 244
+      },
+      "sourceSize": {
+        "w": 202,
+        "h": 244
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Tower 112 Frogger T1 S3.png": {
+      "frame": {
+        "x": 3225,
+        "y": 1831,
+        "w": 279,
+        "h": 227
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 279,
+        "h": 227
+      },
+      "sourceSize": {
+        "w": 279,
+        "h": 227
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 114 FighterT1 S1.png": {
+      "frame": {
+        "x": 3117,
+        "y": 1831,
+        "w": 100,
+        "h": 110
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 100,
+        "h": 110
+      },
+      "sourceSize": {
+        "w": 100,
+        "h": 110
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 031 CreeperT2 S3 Crazy.png": {
+      "frame": {
+        "x": 3384,
+        "y": 1550,
+        "w": 242,
+        "h": 273
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 242,
+        "h": 273
+      },
+      "sourceSize": {
+        "w": 242,
+        "h": 273
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 257 CreeperT3 S3 Giant.png": {
+      "frame": {
+        "x": 3634,
+        "y": 1550,
+        "w": 242,
+        "h": 273
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 242,
+        "h": 273
+      },
+      "sourceSize": {
+        "w": 242,
+        "h": 273
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Dungeon3 040 ShooterT3 S1 Sniper.png": {
+      "frame": {
+        "x": 3117,
+        "y": 1949,
+        "w": 90,
+        "h": 109
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 90,
+        "h": 109
+      },
+      "sourceSize": {
+        "w": 90,
+        "h": 109
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "OverworldDestroyable86.png": {
+      "frame": {
+        "x": 3884,
+        "y": 4,
+        "w": 181,
+        "h": 176
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 181,
+        "h": 176
+      },
+      "sourceSize": {
+        "w": 181,
+        "h": 176
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 389 Frogger T3 S3.png": {
+      "frame": {
+        "x": 3574,
+        "y": 4,
+        "w": 278,
+        "h": 227
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 278,
+        "h": 227
+      },
+      "sourceSize": {
+        "w": 278,
+        "h": 227
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 160 JarrerT2 S2.png": {
+      "frame": {
+        "x": 3860,
+        "y": 188,
+        "w": 214,
+        "h": 215
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 214,
+        "h": 215
+      },
+      "sourceSize": {
+        "w": 214,
+        "h": 215
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 035 SneakerT2 S2.png": {
+      "frame": {
+        "x": 3884,
+        "y": 411,
+        "w": 180,
+        "h": 163
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 180,
+        "h": 163
+      },
+      "sourceSize": {
+        "w": 180,
+        "h": 163
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 242 SpitterT3 S3.png": {
+      "frame": {
+        "x": 3884,
+        "y": 582,
+        "w": 179,
+        "h": 163
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 179,
+        "h": 163
+      },
+      "sourceSize": {
+        "w": 179,
+        "h": 163
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Dungeon3 062 FisherT3 S2.png": {
+      "frame": {
+        "x": 3884,
+        "y": 753,
+        "w": 179,
+        "h": 148
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 179,
+        "h": 148
+      },
+      "sourceSize": {
+        "w": 179,
+        "h": 148
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
     "Dungeon3 092 FisherT3 S1.png": {
       "frame": {
-        "x": 1940,
-        "y": 3490,
+        "x": 3196,
+        "y": 909,
         "w": 102,
         "h": 83
       },
@@ -2807,16 +1871,952 @@
         "x": 0.5,
         "y": 0.5
       }
+    },
+    "Overworld 312 CreeperT1 S3.png": {
+      "frame": {
+        "x": 3205,
+        "y": 620,
+        "w": 242,
+        "h": 273
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 242,
+        "h": 273
+      },
+      "sourceSize": {
+        "w": 242,
+        "h": 273
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "OverworldScarabPickup0.png": {
+      "frame": {
+        "x": 3306,
+        "y": 901,
+        "w": 108,
+        "h": 108
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 108,
+        "h": 108
+      },
+      "sourceSize": {
+        "w": 108,
+        "h": 108
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Dungeon3 112 FisherT2 S2.png": {
+      "frame": {
+        "x": 3884,
+        "y": 909,
+        "w": 179,
+        "h": 148
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 179,
+        "h": 148
+      },
+      "sourceSize": {
+        "w": 179,
+        "h": 148
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 269 SquiderT2 S2.png": {
+      "frame": {
+        "x": 3241,
+        "y": 1065,
+        "w": 124,
+        "h": 202
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 124,
+        "h": 202
+      },
+      "sourceSize": {
+        "w": 124,
+        "h": 202
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 504 FisherT1 S2.png": {
+      "frame": {
+        "x": 3884,
+        "y": 1065,
+        "w": 179,
+        "h": 148
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 179,
+        "h": 148
+      },
+      "sourceSize": {
+        "w": 179,
+        "h": 148
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Temple1 024 SneakerT1 S2.png": {
+      "frame": {
+        "x": 3884,
+        "y": 1221,
+        "w": 178,
+        "h": 163
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 178,
+        "h": 163
+      },
+      "sourceSize": {
+        "w": 178,
+        "h": 163
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 337 StrollerT2 S2.png": {
+      "frame": {
+        "x": 3435,
+        "y": 1392,
+        "w": 140,
+        "h": 147
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 140,
+        "h": 147
+      },
+      "sourceSize": {
+        "w": 140,
+        "h": 147
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 424 StrollerT1 S2.png": {
+      "frame": {
+        "x": 3583,
+        "y": 1392,
+        "w": 140,
+        "h": 147
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 140,
+        "h": 147
+      },
+      "sourceSize": {
+        "w": 140,
+        "h": 147
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 611 StrollerT3 S2.png": {
+      "frame": {
+        "x": 3731,
+        "y": 1392,
+        "w": 140,
+        "h": 147
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 140,
+        "h": 147
+      },
+      "sourceSize": {
+        "w": 140,
+        "h": 147
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Cave 047 CreeperT1 S2.png": {
+      "frame": {
+        "x": 3879,
+        "y": 1392,
+        "w": 130,
+        "h": 147
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 130,
+        "h": 147
+      },
+      "sourceSize": {
+        "w": 130,
+        "h": 147
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 077 SquiderT1 S1.png": {
+      "frame": {
+        "x": 4017,
+        "y": 1392,
+        "w": 74,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 74,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 74,
+        "h": 104
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 090 SquiderT2 S1.png": {
+      "frame": {
+        "x": 4017,
+        "y": 1504,
+        "w": 74,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 74,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 74,
+        "h": 104
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Dungeon1 092 Boss1 T1 S3.png": {
+      "frame": {
+        "x": 3884,
+        "y": 1547,
+        "w": 116,
+        "h": 119
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 116,
+        "h": 119
+      },
+      "sourceSize": {
+        "w": 116,
+        "h": 119
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 270 SquiderT3 S1.png": {
+      "frame": {
+        "x": 4008,
+        "y": 1616,
+        "w": 74,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 74,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 74,
+        "h": 104
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 020 DoublerT1 S1 Solid Static.png": {
+      "frame": {
+        "x": 3884,
+        "y": 1674,
+        "w": 108,
+        "h": 107
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 108,
+        "h": 107
+      },
+      "sourceSize": {
+        "w": 108,
+        "h": 107
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 007 ShooterT1 S1 Sniper.png": {
+      "frame": {
+        "x": 4000,
+        "y": 1728,
+        "w": 90,
+        "h": 109
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 90,
+        "h": 109
+      },
+      "sourceSize": {
+        "w": 90,
+        "h": 109
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Cave 278 DoublerT3 S1 Bounce Pattern.png": {
+      "frame": {
+        "x": 3884,
+        "y": 1789,
+        "w": 108,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 108,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 108,
+        "h": 106
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 052 ShooterT2 S1 Sniper.png": {
+      "frame": {
+        "x": 4000,
+        "y": 1845,
+        "w": 90,
+        "h": 109
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 90,
+        "h": 109
+      },
+      "sourceSize": {
+        "w": 90,
+        "h": 109
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 362 ShooterT1 S1 Solid Triple.png": {
+      "frame": {
+        "x": 3512,
+        "y": 1962,
+        "w": 90,
+        "h": 109
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 90,
+        "h": 109
+      },
+      "sourceSize": {
+        "w": 90,
+        "h": 109
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Dungeon2 112 BouncerT2 S2.png": {
+      "frame": {
+        "x": 3512,
+        "y": 1831,
+        "w": 142,
+        "h": 107
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 142,
+        "h": 107
+      },
+      "sourceSize": {
+        "w": 142,
+        "h": 107
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 303 CreeperT2 S2.png": {
+      "frame": {
+        "x": 3610,
+        "y": 1946,
+        "w": 130,
+        "h": 147
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 130,
+        "h": 147
+      },
+      "sourceSize": {
+        "w": 130,
+        "h": 147
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 079 DoublerT1 S1 Bounce Aim.png": {
+      "frame": {
+        "x": 3662,
+        "y": 1831,
+        "w": 108,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 108,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 108,
+        "h": 106
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 684 CreeperT3 S3.png": {
+      "frame": {
+        "x": 3748,
+        "y": 1945,
+        "w": 130,
+        "h": 147
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 130,
+        "h": 147
+      },
+      "sourceSize": {
+        "w": 130,
+        "h": 147
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 025 CreeperT2 S1 Crazy.png": {
+      "frame": {
+        "x": 3778,
+        "y": 1831,
+        "w": 74,
+        "h": 82
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 74,
+        "h": 82
+      },
+      "sourceSize": {
+        "w": 74,
+        "h": 82
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 097 CrosserT2 S1 Gamma Patrol Horiz Variant.png": {
+      "frame": {
+        "x": 3886,
+        "y": 1962,
+        "w": 108,
+        "h": 106
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 108,
+        "h": 106
+      },
+      "sourceSize": {
+        "w": 108,
+        "h": 106
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 045 CreeperT1 S1.png": {
+      "frame": {
+        "x": 4002,
+        "y": 1962,
+        "w": 74,
+        "h": 82
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 74,
+        "h": 82
+      },
+      "sourceSize": {
+        "w": 74,
+        "h": 82
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 635 BloberT3 S2 Crazy.png": {
+      "frame": {
+        "x": 3574,
+        "y": 239,
+        "w": 170,
+        "h": 140
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 170,
+        "h": 140
+      },
+      "sourceSize": {
+        "w": 170,
+        "h": 140
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Dungeon5 126 FighterT3 S2.png": {
+      "frame": {
+        "x": 3373,
+        "y": 1017,
+        "w": 150,
+        "h": 163
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 150,
+        "h": 163
+      },
+      "sourceSize": {
+        "w": 150,
+        "h": 163
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 124 FighterT1 S2.png": {
+      "frame": {
+        "x": 3435,
+        "y": 1188,
+        "w": 150,
+        "h": 163
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 150,
+        "h": 163
+      },
+      "sourceSize": {
+        "w": 150,
+        "h": 163
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Cave 373 DodgerT3 S2.png": {
+      "frame": {
+        "x": 3593,
+        "y": 387,
+        "w": 167,
+        "h": 159
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 167,
+        "h": 159
+      },
+      "sourceSize": {
+        "w": 167,
+        "h": 159
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 064 DodgerT1 S2.png": {
+      "frame": {
+        "x": 3593,
+        "y": 554,
+        "w": 167,
+        "h": 159
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 167,
+        "h": 159
+      },
+      "sourceSize": {
+        "w": 167,
+        "h": 159
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 068 ShooterT2 S2.png": {
+      "frame": {
+        "x": 3455,
+        "y": 620,
+        "w": 126,
+        "h": 159
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 126,
+        "h": 159
+      },
+      "sourceSize": {
+        "w": 126,
+        "h": 159
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 475 FighterT2 S2.png": {
+      "frame": {
+        "x": 3455,
+        "y": 787,
+        "w": 150,
+        "h": 163
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 150,
+        "h": 163
+      },
+      "sourceSize": {
+        "w": 150,
+        "h": 163
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Temple1 057 DodgerT2 S2.png": {
+      "frame": {
+        "x": 3531,
+        "y": 958,
+        "w": 167,
+        "h": 159
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 167,
+        "h": 159
+      },
+      "sourceSize": {
+        "w": 167,
+        "h": 159
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 280 CrosserT1 S2 Gamma.png": {
+      "frame": {
+        "x": 3706,
+        "y": 721,
+        "w": 152,
+        "h": 155
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 152,
+        "h": 155
+      },
+      "sourceSize": {
+        "w": 152,
+        "h": 155
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 665 CrosserT3 S2 Gamma.png": {
+      "frame": {
+        "x": 3706,
+        "y": 884,
+        "w": 152,
+        "h": 155
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 152,
+        "h": 155
+      },
+      "sourceSize": {
+        "w": 152,
+        "h": 155
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 073 ShooterT1 S2 Solid.png": {
+      "frame": {
+        "x": 3706,
+        "y": 1047,
+        "w": 126,
+        "h": 159
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 126,
+        "h": 159
+      },
+      "sourceSize": {
+        "w": 126,
+        "h": 159
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 081 ShooterT1 S2.png": {
+      "frame": {
+        "x": 3593,
+        "y": 1214,
+        "w": 126,
+        "h": 159
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 126,
+        "h": 159
+      },
+      "sourceSize": {
+        "w": 126,
+        "h": 159
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "Overworld 411 ShooterT3 S2.png": {
+      "frame": {
+        "x": 3727,
+        "y": 1214,
+        "w": 126,
+        "h": 159
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 126,
+        "h": 159
+      },
+      "sourceSize": {
+        "w": 126,
+        "h": 159
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
     }
   },
   "meta": {
     "app": "http://free-tex-packer.com",
     "version": "0.6.7",
-    "image": "markers.png",
+    "image": "texture.png",
     "format": "RGBA8888",
     "size": {
-      "w": 2048,
-      "h": 4192
+      "w": 4095,
+      "h": 2100
     },
     "scale": 1
   }
