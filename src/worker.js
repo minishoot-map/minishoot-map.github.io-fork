@@ -635,7 +635,7 @@ function onClick(x, y) {
     }
 
     let endI = 0
-    while(endI < closest.length && closest[endI][1] !== -1) endI++
+    while(endI < closest.length && closest[endI][1] != null) endI++
     closest.length = endI
 
     if(closest.length !== 0) {
