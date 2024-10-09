@@ -17,8 +17,6 @@ const markersP = new Promise((s, j) => {
     resolveMarkersDataP = s
 })
 
-var startt, endd
-
 var worker
 if(__worker) {
     worker = window.worker
@@ -27,14 +25,10 @@ if(__worker) {
         console.log('received from worker', d.type)
 
         if(d.type === 'click') {
-            endd = performance.now()
-            console.log('in', endd - startt)
-            console.log(JSON.parse(JSON.stringify(d)))
             sideMenu.setCurrentObject({ first: d.first, nearby: d.nearby })
             updUrl(d.first)
         }
         else if(d.type === 'getInfo') {
-            console.log(JSON.parse(JSON.stringify(d)))
             sideMenu.setCurrentObject({ first: d.object })
             updUrl(d.object)
         }
@@ -352,8 +346,6 @@ const context = {
         sendFiltersUpdate(this)
     },
     onClick(x, y) {
-        startt = performance.now()
-        console.log('sending')
         worker?.postMessage({ type: 'click', x, y })
     },
     viewObject(index) {

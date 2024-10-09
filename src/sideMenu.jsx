@@ -342,7 +342,11 @@ function Link({ index, name }) {
     // index < 0 is scenes, we can't display info about them yet
     if(index != null && index >= 0) {
         function onClick() { gotoOther(index) }
-        return <a href="javascript:void(0)" onClick={onClick}>{displayName}</a>
+        function reactIsDumb(element) {
+            // imagine saying that this is a security vulnerability
+            if(element) element.href = "javascript:void(0)"
+        }
+        return <a ref={reactIsDumb} onClick={onClick}>{displayName}</a>
     }
     else {
         return <span>{displayName}</span>
@@ -459,7 +463,6 @@ function Prop({ children }) {
 
 function Other({ nearby }) {
     if(nearby == null) return
-    console.log(nearby)
 
     const nearbyC = []
     for(let i = 0; i < nearby.length; i++) {

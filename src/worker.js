@@ -662,7 +662,6 @@ function onClick(x, y) {
 }
 
 function getInfo(index) {
-    console.log(index)
     const object = objects[index]
     if(object) message({ type: 'getInfo', object: serializeObject(object) })
 }

@@ -239,7 +239,6 @@ export function setup(context) {
     renderData.bgTextures = bgTextures
 
     gl.bindTexture(gl.TEXTURE_2D_ARRAY, bgTextures)
-    console.log(actualResolution, __backgrounds_mipmap_levels)
     gl.texStorage3D(
         gl.TEXTURE_2D_ARRAY, __backgrounds_mipmap_levels,
         gl.RGB565, actualResolution, actualResolution,
