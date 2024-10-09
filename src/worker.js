@@ -148,7 +148,7 @@ const displayFuncs = {
         return [it.spriteI, size]
     },
     [ti.Jar]: (it, comp) => {
-        return createOneTex(it)
+        return [it.spriteI]
     },
     [ti.CrystalDestroyable]: (it, comp) => {
         const ti = meta.crystalDestroyableTextures[it.dropXp ? 1 : 0]
@@ -156,6 +156,9 @@ const displayFuncs = {
     },
     [ti.ScarabPickup]: (it, comp) => {
         return createOneTex(it)
+    },
+    [ti.Pickup]: (it, comp) => {
+        return [it.spriteI]
     },
 }
 
@@ -200,10 +203,17 @@ const objectsProcessedP = objectsLoadedP.then(objects => {
             si++
         }
         if(!added) {
-            const s = stepsToBase(i, ti.Transition)
+            let s = stepsToBase(i, ti.Transition)
             if(s != null) {
                 schemaDisplayFuncI[i] = [s, -1, si]
             }
+            si++
+
+            s = stepsToBase(i, ti.Unlocker)
+            if(s != null) {
+                schemaDisplayFuncI[i] = [s, -2, si]
+            }
+            si++
         }
     }
 
@@ -235,7 +245,7 @@ const objectsProcessedP = objectsLoadedP.then(objects => {
             const [steps, funcI] = minInfo.info
             const comp = minInfo.comp
             const it = getBase(comp, steps)
-            if(funcI == -1) {
+            if(funcI < 0) {
                 specialMarkers.push({ object: obj, component: it })
             }
             else {
@@ -547,16 +557,29 @@ function serializeObject(obj) {
 
     for(let i = 0; i < obj.components.length; i++) {
         const cc = obj.components[i]
-        const s = getAsSchema(cc, ti.ScarabPickup)
+        let s
+        s = getAsSchema(cc, ti.ScarabPickup)
         if(s) {
             const name = objects[s.container]?.name
             if(name) referenceNames[s.container] = name;
         }
 
-        const t = getAsSchema(cc, ti.Transition)
-        if(t) {
-            const name = objects[t.destI]?.name
-            if(name) referenceNames[t.destI] = name
+        s = getAsSchema(cc, ti.Transition)
+        if(s) {
+            const name = objects[s.destI]?.name
+            if(name) referenceNames[s.destI] = name
+        }
+
+        s = getAsSchema(cc, ti.Unlocker)
+        if(s) {
+            const name = objects[s.target]?.name
+            if(name) referenceNames[s.target] = name
+        }
+
+        s = getAsSchema(cc, ti.Buyable)
+        if(s) {
+            const name = objects[s.owner]?.name
+            if(name) referenceNames[s.owner] = name
         }
     }
 

@@ -175,6 +175,8 @@ const filters = [
             ],
             ['ScarabPickup', 'Show scarabs', true, 'filters', []],
             ['Transition', 'Show transitions', true, 'filters', []],
+            ['Unlocker', 'Show unlockers', true, 'filters', []],
+            ['Pickup', 'Show pickups', true, 'filters', []],
         ],
     ],
     [

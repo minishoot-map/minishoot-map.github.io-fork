@@ -292,9 +292,11 @@ ac(ti.Transform, (c, o) => {
     </Props>
 })
 
+function bs(v) { return v ? 'yes' : 'no' }
+
 ac(ti.CrystalDestroyable, (c, o) => {
     return <Props>
-        <Prop>Drops XP:{c.dropXp ? 'yes' : 'no'}</Prop>
+        <Prop>Drops XP:{bs(c.dropXp)}</Prop>
         <Prop>Size:{c.size}</Prop>
         <Component comp={c._base} obj={o}/>
     </Props>
@@ -302,14 +304,16 @@ ac(ti.CrystalDestroyable, (c, o) => {
 
 ac(ti.Destroyable, (c, o) => {
     return <Props>
-        <Prop>Is permanent:{c.permanent ? 'yes' : 'no'}</Prop>
+        <Prop>Permanent:{bs(c.permanent)}</Prop>
+        <Prop>Invincible:{bs(c.invincible)}</Prop>
+        <Prop>Flat damage:{bs(c.flatDamage)}</Prop>
         <Component comp={c._base} obj={o}/>
     </Props>
 })
 
 ac(ti.Collider2D, (c, o) => {
     return <Props>
-        <Prop>Is trigger:{c.isTrigger ? 'yes' : 'no'}</Prop>
+        <Prop>Is trigger:{bs(c.isTrigger)}</Prop>
         <Prop>Offset:{vec2s(c.offset)}</Prop>
         <Component comp={c._base} obj={o}/>
     </Props>
@@ -369,6 +373,87 @@ ac(ti.Transition, (c, o) => {
         <Component comp={c._base} obj={o}/>
     </Props>
 })
+
+ac(ti.Unlocker, (c, o) => {
+    return <Props>
+        <Prop>Target:<Link index={c.target} name={o.referenceNames[c.target]}/></Prop>
+        <Component comp={c._base} obj={o}/>
+    </Props>
+})
+
+const moduleNames = [
+	'IdolBomb',
+	'IdolSlow',
+	'IdolAlly',
+	'BoostCost',
+	'XpGain',
+	'HpDrop',
+	'PrimordialCrystal',
+	'HearthCrystal',
+	'SpiritDash',
+	'BlueBullet',
+	'Overcharge',
+	'CollectableScan',
+	'Rage',
+	'Retaliation',
+	'FreePower',
+	'Compass',
+	'Teleport'
+]
+
+const skillNames = ['Supershot', 'Dash', 'Hover', 'Boost']
+
+const statsNames = [
+	'PowerAllyLevel',
+    '<None>',
+	'BoostSpeed',
+	'BulletNumber',
+	'BulletSpeed',
+	'_EmptyStatsSlot',
+	'PowerBombLevel',
+	'CriticChance',
+	'Energy',
+	'FireRange',
+	'FireRate',
+	'Hp',
+	'MoveSpeed',
+	'Supershot',
+	'BulletDamage',
+	'PowerSlowLevel',
+]
+
+ac(ti.ModulePickup, (c, o) => {
+    return <Props>
+        <Prop>Name:{moduleNames[c.moduleId] ?? '<Unknown>'}</Prop>
+        <Component comp={c._base} obj={o}/>
+    </Props>
+});
+
+ac(ti.SkillPickup, (c, o) => {
+    return <Props>
+        <Prop>Name:{skillNames[c.skillId] ?? '<Unknown>'}</Prop>
+        <Component comp={c._base} obj={o}/>
+    </Props>
+});
+
+ac(ti.StatsPickup, (c, o) => {
+    return <Props>
+        <Prop>Name:{statsNames[c.statsId] ?? '<Unknown>'}</Prop>
+        <Prop>Level:{c.level}</Prop>
+        <Component comp={c._base} obj={o}/>
+    </Props>
+});
+
+ac(ti.Buyable, (c, o) => {
+    return <Props>
+        <Prop>Price:{c.price}</Prop>
+        <Prop>For sale:{bs(c.isForSale)}</Prop>
+        <Prop>Title:{c.title}</Prop>
+        <Prop>Description:{c.description}</Prop>
+        <Prop>Owner:<Link index={c.owner} name={o.referenceNames[c.owner]}/></Prop>
+        <Component comp={c._base} obj={o}/>
+    </Props>
+});
 
 const nbsp = '\u00A0'
 const jarTypes = ["nothing", "hp", "random", "big crystal", "energy", "full energy", "big srystals (65)"]

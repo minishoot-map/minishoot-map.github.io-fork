@@ -168,7 +168,7 @@ public partial class GameManager : MonoBehaviour
 
     static Dictionary<GameObject, int> objects;
     static List<GameObject> objectList;
-    static List<string> textureNames;
+    static int texturesCount;
     static Dictionary<long, int> textureIndices;
 
     static List<Vector2[][]> colliderPolygons;
@@ -217,11 +217,10 @@ public partial class GameManager : MonoBehaviour
 				return existingIndex;
             }
 
-            var textureCount = textureNames.Count;
+            var textureCount = texturesCount++;
             textureIndices.Add(key, textureCount);
-            textureNames.Add(name);
             byte[] array = duplicateTexture(sprite.sprite.texture).EncodeToPNG();
-            using (FileStream fileStream = new FileStream(basePath + "sprites/" + name + ".png", FileMode.Create, FileAccess.Write)) {
+            using (FileStream fileStream = new FileStream(basePath + "sprites/" + textureCount + ".png", FileMode.Create, FileAccess.Write)) {
 				fileStream.Write(array, 0, array.Length);
             }
 			return textureCount;
@@ -411,7 +410,7 @@ public partial class GameManager : MonoBehaviour
 
         objects = new Dictionary<GameObject, int>();
         objectList = new List<GameObject>();
-        textureNames = new List<string>();
+        texturesCount = 0;
         textureIndices = new Dictionary<long, int>();
 
         colliderPolygons = new List<Vector2[][]>();
@@ -447,6 +446,8 @@ public partial class GameManager : MonoBehaviour
         addprim<int>((w, v) => w.Write(compactInt(v)));
         addprim<float>((w, v) => w.Write(compactFloat(v)));
         addprim<string>((w, v) => {
+            if(v == null) throw new Exception("String is null (not supported). Please handle yourself");
+
             byte[] bytes = System.Text.Encoding.UTF8.GetBytes(v);
             for(var i = 0; i < bytes.Length; i++) if((sbyte)bytes[i] < 0) throw new Exception(v);
             if(bytes.Length == 0) w.Write((byte)(1u << 7));
@@ -464,7 +465,10 @@ public partial class GameManager : MonoBehaviour
         });
         addprim<Vector2>((w, v) => w.Write(compactVector2(v)));
 
-        addrec<Jar, (int, int)>(v => ((int)prop(v, "size"), Convert.ToInt32(prop(v, "drop"))), "size", "dropType");
+        addrec<Jar, (int, int, Sprite)>(v => {
+            var spriteI = toSprite(tryAddSprite(v.GetComponentInChildren<SpriteRenderer>(), v.gameObject.name));
+            return ((int)prop(v, "size"), Convert.ToInt32(prop(v, "drop")), spriteI);
+        }, "size", "dropType", "spriteI");
         addrec<Enemy, (Sprite, int, int, int)>(v => (toSprite(tryAddSprite(v.Sprite, v.gameObject.name)), v.Size, v.Tier, v.Destroyable.HpMax), "spriteI", "size", "tier", "hp");
         addrec<CrystalDestroyable, (bool, int)>(v => ((bool)prop(v, "dropXp"), Convert.ToInt32(prop(v, "size"))), "dropXp", "size");
         addrec<ScarabPickup, ValueTuple<Reference>>(v => {
@@ -474,15 +478,15 @@ public partial class GameManager : MonoBehaviour
         }, "container");
 
         addrec<Collider2D, (bool, Vector2)>(v => (v.isTrigger, v.offset), "isTrigger", "offset");
-        addrec<BoxCollider2D, (Vector2, bool, Collider2D)>(v => (v.size, v.usedByComposite, v), "size", "usedByComposite", "base");
+        addrec<BoxCollider2D, (Vector2, bool)>(v => (v.size, v.usedByComposite), "size", "usedByComposite");
 
-        addrec<CapsuleCollider2D, (Vector2, Collider2D)>(v => (v.size, v), "size", "base");
-        addrec<CircleCollider2D, (float, Collider2D)>(v => (v.radius, v), "radius", "base");
-        addrec<PolygonCollider2D, (int, bool, Collider2D)>(v => {
+        addrec<CapsuleCollider2D, ValueTuple<Vector2>>(v => new(v.size), "size");
+        addrec<CircleCollider2D, ValueTuple<float>>(v => new(v.radius), "radius");
+        addrec<PolygonCollider2D, (int, bool)>(v => {
             var polygonI = addPolygons(new[]{ v.points });
-            return (polygonI, v.usedByComposite, v);
-        }, "points", "usedByComposite", "base");
-        addrec<CompositeCollider2D, (int, Collider2D)>(v => {
+            return (polygonI, v.usedByComposite);
+        }, "points", "usedByComposite");
+        addrec<CompositeCollider2D, ValueTuple<int>>(v => {
             var pathCount = v.pathCount;
             var polygons = new Vector2[pathCount][];
             for(int i = 0; i < pathCount; i++) {
@@ -491,8 +495,8 @@ public partial class GameManager : MonoBehaviour
                 polygons[i] = points;
             }
             var polygonsI = addPolygons(polygons);
-            return (polygonsI, v);
-        }, "polygons", "base");
+            return new(polygonsI);
+        }, "polygons");
 
         addrec<Transition, ValueTuple<Reference>>(v => {
             Transition dest = v.sameLocTransition;
@@ -501,7 +505,9 @@ public partial class GameManager : MonoBehaviour
             }
             return new ValueTuple<Reference>(toReference(getObjectRef(dest?.gameObject)));
         }, "destI");
-        addrec<Destroyable, ValueTuple<bool>>(v => new ValueTuple<bool>(v.Permanent), "permanent");
+        addrec<Destroyable, (bool, bool, bool)>(v => {
+            return (v.Permanent, v.Invincible, Convert.ToBoolean(prop(v, "clampDamage")));
+        }, "permanent", "invincible", "flatDamage");
         addrec<Transform, (Vector2, Vector2, float)>(v => (v.localPosition, v.localScale, v.localRotation.eulerAngles.z), "position", "scale", "rotation");
 
         addrec<GameObject, (string, int, Any[], GameObject[])>(v => {
@@ -516,6 +522,28 @@ public partial class GameManager : MonoBehaviour
             return (v.name, v.layer, components, children);
         }, "name", "layer", "components", "children");
         addrec<Scene, (string, GameObject[])>(v => (v.name, v.GetRootGameObjects()), "name", "roots");
+        addrec<Unlocker, ValueTuple<Reference>>(v => {
+            var refI = -1;
+            var loc = prop(v, "target") as Lock;
+            if(loc != null) refI = getObjectRef(loc.gameObject);
+
+            return new ValueTuple<Reference>(toReference(refI));
+        }, "target");
+        addrec<Pickup, ValueTuple<Sprite>>(v => new ValueTuple<Sprite>(toSprite(tryAddSprite(v.Sprite, v.gameObject.name))), "spriteI");
+        addrec<ModulePickup, ValueTuple<int>>(v => new(Convert.ToInt32(v.Id)), "moduleId");
+        addrec<SkillPickup, ValueTuple<int>>(v => new(Convert.ToInt32(v.SkillId)), "skillId");
+        addrec<StatsPickup, (int, int)>(v => (Convert.ToInt32(v.StatsId), (int)v.Level), "statsId", "level");
+        addrec<Buyable, (int, bool, string, string, Reference)>(v => {
+            var oi = -1;
+            if(v.Owner != null) {
+                oi = getObjectRef(v.Owner.gameObject);
+            }
+            var title = v.Title;
+            if(title == null) title = "<None>";
+            var desc = v.Desc;
+            if(desc == null) desc = "<None>";
+            return (v.Price, v.IsForSale, title, desc, toReference(oi));
+        }, "price", "isForSale", "title", "description", "owner");
 
         var scenes = new Scene[SceneManager.sceneCount];
         for(int i = 0; i < SceneManager.sceneCount; i++) {
@@ -526,12 +554,6 @@ public partial class GameManager : MonoBehaviour
 
 
         using(var schemasS = new StreamWriter(basePath + "schemas.js", false)) {
-            {
-                int index = -1;
-                var it = FindObjectOfType<Jar>(true);
-                if(it != null) index = tryAddSprite(it.gameObject.GetComponentInChildren<SpriteRenderer>(), it.gameObject.name);
-                typeSerializers[typeof(Jar)].schema.textureIndex = index;
-            }
             {
                 int yindex = -1, nindex = -1;
                 foreach(var it in FindObjectsOfType<CrystalDestroyable>(true)) {
@@ -552,12 +574,7 @@ public partial class GameManager : MonoBehaviour
                 typeSerializers[typeof(ScarabPickup)].schema.textureIndex = index;
             }
             schemasS.WriteLine("export var xpForCrystalSize = [" + String.Join(", ", PlayerData.DestroyableCrystalValue) + "]");
-
-            schemasS.WriteLine("export var textureNames = [");
-            for(var i = 0; i < textureNames.Count; i++) {
-                schemasS.WriteLine(jsStr(textureNames[i]) + ",");
-            }
-            schemasS.WriteLine("]");
+            schemasS.WriteLine("export var texturesCount = " + texturesCount);
 
             schemasS.WriteLine("export var schemas = [");
             for(var i = 0; i < serializers.Count; i++) {
