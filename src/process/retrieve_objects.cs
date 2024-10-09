@@ -193,6 +193,13 @@ public partial class GameManager : MonoBehaviour
         }
     }
 
+    static Reference componentRef(object component) {
+        var refI = -1;
+        var c = component as Component;
+        if(c != null) refI = getObjectRef(c.gameObject);
+        return toReference(refI);
+    }
+
     static Texture2D duplicateTexture(Texture2D source)
     {
         RenderTexture temporary = RenderTexture.GetTemporary(source.width, source.height, 0, RenderTextureFormat.Default, RenderTextureReadWrite.Linear);
@@ -207,7 +214,7 @@ public partial class GameManager : MonoBehaviour
         return texture2D;
     }
 
-	static int tryAddSprite(SpriteRenderer sprite, string name) {
+	static int tryAddSprite(SpriteRenderer sprite) {
 		if(sprite == null) return -1;
 
 		try {
@@ -244,8 +251,13 @@ public partial class GameManager : MonoBehaviour
             }
             else {
                 var field = type.GetField(names[i], BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-                it = field.GetValue(it);
-                type = field.FieldType;
+                if(field != null) {
+                    it = field.GetValue(it);
+                    type = field.FieldType;
+                }
+                else {
+                    throw new Exception("cound not find field `" + names[i] + "`");
+                }
             }
         } catch(Exception e) {
             throw new Exception("typeof(it) = " + it.GetType().FullName + ", type = " + type.FullName + ", i = " + i + ", props = [" + string.Join(", ", names) + "]", e);
@@ -466,10 +478,10 @@ public partial class GameManager : MonoBehaviour
         addprim<Vector2>((w, v) => w.Write(compactVector2(v)));
 
         addrec<Jar, (int, int, Sprite)>(v => {
-            var spriteI = toSprite(tryAddSprite(v.GetComponentInChildren<SpriteRenderer>(), v.gameObject.name));
+            var spriteI = toSprite(tryAddSprite(v.GetComponentInChildren<SpriteRenderer>()));
             return ((int)prop(v, "size"), Convert.ToInt32(prop(v, "drop")), spriteI);
         }, "size", "dropType", "spriteI");
-        addrec<Enemy, (Sprite, int, int, int)>(v => (toSprite(tryAddSprite(v.Sprite, v.gameObject.name)), v.Size, v.Tier, v.Destroyable.HpMax), "spriteI", "size", "tier", "hp");
+        addrec<Enemy, (Sprite, int, int)>(v => (toSprite(tryAddSprite(v.Sprite)), v.Size, v.Tier), "spriteI", "size", "tier");
         addrec<CrystalDestroyable, (bool, int)>(v => ((bool)prop(v, "dropXp"), Convert.ToInt32(prop(v, "size"))), "dropXp", "size");
         addrec<ScarabPickup, ValueTuple<Reference>>(v => {
             int oIndex;
@@ -505,9 +517,9 @@ public partial class GameManager : MonoBehaviour
             }
             return new ValueTuple<Reference>(toReference(getObjectRef(dest?.gameObject)));
         }, "destI");
-        addrec<Destroyable, (bool, bool, bool)>(v => {
-            return (v.Permanent, v.Invincible, Convert.ToBoolean(prop(v, "clampDamage")));
-        }, "permanent", "invincible", "flatDamage");
+        addrec<Destroyable, (int, bool, bool, bool)>(v => {
+            return (v.HpMax, v.Permanent, v.Invincible, Convert.ToBoolean(prop(v, "clampDamage")));
+        }, "hp", "permanent", "invincible", "flatDamage");
         addrec<Transform, (Vector2, Vector2, float)>(v => (v.localPosition, v.localScale, v.localRotation.eulerAngles.z), "position", "scale", "rotation");
 
         addrec<GameObject, (string, int, Any[], GameObject[])>(v => {
@@ -522,28 +534,61 @@ public partial class GameManager : MonoBehaviour
             return (v.name, v.layer, components, children);
         }, "name", "layer", "components", "children");
         addrec<Scene, (string, GameObject[])>(v => (v.name, v.GetRootGameObjects()), "name", "roots");
-        addrec<Unlocker, ValueTuple<Reference>>(v => {
-            var refI = -1;
-            var loc = prop(v, "target") as Lock;
-            if(loc != null) refI = getObjectRef(loc.gameObject);
+        addrec<Unlocker, (Reference, Reference, int, Reference[])>(v => {
+            var group = prop(v, "group") as Unlocker[];
+            var rs = new Reference[group == null ? 0 : group.Length];
+            for(var i = 0; i < rs.Length; i++) {
+                rs[i] = componentRef(group[i]);
+            }
 
-            return new ValueTuple<Reference>(toReference(refI));
-        }, "target");
-        addrec<Pickup, ValueTuple<Sprite>>(v => new ValueTuple<Sprite>(toSprite(tryAddSprite(v.Sprite, v.gameObject.name))), "spriteI");
+            return (
+                componentRef(v.Target),
+                componentRef(v.TargetBis),
+                Convert.ToInt32(prop(v, "keyUse")),
+                rs
+            );
+        }, "target", "targetBis", "keyUse", "group");
+        addrec<UnlockerTrigger, (Reference, Reference, int)>(v => {
+            return (
+                componentRef(v.Target),
+                componentRef(v.TargetBis),
+                Convert.ToInt32(prop(v, "objectiveCleared"))
+            );
+        }, "target", "targetBis", "objectiveCleared");
+        addrec<UnlockerTorch, (Reference, Reference, Reference, Reference[])>(v => {
+            var group = prop(v, "torchGroup") as UnlockerTorch[];
+            var rs = new Reference[group == null ? 0 : group.Length];
+            for(var i = 0; i < rs.Length; i++) {
+                rs[i] = componentRef(group[i]);
+            }
+
+            return (
+                componentRef(v.Target),
+                componentRef(v.TargetBis),
+                componentRef(prop(v, "linkedTorch")),
+                rs
+            );
+        }, "target", "targetBis", "linkedTorch", "group");
+        addrec<Pickup, ValueTuple<Sprite>>(v => new(toSprite(tryAddSprite(v.Sprite))), "spriteI");
+        addrec<KeyUnique, ValueTuple<int>>(v => new(Convert.ToInt32(v.KeyId)), "keyId");
         addrec<ModulePickup, ValueTuple<int>>(v => new(Convert.ToInt32(v.Id)), "moduleId");
         addrec<SkillPickup, ValueTuple<int>>(v => new(Convert.ToInt32(v.SkillId)), "skillId");
         addrec<StatsPickup, (int, int)>(v => (Convert.ToInt32(v.StatsId), (int)v.Level), "statsId", "level");
         addrec<Buyable, (int, bool, string, string, Reference)>(v => {
-            var oi = -1;
-            if(v.Owner != null) {
-                oi = getObjectRef(v.Owner.gameObject);
-            }
             var title = v.Title;
             if(title == null) title = "<None>";
             var desc = v.Desc;
             if(desc == null) desc = "<None>";
-            return (v.Price, v.IsForSale, title, desc, toReference(oi));
+            return (v.Price, v.IsForSale, title, desc, componentRef(v.Owner));
         }, "price", "isForSale", "title", "description", "owner");
+        addrec<Npc, (Sprite, int)>(
+            v => (toSprite(tryAddSprite(v.GetComponentInChildren<SpriteRenderer>())), (int)v.Id),
+            "spriteI", "id"
+        );
+        addrec<Tunnel, (Sprite, Reference)>(v => {
+            return (toSprite(tryAddSprite(v.Sprite)), componentRef(v.Destination));
+        }, "spriteI", "destination");
+        addrec<Torch, ValueTuple<Sprite>>(v => new(toSprite(tryAddSprite(v.GetComponentInChildren<SpriteRenderer>()))), "spriteI");
 
         var scenes = new Scene[SceneManager.sceneCount];
         for(int i = 0; i < SceneManager.sceneCount; i++) {
@@ -558,10 +603,10 @@ public partial class GameManager : MonoBehaviour
                 int yindex = -1, nindex = -1;
                 foreach(var it in FindObjectsOfType<CrystalDestroyable>(true)) {
                     if((bool)prop(it, "dropXp")) {
-                        if(yindex == -1) yindex = tryAddSprite(it.gameObject.GetComponentInChildren<SpriteRenderer>(), it.gameObject.name);
+                        if(yindex == -1) yindex = tryAddSprite(it.gameObject.GetComponentInChildren<SpriteRenderer>());
                     }
                     else {
-                        if(nindex == -1) nindex = tryAddSprite(it.gameObject.GetComponentInChildren<SpriteRenderer>(), it.gameObject.name);
+                        if(nindex == -1) nindex = tryAddSprite(it.gameObject.GetComponentInChildren<SpriteRenderer>());
                     }
                     if(yindex != -1 && nindex != -1) break;
                 }
@@ -570,7 +615,7 @@ public partial class GameManager : MonoBehaviour
             {
                 int index = -1;
                 var it = FindObjectOfType<ScarabPickup>(true);
-                if(it != null) index = tryAddSprite(it.gameObject.GetComponentNamed<SpriteRenderer>("FullImage", true), it.gameObject.name);
+                if(it != null) index = tryAddSprite(it.gameObject.GetComponentNamed<SpriteRenderer>("FullImage", true));
                 typeSerializers[typeof(ScarabPickup)].schema.textureIndex = index;
             }
             schemasS.WriteLine("export var xpForCrystalSize = [" + String.Join(", ", PlayerData.DestroyableCrystalValue) + "]");

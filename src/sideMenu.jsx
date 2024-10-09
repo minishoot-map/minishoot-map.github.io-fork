@@ -370,9 +370,57 @@ ac(ti.Transition, (c, o) => {
     </Props>
 })
 
+const keyUses = ["None", "Normal", "Boss", "Scarab", "Darker", "FinalBoss"]
+
 ac(ti.Unlocker, (c, o) => {
+    const gc = Array(c.group.length)
+    for(let i = 0; i < gc.length; i++) {
+        const l = c.group[i]
+        gc[i] = <Link key={i} index={l} name={o.referenceNames[l]}/>
+    }
+
+    return <Props>
+        <Prop>KeyUse:{keyUses[c.keyUse] ?? '<Unknown>'}</Prop>
+        <Prop>Target:<Link index={c.target} name={o.referenceNames[c.target]}/></Prop>
+        <Prop>Target bis (?):<Link index={c.targetBis} name={o.referenceNames[c.targetBis]}/></Prop>
+        <Prop>Group:<Props>{gc}</Props></Prop>
+        <Component comp={c._base} obj={o}/>
+    </Props>
+})
+
+ac(ti.UnlockerTorch, (c, o) => {
+    const gc = Array(c.group.length)
+    for(let i = 0; i < gc.length; i++) {
+        const l = c.group[i]
+        gc[i] = <Link key={i} index={l} name={o.referenceNames[l]}/>
+    }
+
     return <Props>
         <Prop>Target:<Link index={c.target} name={o.referenceNames[c.target]}/></Prop>
+        <Prop>Target bis (?):<Link index={c.targetBis} name={o.referenceNames[c.targetBis]}/></Prop>
+        <Prop>Linked torch:<Link index={c.linkedTorch} name={o.referenceNames[c.linkedTorch]}/></Prop>
+        <Prop>Group:<Props>{gc}</Props></Prop>
+        <Component comp={c._base} obj={o}/>
+    </Props>
+})
+
+const objectiveNames = [
+	"None", "Dungeon1", "Dungeon2", "Dungeon3", "Dungeon4", "Dungeon5", "Temple1", "Temple2", "Temple3", "Tower1", "Tower2",
+	"Tower3", "Tower4", "FreeAcademician", "OpenSanctuary", "AwakeTree", "TurtleArrived", "FreeMercantHub", "FreeScarabCollector",
+	"FreeBlacksmith", "FreeBard", "FreeFamilly1", "FreeFamilly3", "FreeExplorer", "FreeHealer", "SkillBoost", "SkillDash",
+	"SkillSupershot", "SkillHover", "ShopGarden", "ShopForest", "ShopSwamp", "Scarab", "FreeFamilly2", "GotAllCrystalBossKey",
+	"TrueLastBoss", "CaveGreenBeach", "CaveGreenGarden", "CaveGreenZelda", "CaveAcademyRuin", "CaveForest", "CaveForestJunkyard",
+	"CaveAbyss", "CaveAbyssDesert", "CaveAbyssHouse1", "CaveAbyssHouse2", "CaveDesertNpc", "CaveSewer", "CaveBeachRace",
+	"CaveSwampRace", "CaveSunkenToDungeon", "CaveSunkenRace", "CaveDarker", "CaveGreenHoleUnderJar", "CaveJunkyardEast",
+	"CaveJunkyardWest", "Lighthouse", "CaveSunkenHouse", "CaveSwampParkour", "CaveDesertRace", "CaveAbyssRace", "CavePrimordial",
+	"_CaveTuto", "Town",
+]
+
+ac(ti.UnlockerTrigger, (c, o) => {
+    return <Props>
+        <Prop>Target:<Link index={c.target} name={o.referenceNames[c.target]}/></Prop>
+        <Prop>Target bis (?):<Link index={c.targetBis} name={o.referenceNames[c.targetBis]}/></Prop>
+        <Prop>Prereqisute:{objectiveNames[c.objectiveCleared]}</Prop>
         <Component comp={c._base} obj={o}/>
     </Props>
 })
@@ -450,6 +498,50 @@ ac(ti.Buyable, (c, o) => {
         <Component comp={c._base} obj={o}/>
     </Props>
 });
+
+ac(ti.KeyUnique, (c, o) => {
+    return <Props>
+        <Prop>Name:{keyUses[c.keyId] ?? '<Unknown>'}</Prop>
+        <Component comp={c._base} obj={o}/>
+    </Props>
+});
+
+const npcNames = [
+	"Familly1",
+	"Familly2",
+	"Familly3",
+	"Blacksmith",
+	"Academician",
+	"Explorer",
+	"MercantHub",
+	"UnchosenPurple",
+	"UnchosenBlue",
+	"UnchosenPurpleSnow",
+	"MercantFrogger",
+	"_Ermit",
+	"PrimordialScarab",
+	"Tiny",
+	"Healer",
+	"MercantBush",
+	"MercantJar",
+	"Turtle",
+	"ScarabCollector",
+	"Bard",
+]
+
+ac(ti.Npc, (c, o) => {
+    return <Props>
+        <Prop>Name:{npcNames[c.id]}</Prop>
+        <Component comp={c._base} obj={o}/>
+    </Props>
+})
+
+ac(ti.Tunnel, (c, o) => {
+    return <Props>
+        <Prop>Destination:<Link index={c.destination} name={o.referenceNames[c.destination]}/></Prop>
+        <Component comp={c._base} obj={o}/>
+    </Props>
+})
 
 const nbsp = '\u00A0'
 const jarTypes = ["nothing", "hp", "random", "big crystal", "energy", "full energy", "big srystals (65)"]

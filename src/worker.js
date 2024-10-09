@@ -160,6 +160,15 @@ const displayFuncs = {
     [ti.Pickup]: (it, comp) => {
         return [it.spriteI]
     },
+    [ti.Npc]: (it, comp) => {
+        return [it.spriteI, 1.5]
+    },
+    [ti.Tunnel]: (it, comp) => {
+        return [it.spriteI, 1.5]
+    },
+    [ti.Torch]: (it, comp) => {
+        return [it.spriteI, 1.2]
+    },
 }
 
 /** @typedef {[textureI: number, x: number, y: number, size: number]} RegularDisplay */
@@ -212,6 +221,12 @@ const objectsProcessedP = objectsLoadedP.then(objects => {
             s = stepsToBase(i, ti.Unlocker)
             if(s != null) {
                 schemaDisplayFuncI[i] = [s, -2, si]
+            }
+            si++
+
+            s = stepsToBase(i, ti.UnlockerTrigger)
+            if(s != null) {
+                schemaDisplayFuncI[i] = [s, -3, si]
             }
             si++
         }
@@ -555,32 +570,43 @@ function serializeObject(obj) {
         }
     }
 
+    function a(ii) {
+        const name = objects[ii]?.name
+        if(name) referenceNames[ii] = name
+    }
+
     for(let i = 0; i < obj.components.length; i++) {
         const cc = obj.components[i]
         let s
         s = getAsSchema(cc, ti.ScarabPickup)
-        if(s) {
-            const name = objects[s.container]?.name
-            if(name) referenceNames[s.container] = name;
-        }
+        if(s) a(s.container)
 
         s = getAsSchema(cc, ti.Transition)
-        if(s) {
-            const name = objects[s.destI]?.name
-            if(name) referenceNames[s.destI] = name
-        }
+        if(s) a(s.destI)
 
         s = getAsSchema(cc, ti.Unlocker)
         if(s) {
-            const name = objects[s.target]?.name
-            if(name) referenceNames[s.target] = name
+            a(s.target)
+            a(s.targetBis)
+            for(let i = 0; i < s.group.length; i++) a(s.group[i])
+        }
+
+        s = getAsSchema(cc, ti.UnlockerTorch)
+        if(s) {
+            a(s.target)
+            a(s.targetBis)
+            a(s.linkedTorch)
+            for(let i = 0; i < s.group.length; i++) a(s.group[i])
         }
 
         s = getAsSchema(cc, ti.Buyable)
-        if(s) {
-            const name = objects[s.owner]?.name
-            if(name) referenceNames[s.owner] = name
-        }
+        if(s) a(s.owner)
+
+        s = getAsSchema(cc, ti.Tunnel)
+        if(s) a(s.destination)
+
+        s = getAsSchema(cc, ti.Tunnel)
+        if(s) a(s.destination)
     }
 
     var parentI = obj._parentI
