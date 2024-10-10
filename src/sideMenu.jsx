@@ -291,8 +291,9 @@ ac(ti.Transform, (c, o) => {
 function bs(v) { return v ? 'yes' : 'no' }
 
 ac(ti.CrystalDestroyable, (c, o) => {
+    const v = meta.xpForCrystalSize[c.size] ?? '<Unknown>'
     return <Props>
-        <Prop>Drops XP:{bs(c.dropXp)}</Prop>
+        <Prop>Drops XP:{bs(c.dropXp) + (c.dropXp ? ` (${v}xp)` : '')}</Prop>
         <Prop>Size:{c.size}</Prop>
         <Component comp={c._base} obj={o}/>
     </Props>
@@ -300,9 +301,10 @@ ac(ti.CrystalDestroyable, (c, o) => {
 
 ac(ti.Destroyable, (c, o) => {
     return <Props>
-        <Prop>Permanent:{bs(c.permanent)}</Prop>
+        <Prop>Hp:{c.hp}</Prop>
         <Prop>Invincible:{bs(c.invincible)}</Prop>
         <Prop>Flat damage:{bs(c.flatDamage)}</Prop>
+        <Prop>Permanent:{bs(c.permanent)}</Prop>
         <Component comp={c._base} obj={o}/>
     </Props>
 })
@@ -587,7 +589,6 @@ ac(ti.Enemy, (c, o) => {
     return <Props>
         <Prop>Size:{c.size}</Prop>
         <Prop>Tier:{c.tier}</Prop>
-        <Prop>Hp:{c.hp}</Prop>
         <XpCalculator enemy={c} />
         <Component comp={c._base} obj={o}/>
     </Props>
