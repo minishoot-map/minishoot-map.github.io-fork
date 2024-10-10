@@ -141,35 +141,37 @@ function createOneTex(comp) {
 
 var lastMarkerFilters
 
-/** @type {{ [schemaI: number]: (component: any, actualComponent: any) => [textureI: number, size?: number] }} */
-const displayFuncs = {
-    [ti.Enemy]: (it, comp) => {
-        const size = comp._schema === ti.Boss ? 3 : 1 + 0.33 * it.size
-        return [it.spriteI, size]
-    },
-    [ti.Jar]: (it, comp) => {
-        return [it.spriteI]
-    },
-    [ti.CrystalDestroyable]: (it, comp) => {
-        const ti = meta.crystalDestroyableTextures[it.dropXp ? 1 : 0]
-        return [ti, 1 + 0.5 * it.size]
-    },
-    [ti.ScarabPickup]: (it, comp) => {
-        return createOneTex(it)
-    },
-    [ti.Pickup]: (it, comp) => {
-        return [it.spriteI]
-    },
-    [ti.Npc]: (it, comp) => {
-        return [it.spriteI, 1.5]
-    },
-    [ti.Tunnel]: (it, comp) => {
-        return [it.spriteI, 1.5]
-    },
-    [ti.Torch]: (it, comp) => {
-        return [it.spriteI, 1.2]
-    },
-}
+/** @typedef {(component: any, actualComponent: any) => [textureI: number, size?: number]} DisplayFunc */
+/** @type {Map<number, DisplayFunc>} */
+const displayFuncs = new Map()
+/**
+    @param {number} schemaI
+    @param {DisplayFunc} func
+*/
+function a(schemaI, func) { displayFuncs.set(schemaI, func) }
+
+a(ti.Enemy, (it, comp) => {
+    const size = comp._schema === ti.Boss ? 3 : 1 + 0.33 * it.size
+    return [it.spriteI, size]
+})
+
+a(ti.Jar, (it, comp) => [it.spriteI])
+a(ti.CrystalDestroyable, (it, comp) => {
+    const ti = meta.crystalDestroyableTextures[it.dropXp ? 1 : 0]
+    return [ti, 1 + 0.5 * it.size]
+})
+a(ti.ScarabPickup, (it, comp) => createOneTex(it)) // Note: flaky texture lookup in retrieve_objects.cs
+;([
+    ti.CrystalBoss, ti.CrystalKey, ti.KeyUnique, ti.BossKey, ti.ModulePickup,
+    ti.SkillPickup, ti.StatsPickup, ti.LorePickup, ti.MapPickup
+]).forEach(s => {
+    const steps = stepsToBase(s, ti.Pickup)
+    a(s, (it, comp) => [getBase(it, steps).spriteI])
+})
+a(ti.Pickup, (it, comp) => [it.spriteI])
+a(ti.Npc, (it, comp) => [it.spriteI, 1.5])
+a(ti.Tunnel, (it, comp) => [it.spriteI, 1.5])
+a(ti.Torch, (it, comp) => [it.spriteI, 1.2])
 
 /** @typedef {[textureI: number, x: number, y: number, size: number]} RegularDisplay */
 /** @typedef {{ object: any, component: any }} MarkerInfo */
@@ -197,19 +199,25 @@ const objectsProcessedP = objectsLoadedP.then(objects => {
     /** @type {object[]} */
     const restMarkers = []
 
+    const displayKeys = [...displayFuncs.keys()]
+
+    for(const schemaI of displayKeys) {
+        console.log(meta.schemas[schemaI][1])
+    }
+
     /** @type {[baseSteps: number, funcI: number, priority: number][]} */
     const schemaDisplayFuncI = Array(meta.schemas.length)
     for(let i = 0; i < meta.schemas.length; i++) {
         let added = false
-        let si = 0
-        for(const schemaI in displayFuncs) {
+        let si = 0;
+        for(; si < displayKeys.length; si++) {
+            const schemaI = displayKeys[si]
             const s = stepsToBase(i, schemaI)
             if(s != null) {
-                schemaDisplayFuncI[i] = [s, parseInt(schemaI), si]
+                schemaDisplayFuncI[i] = [s, schemaI, si]
                 added = true
                 break
             }
-            si++
         }
         if(!added) {
             let s = stepsToBase(i, ti.Transition)
@@ -267,7 +275,8 @@ const objectsProcessedP = objectsLoadedP.then(objects => {
                 obj._markerI = regularMarkers.length
                 obj._markerType = 0
                 regularMarkers.push({ object: obj, component: it })
-                const r = displayFuncs[funcI](it, comp)
+                // @ts-ignore
+                const r = displayFuncs.get(funcI)(it, comp)
                 regularDisplays.push([r[0], obj.pos[0], obj.pos[1], r[1] ?? 1])
             }
         }

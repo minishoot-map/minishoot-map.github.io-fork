@@ -173,8 +173,18 @@ const filters = [
                     ],
                 ],
             ],
-            ['ScarabPickup', 'Show scarabs', true, 'filters', []],
-            ['Pickup', 'Show pickups', true, 'filters', []],
+            ['Pickup', 'Show pickups', true, 'filters', [
+                ['CrystalKey', 'Show regular keys', true, 'filters', []],
+                ['BossKey', 'Show boss keys', true, 'filters', []],
+                ['CrystalBoss', 'Show boss drop keys', true, 'filters', []],
+                ['KeyUnique', 'Show unique keys', true, 'filters', []],
+                ['ModulePickup', 'Show module pickups', true, 'filters', []],
+                ['SkillPickup', 'Show skill pickups', true, 'filters', []],
+                ['StatsPickup', 'Show stats pickups', true, 'filters', []],
+                ['ScarabPickup', 'Show scarabs', true, 'filters', []],
+                ['LorePickup', 'Show lore tablets', true, 'filters', []],
+                ['MapPickup', 'Show map pieces', true, 'filters', []],
+            ]],
             ['Unlocker', 'Show unlockers', true, 'filters', []],
             ['UnlockerTrigger', 'Show unlockr triggers', true, 'filters', []],
             ['Torch', 'Show torches', true, 'filters', []],
@@ -235,6 +245,40 @@ const filters = [
     ]
 ]
 
+function prepFiltersFilter(filter, res) {
+    const propFilters = []
+    const fieldFilters = filter[4]
+    for(let j = 0; j < fieldFilters.length; j++) {
+        const fieldFilter = fieldFilters[j]
+        if(!fieldFilter[2]) continue
+        else if(fieldFilter[3] === 'filters') {
+            prepFiltersFilter(fieldFilter, res)
+            continue
+        }
+
+        let values = []
+        if(fieldFilter[3] === 'enum') {
+            const filterValues = fieldFilter[4]
+            for(let k = 0; k < filterValues.length; k++) {
+                const filterValue = filterValues[k]
+                if(!filterValue[2]) continue
+                values.push(filterValue[0])
+            }
+        }
+        else if(fieldFilter[3] === 'boolean') {
+            if(fieldFilter[4][0]) values.push(false)
+            if(fieldFilter[4][1]) values.push(true)
+        }
+        else {
+            values.push(fieldFilter[4])
+        }
+
+        propFilters.push([fieldFilter[0], values])
+    }
+
+    res.push([filter[0], propFilters])
+}
+
 function extractMarkerFilters(filters) {
     const res = []
     if(!filters[0][2]) return res
@@ -249,34 +293,9 @@ function extractMarkerFilters(filters) {
             continue
         }
 
-        const propFilters = []
-        const fieldFilters = filter[4]
-        for(let j = 0; j < fieldFilters.length; j++) {
-            const fieldFilter = fieldFilters[j]
-            if(!fieldFilter[2]) continue
-
-            let values = []
-            if(fieldFilter[3] === 'enum') {
-                const filterValues = fieldFilter[4]
-                for(let k = 0; k < filterValues.length; k++) {
-                    const filterValue = filterValues[k]
-                    if(!filterValue[2]) continue
-                    values.push(filterValue[0])
-                }
-            }
-            else if(fieldFilter[3] === 'boolean') {
-                if(fieldFilter[4][0]) values.push(false)
-                if(fieldFilter[4][1]) values.push(true)
-            }
-            else {
-                values.push(fieldFilter[4])
-            }
-
-            propFilters.push([fieldFilter[0], values])
-        }
-
-        res.push([filter[0], propFilters])
+        prepFiltersFilter(filter, res)
     }
+    console.log(res)
     return res
 }
 
