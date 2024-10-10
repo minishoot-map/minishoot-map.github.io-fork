@@ -88,9 +88,9 @@ function render(context) {
 
     backgroundsDisplay.render(context)
     if(__render_colliders) collidersDisplay.render(context)
+    if(__render_circular) circularDisplay.render(context)
     if(context.filters[1][2]) specMarkerDisplay.renderRest(context)
     specMarkerDisplay.renderVisible(context)
-    if(__render_circular) circularDisplay.render(context)
     if(__render_markers) markersDisplay.render(context)
     specMarkerDisplay.renderSelected(context)
 }
