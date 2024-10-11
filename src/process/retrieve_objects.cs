@@ -10,9 +10,22 @@ using UnityEngine.Tilemaps;
 using System.Runtime.InteropServices;
 using System.Reflection;
 using System.Linq;
+using System.Text;
 
-// SceneAsyncActivationGO (remove rate limit)
-// GameManager (yield return this.LaunchGame(); from InitializeGame(), also remove scene preloading (baseScenesToLoad), also remove whole if(SkipTitle) {} else {}, also basePath (ends in slash!), also Application.runInBackground = true;, remove WaitForSeconds...)
+// Required:
+// GameManager 1. basePath (ends in slash!):
+
+/*
+private static string basePath{ get{ return
+""" """
+; } }
+*/
+// 2. Replace Start() with contents of this file
+
+// Recommended:
+// ParticleMaster (remove foreach(): Init())
+// Pool (remove body: PreWarmPool())
+// Fx (remove body: AddReflection(), AddShadow(), AddShipFx(), AddWaterParticle(), RestoreShipVisual())
 
 
 // "Overworld", "Cave", "CaveExtra", "Dungeon1", "Dungeon2", "Dungeon3", "Dungeon4", "Dungeon5", "Temple1", "Temple2", "Temple3", "Tower", "CaveArena", "Snow"
@@ -180,7 +193,57 @@ public partial class GameManager : MonoBehaviour
         else return index;
     }
 
-    static void addObjectRef(GameObject o) {
+    static void prepObject(GameObject o) {
+        var a = "";
+        {
+            Tilemap[] cs = o.GetComponents<Tilemap>();
+            for (int i = 0; i < cs.Length; i++) {
+                var c = cs[i];
+                c.enabled = false;
+                c.enabled = true;
+
+                //errorsSw.WriteLine(a + "Tilemap (a): " + c.origin + " " + c.size + " "
+                //    + c.localBounds + " " + c.GetUsedTilesCount() + " " + c.GetUsedSpritesCount());
+
+                c.RefreshAllTiles();
+
+                //errorsSw.WriteLine(a + "Tilemap (b): " + c.origin + " " + c.size + " "
+                //    + c.localBounds + " " + c.GetUsedTilesCount() + " " + c.GetUsedSpritesCount());
+                //a = "--";
+            }
+        }
+        {
+            TilemapCollider2D[] cs = o.GetComponents<TilemapCollider2D>();
+            for (int i = 0; i < cs.Length; i++)
+            {
+                var c = cs[i];
+                c.enabled = false;
+                c.enabled = true;
+
+                //errorsSw.WriteLine(a + "Collider (a): " + c.hasTilemapChanges);
+
+                c.ProcessTilemapChanges();
+
+                //errorsSw.WriteLine(a + "Collider (b): " + c.hasTilemapChanges);
+                //a = "--";
+            }
+        }
+        {
+            CompositeCollider2D[] cs = o.GetComponents<CompositeCollider2D>();
+            for (int i = 0; i < cs.Length; i++)
+            {
+                var c = cs[i];
+                c.enabled = false;
+                c.enabled = true;
+                //errorsSw.WriteLine(a + "Composite (a): " + c.generationType.ToString() + " "
+                //    + c.geometryType.ToString() + " " + c.pathCount + " " + c.pointCount);
+                c.GenerateGeometry();
+                //errorsSw.WriteLine(a + "Composite (b): " + c.generationType.ToString() + " "
+                //    + c.geometryType.ToString() + " " + c.pathCount + " " + c.pointCount);
+                //a = "--";
+            }
+        }
+
         int index;
         if(!objects.TryGetValue(o, out index)) {
             index = objectList.Count;
@@ -189,7 +252,7 @@ public partial class GameManager : MonoBehaviour
         }
         var cc = o.transform.GetChildCount();
         for(int i = 0; i < cc; i++) {
-            addObjectRef(o.transform.GetChild(i).gameObject);
+            prepObject(o.transform.GetChild(i).gameObject);
         }
     }
 
@@ -330,7 +393,7 @@ public partial class GameManager : MonoBehaviour
         return serializers[i].schema;
     }
 
-    void writeDynamic(BinaryWriter w, object v, int schemaI) {
+    static void writeDynamic(BinaryWriter w, object v, int schemaI) {
         try {
 			var s = getSchema(schemaI);
             if(s.type == 0) s.primitiveWriter(w, v);
@@ -361,7 +424,7 @@ public partial class GameManager : MonoBehaviour
         }
     }
 
-    int addPolygons(Vector2[][] polygons) {
+    static int addPolygons(Vector2[][] polygons) {
         for(var i = 0; i < colliderPolygons.Count; i++) {
             var c = colliderPolygons[i];
             if(c.Length != polygons.Length) continue;
@@ -380,43 +443,118 @@ public partial class GameManager : MonoBehaviour
         return res;
     }
 
-    private IEnumerator LaunchGame()
-    {
-        Debug.Log(" > LaunchGame");
-        if (this.preloader != null)
-        {
-            this.preloader.StartLoading(false);
-        }
-        this.UpdateLoadPercent(0f, true);
-        PauseManager.Resume();
-        PostProcessManager.Enable();
-        UIManager.Background.Close();
-        SteamIntegration.DoubleCheckGameCompleted();
+    static string jsStr(string it) {
+        return System.Web.HttpUtility.JavaScriptStringEncode(it, true);
+    }
+
+    private void Start() {
         var scenes = new string[]{ "Overworld", "Cave", "CaveExtra", "Dungeon1", "Dungeon2", "Dungeon3", "Dungeon4", "Dungeon5", "Temple1", "Temple2", "Temple3", "Tower", "CaveArena", "Snow" };
-        // var scenes = new string[]{ "Cave" };
-        if (this.preloadScenes)
-        {
-            yield return this.LoadScenes(0.1f, scenes);
-            if (this.scenesToActivate.Exists((SceneAsyncActivationGO elem) => elem.Progress < 1f))
-            {
-                yield return this.ActivateScenes(0.9f);
+
+        var loadedSceneNames = new List<string>();
+
+        try {
+            Debug.Log("retrive_objects--Started");
+
+            Application.runInBackground = true;
+            GameManager.State = GameState.Loading;
+
+            if (this.locationLoader != null) {
+                Debug.Log("retrive_objects--locationLoader.alpha = 0");
+                this.locationLoader.alpha = 0f;
             }
+            if (this.preloader != null) {
+                Debug.Log("retrive_objects--StartLoading");
+                this.preloader.StartLoading(true);
+            }
+            DG.Tweening.DOTween.SetTweensCapacity(1000, 200);
+
+            var loadedCount = 0;
+            var expectedLoadedCount = 0;
+            SceneManager.sceneLoaded += (loadedScene, _) => {
+                // This executes after the first Update()
+
+                Debug.Log("retrive_objects--scene loaded: " + loadedScene.name);
+                loadedCount++;
+                if(loadedCount != expectedLoadedCount) return;
+
+                // This executes before any loaded objects get Update()'d
+                using(errorsSw = new StreamWriter(basePath + "errors.txt", false)) try {
+                    Debug.Log("retrive_objects--Global objects");
+                    InitializeGlobalObjects();
+                    Debug.Log("retrive_objects--Global objects done");
+
+                    for(int i = 0; i < loadedSceneNames.Count; i++) {
+                        var scene = SceneManager.GetSceneByName(loadedSceneNames[i]);
+                        Debug.Log("retrive_objects--Scene " + i + "(" + scenes[i] + ") = " + (scene == null));
+                        var item = scene.GetRootGameObjects()[0].GetComponent<SceneAsyncActivationGO>();
+                        if(item == null) continue;
+                        if(item.Progress >= 1f) continue;
+
+                        foreach(GameObject gameObject in item.wrapperObjects) {
+                            foreach(object obj in gameObject.transform) {
+                                (obj as Transform).gameObject.SetActive(true);
+                            }
+                        }
+                        item.Progress = 1f;
+                    }
+                    Debug.Log("retrive_objects--scenes done");
+
+                    if (!this.gameFullyLoaded) {
+                        Action gameLocationLoaded = GameManager.GameLocationLoaded;
+                        if (gameLocationLoaded != null) gameLocationLoaded();
+
+                        Action gamePostLoaded = GameManager.GamePostLoaded;
+                        if (gamePostLoaded != null) gamePostLoaded();
+
+                        this.gameFullyLoaded = true;
+                    }
+                    Debug.Log("retrive_objects--callbacks done");
+
+                    Write();
+                    Debug.Log("retrive_objects--done!");
+                }
+                catch(Exception e) {
+                    errorsSw.WriteLine(e.ToString());
+                }
+                finally {
+                    UpdateLoadPercent(1f, true);
+                    Application.Quit();
+                }
+            };
+
+            // This executes before the first Update()
+            if (!FindObjectOfType<GlobalObjects>()) {
+                Debug.Log("retrive_objects--loading global");
+                SceneManager.LoadScene(SRScenes.GlobalObjects, LoadSceneMode.Additive);
+                Debug.Log("retrive_objects--loaded global");
+                expectedLoadedCount++;
+            }
+
+            for(int i = 0; i < scenes.Length; i++) {
+                if (!SceneManager.GetSceneByName(scenes[i]).isLoaded) {
+                    Debug.Log("retrive_objects--loading " + scenes[i]);
+                    SceneManager.LoadScene(scenes[i], LoadSceneMode.Additive);
+                    Debug.Log("retrive_objects--loaded " + scenes[i]);
+                    loadedSceneNames.Add(scenes[i]);
+                    expectedLoadedCount++;
+                }
+            }
+
+            Directory.CreateDirectory(basePath);
+            Directory.CreateDirectory(basePath + "sprites/");
         }
-        if (!this.gameFullyLoaded)
-        {
-            Action gameLocationLoaded = GameManager.GameLocationLoaded;
-            if (gameLocationLoaded != null)
-            {
-                gameLocationLoaded();
-            }
-            Action gamePostLoaded = GameManager.GamePostLoaded;
-            if (gamePostLoaded != null)
-            {
-                gamePostLoaded();
-            }
-            this.gameFullyLoaded = true;
+        catch(Exception e) {
+            Debug.Log("retrive_objects--Error setup");
+            Debug.Log(e.ToString());
+            Application.Quit();
         }
 
+        Debug.Log("retrive_objects--everything setup");
+
+        UpdateLoadPercent(0.5f, true);
+    }
+
+    private static void Write() {
         serializers = new List<Serializer>();
         typeSerializers = new Dictionary<Type, Serializer>();
 
@@ -427,29 +565,11 @@ public partial class GameManager : MonoBehaviour
 
         colliderPolygons = new List<Vector2[][]>();
 
-        Directory.CreateDirectory(basePath);
-        Directory.CreateDirectory(basePath + "sprites/");
-        using(errorsSw = new StreamWriter(basePath + "errors.txt", false)) try {
-            Write();
-        }
-        catch(Exception e) {
-            errorsSw.WriteLine(e.ToString());
-        }
-
-        Application.Quit();
-        yield break;
-    }
-
-    static string jsStr(string it) {
-        return System.Web.HttpUtility.JavaScriptStringEncode(it, true);
-    }
-
-    private void Write() {
         for(int i = 0; i < SceneManager.sceneCount; i++) {
             Scene scene = SceneManager.GetSceneAt(i);
             var objs = scene.GetRootGameObjects();
             foreach(var obj in objs) {
-                addObjectRef(obj);
+                prepObject(obj);
             }
         }
 
