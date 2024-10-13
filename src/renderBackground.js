@@ -41,15 +41,45 @@ void main(void) {
 }
 `
 const fsSource = `#version 300 es
-precision mediump float;
+precision highp float; ${''/*required for fancy interpolation for some reason*/}
 
-uniform mediump sampler2DArray textures;
+uniform highp sampler2DArray textures;
 in vec2 uv;
 flat in int tIndex;
 out vec4 color;
 
+vec4 g(float x, float y) {
+    return texelFetch(textures, ivec3(x, y, tIndex), 0);
+}
+
 void main(void) {
-    color = texture(textures, vec3(uv, tIndex));
+    vec2 texSize = vec2(textureSize(textures, 0));
+    vec2 pxCoord = uv * texSize;
+    float diff = dFdx(pxCoord).x;
+
+    vec4 value = texture(textures, vec3(uv, tIndex));
+
+    ${''/*fix ugly stairstep when zooming in. There should've also been interpolation*/}
+    ${''/*for previous neighbour, but it looks very bad for some reason.*/}
+    vec2 ccur = clamp(floor(pxCoord       ), vec2(0), vec2(texSize - 1.0));
+    vec2 cnex = clamp(floor(pxCoord + diff), vec2(0), vec2(texSize - 1.0));
+    vec4 v5 = value, v6 = g(cnex.x, ccur.y),
+        v8 = g(ccur.x, cnex.y), v9 = g(cnex.x, cnex.y);
+
+    if(diff < 0.5) {
+        if(cnex.x != ccur.x) {
+            float f = (cnex.x - pxCoord.x) / diff;
+            v5 = mix(v6, v5, f);
+            v8 = mix(v9, v8, f);
+        }
+        if(cnex.y != ccur.y) {
+            v5 = mix(v8, v5, (cnex.y - pxCoord.y) / diff);
+        }
+
+        value = v5;
+    }
+
+    color = value;
 }
 `
 
@@ -343,7 +373,7 @@ export function render(context) {
         if(done && !rd.mimpaps) {
             rd.mimpaps = true
             gl.bindTexture(gl.TEXTURE_2D_ARRAY, rd.bgTextures)
-            gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_LINEAR)
+            gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
             gl.generateMipmap(gl.TEXTURE_2D_ARRAY)
         }
 
