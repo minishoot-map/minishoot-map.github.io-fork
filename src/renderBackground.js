@@ -48,7 +48,7 @@ in vec2 uv;
 flat in int tIndex;
 out vec4 color;
 
-vec4 g(float x, float y) {
+vec4 g(int x, int y) {
     return texelFetch(textures, ivec3(x, y, tIndex), 0);
 }
 
@@ -56,27 +56,21 @@ void main(void) {
     vec2 texSize = vec2(textureSize(textures, 0));
     vec2 pxCoord = uv * texSize;
     float diff = dFdx(pxCoord).x;
+    float d2 = diff * 0.5;
 
     vec4 value = texture(textures, vec3(uv, tIndex));
 
-    ${''/*fix ugly stairstep when zooming in. There should've also been interpolation*/}
-    ${''/*for previous neighbour, but it looks very bad for some reason.*/}
-    vec2 ccur = clamp(floor(pxCoord       ), vec2(0), vec2(texSize - 1.0));
-    vec2 cnex = clamp(floor(pxCoord + diff), vec2(0), vec2(texSize - 1.0));
-    vec4 v5 = value, v6 = g(cnex.x, ccur.y),
-        v8 = g(ccur.x, cnex.y), v9 = g(cnex.x, cnex.y);
+    ${''/*fix ugly stairstep when zooming in*/}
+    vec2 prev = pxCoord - d2, fprev = floor(prev);
+    vec2 next = pxCoord + d2, fnext = floor(next);
+    ivec2 cprev = ivec2(clamp(fprev, vec2(0), vec2(texSize - 1.0)));
+    ivec2 cnext = ivec2(clamp(fnext, vec2(0), vec2(texSize - 1.0)));
+    vec4 v1 = g(cprev.x, cprev.y), v3 = g(cnext.x, cprev.y),
+         v7 = g(cprev.x, cnext.y), v9 = g(cnext.x, cnext.y);
 
-    if(diff < 0.5) {
-        if(cnex.x != ccur.x) {
-            float f = (cnex.x - pxCoord.x) / diff;
-            v5 = mix(v6, v5, f);
-            v8 = mix(v9, v8, f);
-        }
-        if(cnex.y != ccur.y) {
-            v5 = mix(v8, v5, (cnex.y - pxCoord.y) / diff);
-        }
-
-        value = v5;
+    if(diff < 1.0) {
+        vec2 fac = (next - fnext) / diff;
+        value = mix(mix(v1, v3, fac.x), mix(v7, v9, fac.x), fac.y);
     }
 
     color = value;
