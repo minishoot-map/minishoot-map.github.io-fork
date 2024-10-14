@@ -8,7 +8,7 @@ using System.IO;
 using UnityEngine.SceneManagement;
 
 // CameraManager (remove body of LateUpdate())
-// SceneAsync... (remove rate limit - same as in retrieve.cs)
+// SceneAsync... (remove rate limit)
 // AspectUtility (set _wantedAspectRatio = 1 at the start of Awake())
 // LightFlicker (remove body of Awake())
 // ActivationManager (remove body of LateUpdate(),
@@ -44,6 +44,17 @@ public partial class LightManager : MonoBehaviour {
 /*
     Vector2 vector3 = new Vector2(limits.X.GetValueByRatio(0.5f, false, false), limits.Y.GetValueByRatio(0.5f, false, false));
     if (!float.IsNaN(vector3.x) && !float.IsNaN(vector3.y)) transform.position = vector3;
+*/
+/*
+using System;
+using UnityEngine;
+public partial class HiddenArea : MiniBehaviour {
+	protected override void Awake() {
+		base.Awake();
+		var array = sprites = GetComponentsInChildren<SpriteRenderer>();
+		for(int i = 0; i < array.Length; i++) array[i].material.SetFloat("_Fade", 0f);
+	}
+}
 */
 // )
 // GameManager (yield return this.LaunchGame(); from InitializeGame(), also remove scene preloading (baseScenesToLoad), also remove whole if(SkipTitle) {} else {}, also basePath (ends in slash!), also Application.runInBackground = true;, remove WaitForSeconds...)
