@@ -239,11 +239,16 @@ function Object({ first }) {
 const ti = parsedSchema.typeSchemaI
 
 function Parent({ obj }) {
+    let link
+    if(obj.parent < 0) {
+        link = <span>[<Link index={obj.parent} name={obj.referenceNames[obj.parent]}/>]</span>
+    }
+    else if(obj.parent >= 0) {
+        link = <span><Link index={obj.parent} name={obj.referenceNames[obj.parent]}/></span>
+    }
+
     return <Props>
-        <Prop>
-            Parent:
-            {<Link index={obj.parent} name={obj.referenceNames[obj.parent]}/>}
-        </Prop>
+        <Prop>Parent: {link}</Prop>
     </Props>
 }
 
