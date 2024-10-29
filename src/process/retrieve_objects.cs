@@ -13,13 +13,15 @@ using System.Linq;
 using System.Text;
 
 // Required:
-// GameManager 1. basePath (ends in slash!):
-
-/*
+// GameManager:
+// 1. basePath (ends in slash or backslash!):
+    /*
 private static string basePath{ get{ return
 """ """
 ; } }
-*/
+    */
+    // This will be the output directory.
+
 // 2. Replace Start() with contents of this file
 
 // Recommended:
