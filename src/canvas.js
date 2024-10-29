@@ -42,20 +42,20 @@ function clampScale(scale, old) {
     return clampedScale(scale, old)[1]
 }
 
-function prepInfo(bounds, camera) {
-    return {
-        cx: bounds.left + bounds.width * 0.5,
-        cy: bounds.top + bounds.height * 0.5,
-        posX: camera.posX,
-        posY: camera.posY,
-        scale: camera.scale * 2 / bounds.height,
-    }
+// 0 to height => 1 to -1
+// 0 to width => -smth to smth
+function xScreenToCamera(it, bounds) {
+    return (it - (bounds.left + bounds.width * 0.5)) * 2 / bounds.height
 }
-function xScreenToWorld(it, info) {
-    return (it - info.cx) * info.scale + info.posX
+function yScreenToCamera(it, bounds) {
+    return ((bounds.top + bounds.height * 0.5) - it) * 2 / bounds.height
 }
-function yScreenToWorld(it, info) {
-    return -(it - info.cy) * info.scale + info.posY
+
+function xCameraToWorld(it, camera) {
+    return it * camera.scale + camera.posX
+}
+function yCameraToWorld(it, camera) {
+    return it * camera.scale + camera.posY
 }
 
 export function setup(context) {
@@ -101,23 +101,20 @@ export function setup(context) {
         e.preventDefault()
 
         const bounds = canvas.getBoundingClientRect()
-        const info = prepInfo(bounds, camera)
-
-        const offsetX = xScreenToWorld(e.clientX, info)
-        const offsetY = yScreenToWorld(e.clientY, info)
+        const posX = xScreenToCamera(e.clientX, bounds)
+        const posY = yScreenToCamera(e.clientY, bounds)
 
         const zoomFactor = 0.004
         var delta = 1 + Math.abs(e.deltaY) * zoomFactor
         if(e.deltaY < 0) delta = 1 / delta
-
         const newScale = clampScale(camera.scale * delta, camera.scale)
 
-        const tx = offsetX - (offsetX - camera.posX) * (newScale / camera.scale)
-        const ty = offsetY - (offsetY - camera.posY) * (newScale / camera.scale)
+        const scale = camera.scale
 
         camera.scale = newScale
-        camera.posX = tx
-        camera.posY = ty
+        camera.posX += posX * (scale - newScale)
+        camera.posY += posY * (scale - newScale)
+
         context.requestRender(1)
     });
 
@@ -126,19 +123,17 @@ export function setup(context) {
 
     canvas.addEventListener('click', (e) => {
         const bounds = canvas.getBoundingClientRect()
-        const info = prepInfo(bounds, camera)
-        const x = xScreenToWorld(e.clientX, info)
-        const y = yScreenToWorld(e.clientY, info)
+        const x = xCameraToWorld(xScreenToCamera(e.clientX, bounds), camera)
+        const y = yCameraToWorld(yScreenToCamera(e.clientY, bounds), camera)
 
         context.onClick(x, y)
     })
 
     canvas.addEventListener('mousedown', (e) => {
         const bounds = canvas.getBoundingClientRect()
-        const info = prepInfo(bounds, camera)
         panning.is = true
-        panning.prevX = xScreenToWorld(e.clientX, info)
-        panning.prevY = yScreenToWorld(e.clientY, info)
+        panning.prevX = xScreenToCamera(e.clientX, bounds)
+        panning.prevY = yScreenToCamera(e.clientY, bounds)
     });
 
     window.addEventListener('mouseup', (e) => {
@@ -151,34 +146,35 @@ export function setup(context) {
         // https://stackoverflow.com/a/59957886
         canvas.style.pointerEvents = 'none'
         const bounds = canvas.getBoundingClientRect()
-        const info = prepInfo(bounds, camera)
 
-        const curX = xScreenToWorld(e.clientX, info)
-        const curY = yScreenToWorld(e.clientY, info)
+        const curX = xScreenToCamera(e.clientX, bounds)
+        const curY = yScreenToCamera(e.clientY, bounds)
 
-        camera.posX -= curX - panning.prevX
-        camera.posY -= curY - panning.prevY
+        camera.posX -= (curX - panning.prevX) * camera.scale
+        camera.posY -= (curY - panning.prevY) * camera.scale
+
+        panning.prevX = curX
+        panning.prevY = curY
+
         context.requestRender(1)
     });
 
     canvas.addEventListener('touchstart', function (e) {
         const bounds = canvas.getBoundingClientRect()
-        const info = prepInfo(bounds, camera)
 
         for(var i = 0; i < e.changedTouches.length; i++) {
             var t = e.changedTouches[i]
             if(touches.touches[t.identifier]) continue;
             touches.order.push(t.identifier)
             touches.touches[t.identifier] = {
-                prevX: xScreenToWorld(t.clientX, info),
-                prevY: yScreenToWorld(t.clientY, info),
+                prevX: xScreenToCamera(t.clientX, bounds),
+                prevY: yScreenToCamera(t.clientY, bounds),
             }
         }
     });
 
     canvas.addEventListener('touchmove', function (e) {
         const firstId = touches.order[0]
-        if(firstId == undefined) return
         const secondId = touches.order[1]
 
         let t1, t2
@@ -191,61 +187,59 @@ export function setup(context) {
                 t2 = t
             }
         }
-        if(t1 == undefined) return
 
         const bounds = canvas.getBoundingClientRect()
-        const info = prepInfo(bounds, camera)
 
-        const touch1 = touches.touches[firstId]
-        if(t2 == undefined) { // pan
-            const curX = xScreenToWorld(t1.clientX, info)
-            const curY = yScreenToWorld(t1.clientY, info)
+        ;(() => {
+            if(t1 == undefined) return
 
-            camera.posX -= curX - touch1.prevX
-            camera.posY -= curY - touch1.prevY
-            context.requestRender(1)
-        }
-        else {
-            const touch2 = touches.touches[secondId]
+            const touch1 = touches.touches[firstId]
+            if(t2 == undefined) { // pan
+                const curX = xScreenToCamera(t1.clientX, bounds)
+                const curY = yScreenToCamera(t1.clientY, bounds)
 
-            const curX1 = xScreenToWorld(t1.clientX, info)
-            const curY1 = yScreenToWorld(t1.clientY, info)
-            const curX2 = xScreenToWorld(t2.clientX, info)
-            const curY2 = yScreenToWorld(t2.clientY, info)
+                camera.posX -= (curX - touch1.prevX) * camera.scale
+                camera.posY -= (curY - touch1.prevY) * camera.scale
 
-            const preX1 = touch1.prevX
-            const preY1 = touch1.prevY
-            const preX2 = touch2.prevX
-            const preY2 = touch2.prevY
+                context.requestRender(1)
+            }
+            else {
+                const touch2 = touches.touches[secondId]
 
-            const dx = curX1 - curX2
-            const dy = curY1 - curY2
-            const pdx = preX1 - preX2
-            const pdy = preY1 - preY2
-            const preDist2 = pdx * pdx + pdy * pdy
-            const curDist2 = dx * dx + dy * dy
+                const curX1 = xScreenToCamera(t1.clientX, bounds)
+                const curY1 = yScreenToCamera(t1.clientY, bounds)
+                const curX2 = xScreenToCamera(t2.clientX, bounds)
+                const curY2 = yScreenToCamera(t2.clientY, bounds)
 
-            const preCenterX = (preX1 + preX2) * 0.5
-            const preCenterY = (preY1 + preY2) * 0.5
+                const preX1 = touch1.prevX
+                const preY1 = touch1.prevY
+                const preX2 = touch2.prevX
+                const preY2 = touch2.prevY
 
-            const curCenterX = (curX1 + curX2) * 0.5
-            const curCenterY = (curY1 + curY2) * 0.5
+                const scale = camera.scale
 
-            const delta = Math.sqrt(preDist2 / curDist2)
-            const newScale = clampScale(camera.scale * delta, camera.scale)
-            const newDelta = newScale / camera.scale
+                const dx = curX1 - curX2
+                const dy = curY1 - curY2
+                const pdx = preX1 - preX2
+                const pdy = preY1 - preY2
+                const delta = Math.sqrt((pdx * pdx + pdy * pdy) / (dx * dx + dy * dy))
+                const newScale = clampScale(scale * delta, scale)
 
-            camera.scale = newScale
-            camera.posX = preCenterX - (curCenterX - camera.posX) * newDelta
-            camera.posY = preCenterY - (curCenterY - camera.posY) * newDelta
+                camera.scale = newScale
+                camera.posX += scale * 0.5 * (preX1 + preX2)
+                    - newScale * 0.5 * (curX1 + curX2)
+                camera.posY += scale * 0.5 * (preY1 + preY2)
+                    - newScale * 0.5 * (curY1 + curY2)
 
-            const info2 = prepInfo(bounds, camera)
-            touch1.prevX = xScreenToWorld(t1.clientX, info2)
-            touch1.prevY = yScreenToWorld(t1.clientY, info2)
-            touch2.prevX = xScreenToWorld(t2.clientX, info2)
-            touch2.prevY = yScreenToWorld(t2.clientY, info2)
+                context.requestRender(1)
+            }
+        })()
 
-            context.requestRender(1)
+        for(let i = 0; i < e.touches.length; i++) {
+            const t = e.touches[i]
+            const touch = touches.touches[t.identifier]
+            touch.prevX = xScreenToCamera(t.clientX, bounds)
+            touch.prevY = yScreenToCamera(t.clientY, bounds)
         }
 
         e.preventDefault()
