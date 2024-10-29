@@ -228,7 +228,7 @@ function Object({ first }) {
             <Prop>Position:{vec2s(first.pos)}</Prop>
         </Props>
         <div className="space"></div>
-        <Parent obj={first}/>
+        <Parents obj={first}/>
         <Children obj={first}/>
         <div className="space"></div>
         <div>Components:</div>
@@ -238,17 +238,29 @@ function Object({ first }) {
 
 const ti = parsedSchema.typeSchemaI
 
-function Parent({ obj }) {
-    let link
-    if(obj.parent < 0) {
-        link = <span>[<Link index={obj.parent} name={obj.referenceNames[obj.parent]}/>]</span>
+function parentLink(obj, parentI, i) {
+    const rn = obj.referenceNames[parentI]
+    if(parentI < 0) {
+        return <span>[<Link key={i} index={parentI} name={rn}/>]</span>
     }
-    else if(obj.parent >= 0) {
-        link = <span><Link index={obj.parent} name={obj.referenceNames[obj.parent]}/></span>
+    else {
+        return <span><Link key={i} index={parentI} name={rn}/></span>
+    }
+}
+
+function Parents({ obj }) {
+    const parentEls = []
+    let uselessKey = 0
+    for(let i = obj.parentChain.length - 1; i != 0; i--) {
+        parentEls.push(parentLink(obj, obj.parentChain[i], uselessKey++))
+        parentEls.push(<span key={uselessKey++}>{' ➤ '}</span>)
+    }
+    if(obj.parentChain.length > 0) {
+        parentEls.push(parentLink(obj, obj.parentChain[0], uselessKey++))
     }
 
     return <Props>
-        <Prop>Parent: {link}</Prop>
+        <Prop>Parents: {parentEls}</Prop>
     </Props>
 }
 

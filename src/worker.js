@@ -618,16 +618,23 @@ function serializeObject(obj) {
         if(s) a(s.destination)
     }
 
+    const parentChain = []
     var parentI = obj._parentI
-    if(parentI < 0) {
-        const name = scenes[-parentI - 1]?.name
-        if(name) referenceNames[parentI] = name
-    }
-    else {
-        const parent = objects[parentI]
-        if(parent != null) {
+    for(let i = 0; i < 1000; i++) { // no infinite loops!
+        parentChain.push(parentI)
+
+        if(parentI < 0) {
+            const name = scenes[-parentI - 1]?.name
+            if(name) referenceNames[parentI] = name
+            break
+        }
+        else {
+            const parent = objects[parentI]
+            if(parent == null) break
+
             const name = parent.name
             if(name) referenceNames[parentI] = name
+            parentI = parent._parentI
         }
     }
 
@@ -639,7 +646,7 @@ function serializeObject(obj) {
         markerType: obj._markerType,
         referenceNames,
         children,
-        parent: parentI,
+        parentChain: parentChain,
     }
 }
 
