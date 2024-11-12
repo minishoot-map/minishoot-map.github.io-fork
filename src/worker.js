@@ -144,69 +144,40 @@ var lastMarkerFilters
 /** @typedef {(component: any, actualComponent: any) => [textureI: number, size?: number]} DisplayFunc */
 /** @type {Map<number, DisplayFunc>} */
 const displayFuncs = new Map()
-/**
-    @param {number} schemaI
-    @param {DisplayFunc} func
-*/
-function a(schemaI, func) { displayFuncs.set(schemaI, func) }
+/** @type {[baseSteps: number, funcI: number, priority: number][]} */
+const schemaDisplayFuncI = Array(meta.schemas.length)
+{
+    /**
+        @param {number} schemaI
+        @param {DisplayFunc} func
+    */
+    function a(schemaI, func) { displayFuncs.set(schemaI, func) }
 
-a(ti.Enemy, (it, comp) => {
-    const size = comp._schema === ti.Boss ? 3 : 1 + 0.33 * it.size
-    return [it.spriteI, size]
-})
+    a(ti.Enemy, (it, comp) => {
+        const size = comp._schema === ti.Boss ? 3 : 1 + 0.33 * it.size
+        return [it.spriteI, size]
+    })
 
-a(ti.Jar, (it, comp) => [it.spriteI])
-a(ti.CrystalDestroyable, (it, comp) => {
-    const ti = meta.crystalDestroyableTextures[it.dropXp ? 1 : 0]
-    return [ti, 1 + 0.5 * it.size]
-})
-a(ti.ScarabPickup, (it, comp) => createOneTex(it)) // Note: flaky texture lookup in retrieve_objects.cs
-;([
-    ti.CrystalBoss, ti.CrystalKey, ti.KeyUnique, ti.BossKey, ti.ModulePickup,
-    ti.SkillPickup, ti.StatsPickup, ti.LorePickup, ti.MapPickup
-]).forEach(s => {
-    const steps = stepsToBase(s, ti.Pickup)
-    a(s, (it, comp) => [getBase(it, steps).spriteI])
-})
-a(ti.Pickup, (it, comp) => [it.spriteI])
-a(ti.Npc, (it, comp) => [it.spriteI, 1.5])
-a(ti.Tunnel, (it, comp) => [it.spriteI, 1.5])
-a(ti.Torch, (it, comp) => [it.spriteI, 1.2])
-
-/** @typedef {[textureI: number, x: number, y: number, size: number]} RegularDisplay */
-/** @typedef {{ object: any, component: any }} MarkerInfo */
-
-/** @type {MarkerInfo[]} */
-var allMarkersInfo
-/** @type {object[]} */
-var restMarkersInfo
-
-/** @type {Promise<{
-    colliderObjects: Array<[object: any, component: any]>,
-    regularDisplays: Array<RegularDisplay>,
-}>} */
-
-const objectsProcessedP = objectsLoadedP.then(objects => {
-    const colliderObjects = []
-
-    /** @type {RegularDisplay[]} */
-    const regularDisplays = []
-
-    /** @type {MarkerInfo[]} */
-    const regularMarkers = []
-    /** @type {MarkerInfo[]} */
-    const specialMarkers = []
-    /** @type {object[]} */
-    const restMarkers = []
+    a(ti.Jar, (it, comp) => [it.spriteI])
+    a(ti.CrystalDestroyable, (it, comp) => {
+        const ti = meta.crystalDestroyableTextures[it.dropXp ? 1 : 0]
+        return [ti, 1 + 0.5 * it.size]
+    })
+    a(ti.ScarabPickup, (it, comp) => createOneTex(it)) // Note: flaky texture lookup in retrieve_objects.cs
+    ;([
+        ti.CrystalBoss, ti.CrystalKey, ti.KeyUnique, ti.BossKey, ti.ModulePickup,
+        ti.SkillPickup, ti.StatsPickup, ti.LorePickup, ti.MapPickup
+    ]).forEach(s => {
+        const steps = stepsToBase(s, ti.Pickup)
+        a(s, (it, comp) => [getBase(it, steps).spriteI])
+    })
+    a(ti.Pickup, (it, comp) => [it.spriteI])
+    a(ti.Npc, (it, comp) => [it.spriteI, 1.5])
+    a(ti.Tunnel, (it, comp) => [it.spriteI, 1.5])
+    a(ti.Torch, (it, comp) => [it.spriteI, 1.2])
 
     const displayKeys = [...displayFuncs.keys()]
 
-    for(const schemaI of displayKeys) {
-        console.log(meta.schemas[schemaI][1])
-    }
-
-    /** @type {[baseSteps: number, funcI: number, priority: number][]} */
-    const schemaDisplayFuncI = Array(meta.schemas.length)
     for(let i = 0; i < meta.schemas.length; i++) {
         let added = false
         let si = 0;
@@ -239,6 +210,69 @@ const objectsProcessedP = objectsLoadedP.then(objects => {
             si++
         }
     }
+}
+
+/** @typedef {(component: any) => number | number[]} ReferenceFunc */
+/** @type {Map<number, ReferenceFunc>} */
+const referenceFuncs = new Map()
+/** @type {Array<Array<[baseSteps: number, funcI: number]>>} */
+const schemaReferenceFuncI = Array(meta.schemas.length)
+{
+    /**
+        @param {number} schemaI
+        @param {ReferenceFunc} func
+    */
+    function a(schemaI, func) { referenceFuncs.set(schemaI, func) }
+
+    a(ti.ScarabPickup, (it) => it.container)
+    a(ti.Transition, (it) => it.destI)
+    a(ti.Unlocker, (it) => [it.target, it.targetBis])
+    a(ti.UnlockerTrigger, (it) => [it.target, it.targetBis])
+    a(ti.UnlockerTorch, (it) => [it.target, it.targetBis, it.linkedTorch])
+    a(ti.Buyable, (it) => it.owner)
+    a(ti.Tunnel, (it) => it.destination)
+
+    const referenceKeys = [...referenceFuncs.keys()]
+
+    for(let i = 0; i < meta.schemas.length; i++) {
+        /** @type {Array<[baseSteps: number, funcI: number]>} */
+        const res = []
+        schemaReferenceFuncI[i] = res
+
+        for(let j = 0; j < referenceKeys.length; j++) {
+            const schemaI = referenceKeys[j]
+            const s = stepsToBase(i, schemaI)
+            if(s != null) res.push([s, schemaI])
+        }
+    }
+}
+
+
+/** @typedef {[textureI: number, x: number, y: number, size: number]} RegularDisplay */
+/** @typedef {{ object: any, component: any }} MarkerInfo */
+
+/** @type {MarkerInfo[]} */
+var allMarkersInfo
+/** @type {object[]} */
+var restMarkersInfo
+
+/** @type {Promise<{
+    colliderObjects: Array<[object: any, component: any]>,
+    regularDisplays: Array<RegularDisplay>,
+}>} */
+
+const objectsProcessedP = objectsLoadedP.then(objects => {
+    const colliderObjects = []
+
+    /** @type {RegularDisplay[]} */
+    const regularDisplays = []
+
+    /** @type {MarkerInfo[]} */
+    const regularMarkers = []
+    /** @type {MarkerInfo[]} */
+    const specialMarkers = []
+    /** @type {object[]} */
+    const restMarkers = []
 
     const s = performance.now()
     for(let i = 0; i < objects.length; i++) {
@@ -248,7 +282,7 @@ const objectsProcessedP = objectsLoadedP.then(objects => {
         let minPriority = Infinity
         let minInfo = null
         for(let j = 0; j < cs.length; j++) {
-            let comp = cs[j]
+            const comp = cs[j]
 
             const info = schemaDisplayFuncI[comp._schema]
             if(info != null && info[2] < minPriority) {
@@ -262,10 +296,41 @@ const objectsProcessedP = objectsLoadedP.then(objects => {
                     colliderObjects.push([obj, comp])
                 }
             }
+
+            const kInfos = schemaReferenceFuncI[comp._schema]
+            for(let ki = 0; ki < kInfos.length; ki++) {
+                const kInfo = kInfos[ki]
+                const it = getBase(comp, kInfo[0])
+                // @ts-ignore
+                const res = referenceFuncs.get(kInfo[1])(it)
+                if(Array.isArray(res)) {
+                    for(let ri = 0; ri < res.length; ri++) {
+                        const r = res[ri]
+                        if(r < 0) continue
+                        const obj = objects[r]
+                        if(obj == null) continue
+
+                        /** @type {Set<number> | undefined} */
+                        const rb = obj._referencedBy
+                        if(rb == null) obj._referencedBy = new Set([i])
+                        else rb.add(i)
+                    }
+                }
+                else {
+                    if(res < 0) continue
+                    const obj = objects[res]
+                    if(obj == null) continue
+
+                    /** @type {Set<number> | undefined} */
+                    const rb = obj._referencedBy
+                    if(rb == null) obj._referencedBy = new Set([i])
+                    else rb.add(i)
+                }
+            }
         }
 
         if(minInfo != null) {
-            const [steps, funcI] = minInfo.info
+            const steps = minInfo.info[0], funcI = minInfo.info[1]
             const comp = minInfo.comp
             const it = getBase(comp, steps)
             if(funcI < 0) {
@@ -618,6 +683,20 @@ function serializeObject(obj) {
         if(s) a(s.destination)
     }
 
+    /** @type {Set<number> | undefined} */
+    const _referencedBy = obj._referencedBy
+    /** @type {number[]} */
+    let referencedBy
+    if(_referencedBy) {
+        referencedBy = [..._referencedBy]
+        for(let i = 0; i < referencedBy.length; i++) {
+            a(referencedBy[i])
+        }
+    }
+    else {
+        referencedBy = []
+    }
+
     const parentChain = []
     var parentI = obj._parentI
     for(let i = 0; i < 1000; i++) { // no infinite loops!
@@ -647,6 +726,7 @@ function serializeObject(obj) {
         referenceNames,
         children,
         parentChain: parentChain,
+        referencedBy,
     }
 }
 

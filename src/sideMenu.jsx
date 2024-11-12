@@ -230,6 +230,7 @@ function Object({ first }) {
         <div className="space"></div>
         <Parents obj={first}/>
         <Children obj={first}/>
+        <ReferencedBy obj={first}/>
         <div className="space"></div>
         <div>Components:</div>
         <div className="components">{components}</div>
@@ -241,10 +242,10 @@ const ti = parsedSchema.typeSchemaI
 function parentLink(obj, parentI, i) {
     const rn = obj.referenceNames[parentI]
     if(parentI < 0) {
-        return <span>[<Link key={i} index={parentI} name={rn}/>]</span>
+        return <span key={i}>[<Link index={parentI} name={rn}/>]</span>
     }
     else {
-        return <span><Link key={i} index={parentI} name={rn}/></span>
+        return <span key={i}><Link index={parentI} name={rn}/></span>
     }
 }
 
@@ -274,6 +275,20 @@ function Children({ obj }) {
     return <details className="component">
         <summary>Children</summary>
         <Props>{children}</Props>
+    </details>
+}
+
+function ReferencedBy({ obj }) {
+    const arr = []
+    for(let i = 0; i < obj.referencedBy.length; i++) {
+        const ri = obj.referencedBy[i]
+        arr.push(<Link key={i} index={ri} name={obj.referenceNames[ri]}/>)
+    }
+    const empty = arr.length == 0
+
+    return <details className="component" open={empty}>
+        <summary className={empty ? 'empty-component' : null}>Referenced by</summary>
+        <Props>{arr}</Props>
     </details>
 }
 

@@ -298,7 +298,6 @@ function extractMarkerFilters(filters) {
 
         prepFiltersFilter(filter, res)
     }
-    console.log(res)
     return res
 }
 
