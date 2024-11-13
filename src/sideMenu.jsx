@@ -175,7 +175,7 @@ function ObjectMenu() {
         return <div key={obj.tick} className='object-menu'>
             <Object first={obj.data?.first}/>
             <div className="space"></div>
-            <Other nearby={obj.data?.nearby}/>
+            <Other nearby={obj.data?.nearby} nearbyReferenceInfos={obj.data?.nearbyReferenceInfos}/>
         </div>
     }
 }
@@ -188,7 +188,7 @@ function Scene({ scene }) {
     const children = Array(scene.children.length)
     for(let i = 0; i < scene.children.length; i++) {
         const ci = scene.children[i]
-        children[i] = <Link key={i} index={ci} name={scene.referenceNames[ci]}/>
+        children[i] = <Link key={i} index={ci} obj={scene}/>
     }
 
     return <>
@@ -240,12 +240,11 @@ function Object({ first }) {
 const ti = parsedSchema.typeSchemaI
 
 function parentLink(obj, parentI, i) {
-    const rn = obj.referenceNames[parentI]
     if(parentI < 0) {
-        return <span key={i}>[<Link index={parentI} name={rn}/>]</span>
+        return <span key={i}>[<Link index={parentI} obj={obj}/>]</span>
     }
     else {
-        return <span key={i}><Link index={parentI} name={rn}/></span>
+        return <span key={i}><Link index={parentI} obj={obj}/></span>
     }
 }
 
@@ -269,7 +268,7 @@ function Children({ obj }) {
     const children = Array(obj.children.length)
     for(let i = 0; i < obj.children.length; i++) {
         const ci = obj.children[i]
-        children[i] = <Link key={i} index={ci} name={obj.referenceNames[ci]}/>
+        children[i] = <Link key={i} index={ci} obj={obj}/>
     }
 
     return <details className="component">
@@ -282,7 +281,7 @@ function ReferencedBy({ obj }) {
     const arr = []
     for(let i = 0; i < obj.referencedBy.length; i++) {
         const ri = obj.referencedBy[i]
-        arr.push(<Link key={i} index={ri} name={obj.referenceNames[ri]}/>)
+        arr.push(<Link key={i} index={ri} obj={obj}/>)
     }
     const empty = arr.length == 0
 
@@ -396,16 +395,27 @@ ac(ti.CircleCollider2D, (c, o) => {
     </Props>
 })
 
-function Link({ index, name }) {
-    const displayName = name != null ? name || '<No name>' : '<Unknown>'
+function Link({ index, obj }) {
+    const referenceInfo = obj.referenceInfos[index] ?? []
+    const displayName = referenceInfo[0] != null ? referenceInfo[0] || '<No name>' : '<Unknown>'
 
     if(index != null) {
-        function onClick() { gotoOther(index) }
-        function reactIsDumb(element) {
-            // imagine saying that this is a security vulnerability
-            if(element) element.href = "javascript:void(0)"
+        const url = new URL(window.location.href)
+        if(referenceInfo[1] != null && referenceInfo[2] != null) {
+            url.searchParams.set('posx', referenceInfo[1])
+            url.searchParams.set('posy', referenceInfo[2])
         }
-        return <a ref={reactIsDumb} onClick={onClick}>{displayName}</a>
+        else {
+            url.searchParams.delete('posx')
+            url.searchParams.delete('posy')
+        }
+        url.searchParams.set('obji', index)
+
+        function onClick(ev) {
+            gotoOther(index)
+            ev.preventDefault()
+        }
+        return <a href={url} onClick={onClick}>{displayName}</a>
     }
     else {
         return <span>{displayName}</span>
@@ -416,7 +426,7 @@ ac(ti.ScarabPickup, (c, o) => {
     return <Props>
         <Prop>
             Container:
-            <Link index={c.container} name={o.referenceNames[c.container]}/>
+            <Link index={c.container} obj={o}/>
         </Prop>
         <Component comp={c._base} obj={o}/>
     </Props>
@@ -424,7 +434,7 @@ ac(ti.ScarabPickup, (c, o) => {
 
 ac(ti.Transition, (c, o) => {
     return <Props>
-        <Prop>Destination:{<Link index={c.destI} name={o.referenceNames[c.destI]}/>}</Prop>
+        <Prop>Destination:{<Link index={c.destI} obj={o}/>}</Prop>
         <Component comp={c._base} obj={o}/>
     </Props>
 })
@@ -435,13 +445,13 @@ ac(ti.Unlocker, (c, o) => {
     const gc = Array(c.group.length)
     for(let i = 0; i < gc.length; i++) {
         const l = c.group[i]
-        gc[i] = <Link key={i} index={l} name={o.referenceNames[l]}/>
+        gc[i] = <Link key={i} index={l} obj={o}/>
     }
 
     return <Props>
         <Prop>KeyUse:{keyUses[c.keyUse] ?? '<Unknown>'}</Prop>
-        <Prop>Target:<Link index={c.target} name={o.referenceNames[c.target]}/></Prop>
-        <Prop>Target bis (?):<Link index={c.targetBis} name={o.referenceNames[c.targetBis]}/></Prop>
+        <Prop>Target:<Link index={c.target} obj={o}/></Prop>
+        <Prop>Target bis (?):<Link index={c.targetBis} obj={o}/></Prop>
         <Prop>Group:<Props>{gc}</Props></Prop>
         <Component comp={c._base} obj={o}/>
     </Props>
@@ -451,13 +461,13 @@ ac(ti.UnlockerTorch, (c, o) => {
     const gc = Array(c.group.length)
     for(let i = 0; i < gc.length; i++) {
         const l = c.group[i]
-        gc[i] = <Link key={i} index={l} name={o.referenceNames[l]}/>
+        gc[i] = <Link key={i} index={l} obj={o}/>
     }
 
     return <Props>
-        <Prop>Target:<Link index={c.target} name={o.referenceNames[c.target]}/></Prop>
-        <Prop>Target bis (?):<Link index={c.targetBis} name={o.referenceNames[c.targetBis]}/></Prop>
-        <Prop>Linked torch:<Link index={c.linkedTorch} name={o.referenceNames[c.linkedTorch]}/></Prop>
+        <Prop>Target:<Link index={c.target} obj={o}/></Prop>
+        <Prop>Target bis (?):<Link index={c.targetBis} obj={o}/></Prop>
+        <Prop>Linked torch:<Link index={c.linkedTorch} obj={o}/></Prop>
         <Prop>Group:<Props>{gc}</Props></Prop>
         <Component comp={c._base} obj={o}/>
     </Props>
@@ -477,8 +487,8 @@ const objectiveNames = [
 
 ac(ti.UnlockerTrigger, (c, o) => {
     return <Props>
-        <Prop>Target:<Link index={c.target} name={o.referenceNames[c.target]}/></Prop>
-        <Prop>Target bis (?):<Link index={c.targetBis} name={o.referenceNames[c.targetBis]}/></Prop>
+        <Prop>Target:<Link index={c.target} obj={o}/></Prop>
+        <Prop>Target bis (?):<Link index={c.targetBis} obj={o}/></Prop>
         <Prop>Prereqisute:{objectiveNames[c.objectiveCleared]}</Prop>
         <Component comp={c._base} obj={o}/>
     </Props>
@@ -553,7 +563,7 @@ ac(ti.Buyable, (c, o) => {
         <Prop>For sale:{bs(c.isForSale)}</Prop>
         <Prop>Title:{c.title}</Prop>
         <Prop>Description:{c.description}</Prop>
-        <Prop>Owner:<Link index={c.owner} name={o.referenceNames[c.owner]}/></Prop>
+        <Prop>Owner:<Link index={c.owner} obj={o}/></Prop>
         <Component comp={c._base} obj={o}/>
     </Props>
 });
@@ -597,7 +607,7 @@ ac(ti.Npc, (c, o) => {
 
 ac(ti.Tunnel, (c, o) => {
     return <Props>
-        <Prop>Destination:<Link index={c.destination} name={o.referenceNames[c.destination]}/></Prop>
+        <Prop>Destination:<Link index={c.destination} obj={o}/></Prop>
         <Component comp={c._base} obj={o}/>
     </Props>
 })
@@ -692,15 +702,16 @@ function Prop({ children }) {
 }
 
 
-function Other({ nearby }) {
-    if(nearby == null) return
+function Other({ nearby, nearbyReferenceInfos }) {
+    if(nearby == null || nearbyReferenceInfos == null) return
+    const nearbyObj = { referenceInfos: nearbyReferenceInfos }
 
     const nearbyC = []
     for(let i = 0; i < nearby.length; i++) {
         const it = nearby[i]
         nearbyC.push(
             <div key={i} className="hanging">
-                <Link index={it.index} name={it.name}/>
+                <Link index={it.index} obj={nearbyObj}/>
                 <span> [away{nbsp}{it.distance.toFixed(2)}]</span>
             </div>
         )

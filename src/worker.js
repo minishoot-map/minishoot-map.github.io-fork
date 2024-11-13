@@ -627,7 +627,7 @@ objectsProcessedP.then(d => {
 })
 
 function serializeObject(obj) {
-    const referenceNames = {}
+    const referenceInfos = {}
 
     const children = Array(obj.children.length)
     for(let i = 0; i < obj.children.length; i++) {
@@ -635,9 +635,7 @@ function serializeObject(obj) {
         if(child) {
             children[i] = child._index
             const name = child.name
-            if(name) {
-                referenceNames[child._index] = name
-            }
+            referenceInfos[child._index] = [name, child.pos[0], child.pos[1]]
         }
         else {
             children[i] = null
@@ -645,8 +643,10 @@ function serializeObject(obj) {
     }
 
     function a(ii) {
-        const name = objects[ii]?.name
-        if(name) referenceNames[ii] = name
+        const obj = objects[ii]
+        if(!obj) return
+        const name = obj.name
+        referenceInfos[ii] = [name, obj.pos[0], obj.pos[1]]
     }
 
     for(let i = 0; i < obj.components.length; i++) {
@@ -704,7 +704,7 @@ function serializeObject(obj) {
 
         if(parentI < 0) {
             const name = scenes[-parentI - 1]?.name
-            if(name) referenceNames[parentI] = name
+            referenceInfos[parentI] = [name]
             break
         }
         else {
@@ -712,18 +712,19 @@ function serializeObject(obj) {
             if(parent == null) break
 
             const name = parent.name
-            if(name) referenceNames[parentI] = name
+            referenceInfos[parentI] = [name, parent.pos[0], parent.pos[1]]
             parentI = parent._parentI
         }
     }
 
     return {
+        index: obj._index,
         name: obj.name,
         pos: obj.pos,
         components: obj.components,
         markerI: obj._markerI,
         markerType: obj._markerType,
-        referenceNames,
+        referenceInfos,
         children,
         parentChain: parentChain,
         referencedBy,
@@ -789,17 +790,19 @@ function onClick(x, y) {
         const first = serializeObject(obj)
 
         const nearby = Array(closest.length - 1)
+        const nearbyReferenceInfos = {}
         nearby.length = 0
         for(let i = 1; i < closest.length; i++) {
             const c = closest[i]
+            const co = c[1]
             nearby.push({
-                name: c[1].name,
                 distance: Math.sqrt(c[0]),
-                index: c[1]._index,
+                index: co._index,
             })
+            nearbyReferenceInfos[co._index] = [co.name, co.pos[0], co.pos[1]]
         }
 
-        message({ type: 'click', first, nearby })
+        message({ type: 'click', first, nearby, nearbyReferenceInfos })
     }
     else {
         message({ type: 'click' })
@@ -810,7 +813,7 @@ function getInfo(index) {
     if(index < 0) {
         const s = scenes[-index - 1]
         if(s) {
-            const referenceNames = {}
+            const referenceInfos = {}
 
             const children = Array(s.roots.length)
             for(let i = 0; i < s.roots.length; i++) {
@@ -818,16 +821,14 @@ function getInfo(index) {
                 if(child) {
                     children[i] = child._index
                     const name = child.name
-                    if(name) {
-                        referenceNames[child._index] = name
-                    }
+                    referenceInfos[child._index] = [name, child.pos[0], child.pos[1]]
                 }
                 else {
                     children[i] = null
                 }
             }
 
-            message({ type: 'getSceneInfo', scene: { referenceNames, children, name: s.name } })
+            message({ type: 'getSceneInfo', scene: { referenceInfos, children, name: s.name, index } })
         }
     }
     else {

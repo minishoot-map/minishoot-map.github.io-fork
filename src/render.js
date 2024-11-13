@@ -25,7 +25,7 @@ if(__worker) {
         console.log('received from worker', d.type)
 
         if(d.type === 'click') {
-            sideMenu.setCurrentObject({ first: d.first, nearby: d.nearby })
+            sideMenu.setCurrentObject({ first: d.first, nearby: d.nearby, nearbyReferenceInfos: d.nearbyReferenceInfos })
             updUrl(d.first)
         }
         else if(d.type === 'getInfo') {
@@ -34,6 +34,7 @@ if(__worker) {
         }
         else if(d.type === 'getSceneInfo') {
             sideMenu.setCurrentObject({ scene: d.scene })
+            updUrlScene(d.scene)
         }
         else if(d.type === 'colliders-done') {
             const it = {
@@ -427,10 +428,14 @@ try {
     const url = new URL(window.location.href)
     const posx = parseFloat(url.searchParams.get('posx'))
     const posy = parseFloat(url.searchParams.get('posy'))
+    const obji = parseFloat(url.searchParams.get('obji'))
     if(isFinite(posx) && isFinite(posy)) {
         context.camera.posX = posx
         context.camera.posY = posy
         context.requestRender(1)
+    }
+    if(isFinite(obji)) {
+        worker?.postMessage({ type: 'getInfo', index: obji })
     }
 }
 catch(e) {
@@ -440,13 +445,27 @@ catch(e) {
 function updUrl(obj) {
     const posx = obj.pos[0]
     const posy = obj.pos[1]
+    const obji = obj.index
 
     const url = new URL(window.location.href)
-    const prevPosx = parseFloat(url.searchParams.get('posx'))
-    const prevPosy = parseFloat(url.searchParams.get('posy'))
-    if(isFinite(posx) && isFinite(posy) && (posx != prevPosx || posy != prevPosy)) {
-        url.searchParams.set('posx', posx)
-        url.searchParams.set('posy', posy)
+    url.searchParams.set('posx', posx)
+    url.searchParams.set('posy', posy)
+    url.searchParams.set('obji', obji)
+
+    const prevUrl = new URL(window.location.href)
+    if(url.toString() != prevUrl.toString()) {
+        window.history.pushState({}, '', url)
+    }
+}
+
+function updUrlScene(it) {
+    const url = new URL(window.location.href)
+    url.searchParams.set('obji', it.index)
+    url.searchParams.delete('posx')
+    url.searchParams.delete('posy')
+
+    const prevUrl = new URL(window.location.href)
+    if(url.toString() != prevUrl.toString()) {
         window.history.pushState({}, '', url)
     }
 }
