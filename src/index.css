@@ -4,6 +4,7 @@ html {
     height: 100%;
     display: flex;
     justify-content: stretch;
+    font-family: "Open Sans", sans-serif;
 }
 body {
     flex-grow: 1;
@@ -33,14 +34,35 @@ body {
     flex-direction: column;
     row-gap: 0.2rem;
 }
+.component {
+    padding: 0.3rem 0.6rem;
+    border-radius: 0.4rem;
+    background: #00000010;
+}
 .component > :not(summary) {
     padding-left: 1rem;
 }
+.component > :not(summary):not(:empty) {
+    margin-top: 0.2rem;
+}
 .component > summary {
     cursor: pointer;
+    font-weight: 450;
+}
+.menu-button {
+	width: 100%;
+	background: #00000010;
+	border: none;
+	border-radius: 0.4rem;
+	padding: 0.3rem 0.6rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    &:hover {
+        background: #00000030;
+    }
 }
 .space {
-    margin-top: 0.5rem;
+    margin-top: 0.6rem;
 }
 
 .prop0 {
@@ -54,6 +76,9 @@ body {
 }
 .prop > :nth-child(1) {
     margin-left: -1rem;
+}
+.prop-name {
+    font-weight: 550;
 }
 .empty-component {
     color: #606060;
@@ -72,6 +97,8 @@ body {
     display: flex;
     overflow: scroll;
     flex-direction: column;
+    padding-left: 0.2rem;
+    padding-right: 0.2rem;
 }
 
 .menu-type {
@@ -81,13 +108,17 @@ body {
 }
 
 .menu-type > * {
-    background: white;
-}
-
-.menu-type > * {
     flex: 1 1 0;
     text-align: center;
     padding: 0.5rem;
+    background: white;
+    cursor: pointer;
+
+    transition: background 0.2s;
+    &:hover {
+        /* sic: seleted item is not highlighed on hover */
+        background: #e4e4e4;
+    }
 }
 
 .container {
@@ -178,7 +209,6 @@ body {
     display: flex;
     column-gap: 0.5rem;
     margin-left: 1rem;
-    row-gap:
 }
 .filter > *:nth-child(1) {
     margin-left: -1rem;

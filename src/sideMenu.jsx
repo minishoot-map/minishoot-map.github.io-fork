@@ -222,17 +222,20 @@ function Object({ first }) {
     }
 
     return <>
-        <button onClick={focus}>Focus</button>
+        <button className="menu-button" onClick={focus}>Focus</button>
+        <div className="space"></div>
         <Props>
             <Prop>Name:{first.name}</Prop>
             <Prop>Position:{vec2s(first.pos)}</Prop>
         </Props>
         <div className="space"></div>
-        <Parents obj={first}/>
-        <Children obj={first}/>
-        <ReferencedBy obj={first}/>
+        <div className="components">
+            <Parents obj={first}/>
+            <Children obj={first}/>
+            <ReferencedBy obj={first}/>
+        </div>
         <div className="space"></div>
-        <div>Components:</div>
+        <div className="prop-name">Components:</div>
         <div className="components">{components}</div>
     </>
 }
@@ -695,7 +698,7 @@ function Prop({ children }) {
     }
     return <div className="prop0">
         <div className="prop">
-            <div>{children[0]}</div>
+            <div className="prop-name">{children[0]}</div>
             <div>{children[1]}</div>
         </div>
     </div>
@@ -718,7 +721,7 @@ function Other({ nearby, nearbyReferenceInfos }) {
     }
 
     return <div className="nearby">
-        Objects nearby:
+        <div className="prop-name">Objects nearby:</div>
         {nearbyC}
     </div>
 }
