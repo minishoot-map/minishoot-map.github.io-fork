@@ -363,7 +363,7 @@ const context = {
     canvas, gl,
     renderRequest: null,
     requestRender,
-    camera: { posX: 0, posY: 0, scale: 10 },
+    camera: { posX: 0, posY: 33, scale: 10 },
     canvasSize: [],
     filters,
     lastFilters: {},
