@@ -711,6 +711,7 @@ public partial class GameManager : MonoBehaviour
             return (toSprite(tryAddSprite(v.Sprite)), componentRef(v.Destination));
         }, "spriteI", "destination");
         addrec<Torch, ValueTuple<Sprite>>(v => new(toSprite(tryAddSprite(v.GetComponentInChildren<SpriteRenderer>()))), "spriteI");
+        addrec<NpcTiny, ValueTuple<Sprite>>(v => new(toSprite(tryAddSprite(v.GetComponentInChildren<SpriteRenderer>()))), "spriteI");
 
         var scenes = new Scene[SceneManager.sceneCount];
         for(int i = 0; i < SceneManager.sceneCount; i++) {

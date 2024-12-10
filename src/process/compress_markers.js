@@ -1,4 +1,5 @@
 // See for generating the atlas: https://free-tex-packer.com/app/
+// don't make it more than 4096x4096
 
 import { join } from 'node:path'
 import * as fs from 'node:fs'

@@ -174,7 +174,8 @@ const schemaDisplayFuncI = Array(meta.schemas.length)
     a(ti.Pickup, (it, comp) => [it.spriteI])
     a(ti.Npc, (it, comp) => [it.spriteI, 1.5])
     a(ti.Tunnel, (it, comp) => [it.spriteI, 1.5])
-    a(ti.Torch, (it, comp) => [it.spriteI, 1.2])
+    a(ti.Torch, (it, comp) => [it.spriteI, 1])
+    a(ti.NpcTiny, (it, comp) => [it.spriteI, 1])
 
     const displayKeys = [...displayFuncs.keys()]
 

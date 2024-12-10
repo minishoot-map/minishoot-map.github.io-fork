@@ -195,6 +195,7 @@ const filters = [
             ['Transition', 'Show transitions', true, 'filters', []],
             ['Tunnel', 'Show tunnels', true, 'filters', []],
             ['Npc', 'Show NPCs', true, 'filters', []],
+            ['NpcTiny', 'Show Race Spirits', true, 'filters', []],
         ],
     ],
     [
