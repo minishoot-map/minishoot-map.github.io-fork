@@ -810,7 +810,10 @@ function onClick(x, y) {
     }
 }
 
-function getInfo(index) {
+
+async function getInfo(index) {
+    await objectsProcessedP
+
     if(index < 0) {
         const s = scenes[-index - 1]
         if(s) {
