@@ -204,6 +204,7 @@ function Scene({ scene }) {
 }
 
 function Object({ first }) {
+    const urlb = R.useRef(null)
     if(first == null) {
         return <div>
             No object selected
@@ -221,8 +222,43 @@ function Object({ first }) {
         context.requestRender(1)
     }
 
+    function get() {
+        return urlb.current
+    }
+
+    function copyUrl() {
+        console.log('830928')
+        const btn = get()
+        try {
+            const url = new URL(window.location.href)
+            url.searchParams.set('posx', first.pos[0])
+            url.searchParams.set('posy', first.pos[1])
+            url.searchParams.set('obji', first.index)
+            navigator.clipboard.writeText(url.toString())
+            if(btn) {
+                btn.style.animationName = "";
+                void btn.offsetWidth; // css as usual
+                btn.style.animationName = "btn-success";
+            }
+        }
+        catch(err) {
+            console.error(err)
+            if(btn) {
+                btn.style.animationName = "";
+                void btn.offsetWidth;
+                btn.style.animationName = "btn-fail";
+            }
+        }
+    }
+
     return <>
-        <button className="menu-button" onClick={focus}>Focus</button>
+        <div className='object-buttons'>
+            <span><button onClick={focus}>Focus</button><span/></span>
+            <span>
+                <button onClick={copyUrl}>Copy URL</button>
+                <span ref={urlb} className="overlay"/>
+            </span>
+        </div>
         <div className="space"></div>
         <Props>
             <Prop>Name:{first.name}</Prop>

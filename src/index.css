@@ -49,16 +49,34 @@ body {
     cursor: pointer;
     font-weight: 450;
 }
-.menu-button {
+.object-buttons {
 	width: 100%;
-	background: #00000010;
-	border: none;
-	border-radius: 0.4rem;
-	padding: 0.3rem 0.6rem;
-    cursor: pointer;
-    transition: background 0.2s;
-    &:hover {
-        background: #00000030;
+    display: flex;
+    gap: 0.3rem;
+    flex-wrap: wrap;
+    & > * {
+        flex: 1 0 5rem;
+        cursor: pointer;
+        display: grid;
+        & > * {
+            grid-row: 1;
+            grid-column: 1;
+            border: none;
+            border-radius: 0.4rem;
+            padding: 0.5rem 0.6rem;
+        }
+        & > button {
+            background: #00000010;
+            transition: background 0.2s;
+        }
+        & > .overlay {
+            pointer-events: none;
+            animation-duration: 0.6s;
+            animation-timing-function: cubic-bezier(.39,.58,.57,1);
+        }
+        &:hover > button {
+            background: #00000030;
+        }
     }
 }
 .space {
@@ -225,4 +243,14 @@ body {
 .filter-list {
     display: flex;
     flex-direction: column;
+}
+
+@keyframes btn-success {
+from { background: #48e51060; }
+to { background: #48e51000; }
+}
+
+@keyframes btn-fail {
+from { background: #b40e0660; }
+to { background: #b40e0600; }
 }
