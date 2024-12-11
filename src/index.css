@@ -244,13 +244,3 @@ body {
     display: flex;
     flex-direction: column;
 }
-
-@keyframes btn-success {
-from { background: #48e51060; }
-to { background: #48e51000; }
-}
-
-@keyframes btn-fail {
-from { background: #b40e0660; }
-to { background: #b40e0600; }
-}

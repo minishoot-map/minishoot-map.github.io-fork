@@ -204,7 +204,8 @@ function Scene({ scene }) {
 }
 
 function Object({ first }) {
-    const urlb = R.useRef(null)
+    const [status, setStatus] = R.useState(null)
+
     if(first == null) {
         return <div>
             No object selected
@@ -222,41 +223,34 @@ function Object({ first }) {
         context.requestRender(1)
     }
 
-    function get() {
-        return urlb.current
-    }
-
     function copyUrl() {
-        console.log('830928')
-        const btn = get()
         try {
             const url = new URL(window.location.href)
             url.searchParams.set('posx', first.pos[0])
             url.searchParams.set('posy', first.pos[1])
             url.searchParams.set('obji', first.index)
             navigator.clipboard.writeText(url.toString())
-            if(btn) {
-                btn.style.animationName = "";
-                void btn.offsetWidth; // css as usual
-                btn.style.animationName = "btn-success";
-            }
+            setStatus(true)
         }
         catch(err) {
             console.error(err)
-            if(btn) {
-                btn.style.animationName = "";
-                void btn.offsetWidth;
-                btn.style.animationName = "btn-fail";
-            }
+            setStatus(false)
         }
     }
 
+    let color
+    if(status === true) color = '#48e51060'
+    else if(status === false) color = '#b40e0660'
+
     return <>
         <div className='object-buttons'>
-            <span><button onClick={focus}>Focus</button><span/></span>
+            <span>
+                <button onClick={focus}>Focus</button>
+                <span className="overlay"/>
+            </span>
             <span>
                 <button onClick={copyUrl}>Copy URL</button>
-                <span ref={urlb} className="overlay"/>
+                <span style={{ background: color }} className="overlay"/>
             </span>
         </div>
         <div className="space"></div>
