@@ -187,7 +187,7 @@ const filters = [
             [
                 'CrystalDestroyable', 'Show crystals', true, 'filters',
                 [
-                    ['dropXp', 'Filter by xp drop', false, 'boolean', [true, true]],
+                    ['dropXp', 'Filter by xp drop', true, 'boolean', [false, true]],
                     [
                         'size', 'Filter by size', false, 'enum',
                         (() => {
@@ -214,7 +214,7 @@ const filters = [
             ]],
             ['Unlocker', 'Show unlockers', true, 'filters', []],
             ['UnlockerTrigger', 'Show unlockr triggers', true, 'filters', []],
-            ['Torch', 'Show torches', true, 'filters', []],
+            ['Torch', 'Show torches', false, 'filters', []],
             ['Transition', 'Show transitions', true, 'filters', []],
             ['Tunnel', 'Show tunnels', true, 'filters', []],
             ['Npc', 'Show NPCs', true, 'filters', []],
