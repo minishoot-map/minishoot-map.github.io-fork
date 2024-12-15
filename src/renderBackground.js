@@ -111,14 +111,14 @@ function convToRGB565(gl, inputC) {
     return res
 }
 
-function updateBackground(context, index, bytes) {
+function updateBackground(context, index, chunks) {
     const rd = context.backgrounds
     if(rd?.loadImages !== true) return
 
     const imgData = rd.images[index]
 
-    const blob = new Blob([bytes], { type: 'image/png' })
-    const url = URL.createObjectURL(blob) // TODO: delete
+    const blob = new Blob(chunks, { type: 'image/png' })
+    const url = URL.createObjectURL(blob)
     const img = new Image()
     img.src = url
 
@@ -129,6 +129,7 @@ function updateBackground(context, index, bytes) {
         // or something else triggers a rerender, so shouldn't be a big deal
         context.backgrounds.changed.push(index)
         imgData.done = true
+        URL.revokeObjectURL(url)
         console.log('err')
     })
     img.addEventListener('load', _ => {
@@ -148,6 +149,7 @@ function updateBackground(context, index, bytes) {
         imgData.done = true
 
         context.requestRender(2, { timeout: 1000 })
+        URL.revokeObjectURL(url)
     })
 
 }
@@ -161,9 +163,9 @@ async function downloadBackgrounds(context) {
 
     function tryRead(length) {
         if(tmp.length < length) return
-        const res = tmp.subarray(0, length)
+        const chunks = [tmp.subarray(0, length)]
         tmp = tmp.subarray(length)
-        return res
+        return chunks
     }
     async function read(length) {
         const chunks = []
@@ -178,26 +180,30 @@ async function downloadBackgrounds(context) {
             totalLength += value.length
         }
 
-        const res = new Uint8Array(length)
+        const off = length - (totalLength - last.length)
+        chunks.push(last.subarray(0, off))
+        tmp = last.subarray(off)
+
+        return chunks
+    }
+
+    function combineChunks(chunks, len) {
+        const res = new Uint8Array(len)
         var off = 0
         for(let i = 0; i < chunks.length; i++) {
             res.set(chunks[i], off)
             off += chunks[i].length
         }
-
-        res.set(last.subarray(0, length - off), off)
-        tmp = last.subarray(length - off)
-
         return res
     }
 
-    const headerLenB = await read(4)
+    const headerLenB = combineChunks(await read(4), 4)
     const headerLen = new DataView(
         headerLenB.buffer,
         headerLenB.byteOffset,
         headerLenB.byteLength
     ).getUint32(headerLenB, true)
-    const header = new Uint8Array(await read(headerLen))
+    const header = combineChunks(await read(headerLen), headerLen)
 
     var index = 0
 
@@ -223,9 +229,9 @@ async function downloadBackgrounds(context) {
 
     for(let i = 0; i < imageDatas.length; i++) {
         const id = imageDatas[i]
-        var bytes = tryRead(id.size)
-        if(bytes == null) bytes = await read(id.size)
-        updateBackground(context, id.index, bytes)
+        var chunks = tryRead(id.size)
+        if(chunks == null) chunks = await read(id.size)
+        updateBackground(context, id.index, chunks)
     }
 }
 
