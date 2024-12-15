@@ -170,7 +170,7 @@ export function setup(context, markersP) {
 
         renderData.markersArray = new Uint8Array(data.specialMarkers)
         renderData.tempMarkersArray = new Uint8Array(new ArrayBuffer(data.specialMarkers.byteLength))
-        renderData.regularC = data.markers.byteLength / 16
+        renderData.regularC = data.regularCount
         renderData.markersOk = true
         renderData.currentInvalid = true
 

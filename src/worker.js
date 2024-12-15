@@ -122,7 +122,9 @@ function premultiplyBy(n, m) {
 }
 
 const objectsLoadedP = objectsP.then(objectsA => {
+    const s = performance.now()
     scenes = Load.parse(parsedSchema, objectsA)
+    const e1 = performance.now()
 
     for(let i = 0; i < scenes.length; i++) {
         const roots = scenes[i].roots
@@ -130,6 +132,10 @@ const objectsLoadedP = objectsP.then(objectsA => {
             prepareObjects(null, -1 - i, roots[j])
         }
     }
+    const e2 = performance.now()
+
+    console.log('parsed in', e1 - s)
+    console.log('prepared in', e2 - e1)
 
     return objects
 })
@@ -408,6 +414,13 @@ objectsProcessedP.then(({ regularDisplays }) => {
         dv.setFloat32(i * 16 + 12, r[3], true)
     }
 
+    message({
+        type: 'markers-done',
+        markersData: markerDataB,
+        markers: markersB,
+    }, [markerDataB, markersB])
+
+
     const specialC = allMarkersInfo.length - regularDisplays.length
     const specialMarkersB = new ArrayBuffer(specialC * 8)
     const sdv = new DataView(specialMarkersB)
@@ -427,12 +440,11 @@ objectsProcessedP.then(({ regularDisplays }) => {
     }
 
     message({
-        type: 'markers-done',
-        markersData: markerDataB,
-        markers: markersB,
+        type: 'markers-special-done',
+        regularCount: regularDisplays.length,
         specialMarkers: specialMarkersB,
         restMarkers: restMarkersB
-    }, [markerDataB, markersB, specialMarkersB, restMarkersB])
+    }, [specialMarkersB, restMarkersB])
 }).catch(e => {
     console.error('error processing markers', e)
 })

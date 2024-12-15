@@ -7,15 +7,17 @@ import * as specMarkerDisplay from './renderSpecialMarker.js'
 import * as sideMenu from './sideMenu.jsx'
 import { xpForCrystalSize } from '$/meta.json'
 
-var resolveCollidersP
-const collidersP = new Promise((s, j) => {
-    resolveCollidersP = s
-})
+function resolvablePromise() {
+    var resolve
+    const promise = new Promise((s, j) => {
+        resolve = s
+    })
+    return { resolve, promise }
+}
 
-var resolveMarkersDataP
-const markersP = new Promise((s, j) => {
-    resolveMarkersDataP = s
-})
+const collidersP2 = resolvablePromise()
+const markersP2 = resolvablePromise()
+const markersSpecialP2 = resolvablePromise()
 
 var worker
 if(__worker) {
@@ -44,12 +46,17 @@ if(__worker) {
                 circularData: d.circularData,
                 circularDrawData: d.circularDrawData,
             }
-            resolveCollidersP(it)
+            collidersP2.resolve(it)
         }
         else if(d.type == 'markers-done') {
-            resolveMarkersDataP({
+            markersP2.resolve({
                 markersData: d.markersData,
                 markers: d.markers,
+            })
+        }
+        else if(d.type == 'markers-special-done') {
+            markersSpecialP2.resolve({
+                regularCount: d.regularCount,
                 specialMarkers: d.specialMarkers,
                 restMarkers: d.restMarkers,
             })
@@ -408,16 +415,16 @@ catch(e) { console.error(e) }
 try { backgroundsDisplay.setup(context) }
 catch(e) { console.error(e) }
 
-try { if(__setup_markers) markersDisplay.setup(gl, context, markersP) }
+try { if(__setup_markers) markersDisplay.setup(gl, context, markersP2.promise) }
 catch(e) { console.error(e) }
 
-try { specMarkerDisplay.setup(context, markersP) }
+try { specMarkerDisplay.setup(context, markersSpecialP2.promise) }
 catch(e) { console.error(e) }
 
-try { collidersDisplay.setup(gl, context, collidersP) }
+try { collidersDisplay.setup(gl, context, collidersP2.promise) }
 catch(e) { console.error(e) }
 
-try { circularDisplay.setup(gl, context, collidersP) }
+try { circularDisplay.setup(gl, context, collidersP2.promise) }
 catch(e) { console.error(e) }
 
 
