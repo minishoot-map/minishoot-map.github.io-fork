@@ -1,14 +1,11 @@
-import * as bkg2 from '$/backgrounds.json'
+import * as B from '$/backgrounds.json'
 import { loadShader, checkProg } from './render_util.js'
 import backgroundsUrl from '$/backgrounds.pak'
-
-const actualResolution = bkg2.backgroundResolution
-const texturesC = bkg2.backgroundLength
 
 // THIS LANGUAGE... IMAGINE NOT BEING ABLE TO PRINT A NUMBER WITH DECIMAL POINT
 // NO, toFixed() ALSO ROUNDS THE NUMBER OR ADDS A MILLION ZEROS
 // NO, toString() PRINTS INTEGERS WITHOUT DECIMAL POINT
-const bgSize = bkg2.backgroundSize + '.0'
+const bgSize = B.size + '.0'
 
 const vsSource = `#version 300 es
 precision highp float;
@@ -110,13 +107,11 @@ function convToRGB565(gl, inputC) {
     return res
 }
 
-function updateBackground(context, imageData, chunks) {
+function updateBackground(context, index, chunks) {
     const rd = context.backgrounds
     if(rd?.loadImages !== true) return
 
-    const imgData = rd.images[imageData.i]
-    imgData.x = imageData.x
-    imgData.y = imageData.y
+    const imgData = rd.images[index]
 
     const blob = new Blob(chunks, { type: 'image/png' })
     const url = URL.createObjectURL(blob)
@@ -128,7 +123,7 @@ function updateBackground(context, imageData, chunks) {
         // Technically can be the last texture, so this will make
         // mimpaps not appear. But only until the user moves the screen
         // or something else triggers a rerender, so shouldn't be a big deal
-        context.backgrounds.changed.push(imageData.i)
+        rd.changed.push(index)
         imgData.done = true
         URL.revokeObjectURL(url)
         console.log('err')
@@ -139,23 +134,32 @@ function updateBackground(context, imageData, chunks) {
         gl.bindTexture(gl.TEXTURE_2D_ARRAY, rd.bgTextures)
         gl.texSubImage3D(
             gl.TEXTURE_2D_ARRAY, 0,
-            0, 0, imageData.i,
-            actualResolution, actualResolution, 1,
+            0, 0, index,
+            B.resolution, B.resolution, 1,
             gl.RGB, gl.UNSIGNED_BYTE,
             img
         )
 
-        rd.changed.push(imageData.i)
+        rd.changed.push(index)
         imgData.ok = true
         imgData.done = true
 
-        context.requestRender(2, { timeout: 1000 })
+        if(index < 2) {
+            context.requestRender(1)
+        }
+        else {
+            context.requestRender(2, { timeout: 1000 })
+        }
         URL.revokeObjectURL(url)
     })
 
 }
 
 async function downloadBackgrounds(context) {
+    const gl = context.gl
+    const rd = context.backgrounds
+    if(!rd) return
+
     const resp = await fetch(backgroundsUrl)
     const body = resp.body
     const reader = body.getReader()
@@ -207,7 +211,6 @@ async function downloadBackgrounds(context) {
     const header = combineChunks(await read(headerLen), headerLen)
 
     var index = 0
-
     // duplicate from load.js
     function parseCompressedInt() {
         var res = 0
@@ -220,38 +223,46 @@ async function downloadBackgrounds(context) {
         return res
     }
 
-    const len = parseCompressedInt()
-    const imageDatas = []
-    for(let i = 0; i < len; i++) {
+    const texturesC = parseCompressedInt()
+
+    gl.bindTexture(gl.TEXTURE_2D_ARRAY, rd.bgTextures)
+    gl.texStorage3D(
+        gl.TEXTURE_2D_ARRAY, __backgrounds_mipmap_levels,
+        gl.RGB565, B.resolution, B.resolution,
+        texturesC
+    )
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, rd.buf)
+    gl.bufferData(gl.ARRAY_BUFFER, texturesC * 12, gl.DYNAMIC_DRAW)
+
+    const coordsDv = new DataView(new ArrayBuffer(texturesC * 12))
+    rd.dataView = coordsDv
+
+    const imageDatas = Array(texturesC)
+    rd.images = imageDatas
+
+    for(let i = 0; i < texturesC; i++) {
         const size = parseCompressedInt()
         const xi = parseCompressedInt()
         const yi = parseCompressedInt()
-        const x = bkg2.backgroundStart[0] + xi * bkg2.backgroundSize
-        const y = bkg2.backgroundStart[1] + yi * bkg2.backgroundSize
-        imageDatas.push({ size, i, x, y })
+
+        const x = B.startPos[0] + xi * B.size
+        const y = B.startPos[1] + yi * B.size
+        imageDatas[i] = { ok: false, done: false, size, x, y }
     }
 
-    for(let i = 0; i < imageDatas.length; i++) {
+    for(let i = 0; i < texturesC; i++) {
         const id = imageDatas[i]
         var chunks = tryRead(id.size)
         if(chunks == null) chunks = await read(id.size)
-        updateBackground(context, id, chunks)
+        updateBackground(context, i, chunks)
     }
 }
 
 export function setup(context) {
-    if(__backgrounds) {
-        downloadBackgrounds(context).catch(e => {
-            console.error('Error processing backgrounds', e)
-        })
-    }
-    else {
-        console.warn('skipping backgrounds')
-    }
-
     const { gl } = context
 
-    const renderData = { changed: [], curCount: 0 }
+    const renderData = { changed: [], curCount: 0, doneCount: 0 }
     context.backgrounds = renderData
 
     const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource)
@@ -273,28 +284,15 @@ export function setup(context) {
     renderData.bgTextures = bgTextures
 
     gl.bindTexture(gl.TEXTURE_2D_ARRAY, bgTextures)
-    gl.texStorage3D(
-        gl.TEXTURE_2D_ARRAY, __backgrounds_mipmap_levels,
-        gl.RGB565, actualResolution, actualResolution,
-        texturesC
-    )
-
     gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.NEAREST) // for now
     gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
     gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
     gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
 
-    const images = Array(texturesC)
-    renderData.images = images
+    renderData.images = null
 
     const buf = gl.createBuffer()
     renderData.buf = buf
-    gl.bindBuffer(gl.ARRAY_BUFFER, buf)
-    gl.bufferData(gl.ARRAY_BUFFER, texturesC * 12, gl.DYNAMIC_DRAW)
-
-    const coords = new ArrayBuffer(texturesC * 12)
-    const coordsDv = new DataView(coords)
-    renderData.dataView = coordsDv
 
     const vao = gl.createVertexArray()
     renderData.vao = vao
@@ -317,9 +315,7 @@ export function setup(context) {
     const texturesU = gl.getUniformLocation(prog, 'textures')
     gl.uniform1i(texturesU, 0)
 
-    // by the way, how is this color the correct one?
-    // I palletized the images, hasn't it change?
-    const c = bkg2.backgroundColor
+    const c = B.color
     const inputData = new Uint8Array(3)
     inputData[0] = (c      ) & 0xff
     inputData[1] = (c >>  8) & 0xff
@@ -329,12 +325,17 @@ export function setup(context) {
 
     renderData.ok = true
 
-    for(let i = 0; i < texturesC; i++) {
-        images[i] = { ok: false, done: false }
-    }
-
     renderData.loadImages = true
     renderData.showImages = true
+
+    if(__backgrounds) {
+        downloadBackgrounds(context).catch(e => {
+            console.error('Error processing backgrounds', e)
+        })
+    }
+    else {
+        console.warn('skipping backgrounds')
+    }
 }
 
 export function setFiltered(context, showImages) {
@@ -359,30 +360,32 @@ export function render(context) {
     if(rd.changed.length != 0) {
         const dv = rd.dataView
 
-        var coordsCount = 0
-        var done = true
-        for(let i = 0; i < texturesC; i++) {
-            const it = rd.images[i]
-            done = done & it.done
+        const ch = rd.changed
+        const im = rd.images
+        let addedC = 0
+        for(let i = 0; i < ch.length; i++) {
+            const index = ch[i]
+            const it = im[index]
             if(!it.ok) continue
-            dv.setFloat32(coordsCount * 12    , it.x, true)
-            dv.setFloat32(coordsCount * 12 + 4, it.y, true)
-            dv.setUint32 (coordsCount * 12 + 8, i, true)
-            coordsCount++
+            dv.setFloat32(addedC * 12    , it.x, true)
+            dv.setFloat32(addedC * 12 + 4, it.y, true)
+            dv.setUint32 (addedC * 12 + 8, index, true)
+            addedC++
         }
 
-        if(done && !rd.mimpaps) {
+        gl.bindBuffer(gl.ARRAY_BUFFER, rd.buf)
+        gl.bufferSubData(gl.ARRAY_BUFFER, rd.curCount * 12, dv, 0, addedC * 12)
+
+        rd.curCount += addedC
+        rd.doneCount += ch.length
+        ch.length = 0
+
+        if(rd.doneCount === rd.images.length && !rd.mimpaps) {
             rd.mimpaps = true
             gl.bindTexture(gl.TEXTURE_2D_ARRAY, rd.bgTextures)
             gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
             gl.generateMipmap(gl.TEXTURE_2D_ARRAY)
         }
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, rd.buf)
-        gl.bufferSubData(gl.ARRAY_BUFFER, 0, dv, 0, coordsCount * 12)
-
-        rd.curCount = coordsCount
-        rd.changed.length = 0
     }
 
     if(rd.showImages) {

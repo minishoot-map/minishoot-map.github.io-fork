@@ -141,11 +141,9 @@ for(let i = 0; i < filenames.length; i++) {
 }
 
 const bgInfo = {}
-bgInfo.backgroundColor = bgInt
-bgInfo.backgroundResolution = 512
-bgInfo.backgroundSize = B.backgroundSize
-bgInfo.backgroundStart = B.backgroundStart
-bgInfo.backgroundCount = B.backgroundCount
-bgInfo.backgroundLength = B.backgrounds.length
+bgInfo.color = bgInt
+bgInfo.resolution = 512
+bgInfo.size = B.backgroundSize
+bgInfo.startPos = B.backgroundStart
 
 fs.writeFileSync(dstInfo, JSON.stringify(bgInfo))
