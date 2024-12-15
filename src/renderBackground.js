@@ -147,7 +147,7 @@ function updateBackground(context, index, bytes) {
         imgData.ok = true
         imgData.done = true
 
-        context.requestRender(2)
+        context.requestRender(2, { timeout: 1000 })
     })
 
 }

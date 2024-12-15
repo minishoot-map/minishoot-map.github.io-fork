@@ -108,7 +108,7 @@ function render(context) {
     specMarkerDisplay.renderSelected(context)
 }
 
-function requestRender(priority/* 0 - immediate, 1 - animation, 2 - idle */) {
+function requestRender(priority/* 0 - immediate, 1 - animation, 2 - idle */, opts) {
     const rr = this.renderRequest
     if(rr != null) {
         if(rr.priority <= priority) return
@@ -130,13 +130,20 @@ function requestRender(priority/* 0 - immediate, 1 - animation, 2 - idle */) {
         }
     }
     else {
-        this.renderRequest = {
-            priority: 2,
-            cancel() { cancelIdleCallback(this.id) },
-            id: requestIdleCallback(() => {
-                this.renderRequest = null
-                render(this)
-            })
+        try {
+            this.renderRequest = {
+                priority: 2,
+                cancel() { cancelIdleCallback(this.id) },
+                id: requestIdleCallback(() => {
+                    this.renderRequest = null
+                    render(this)
+                }, opts)
+            }
+        }
+        catch(err) {
+            // probably Safari. It doesn't have this callback
+            console.error(err)
+            this.requestRender(1)
         }
     }
 }
