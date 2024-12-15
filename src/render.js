@@ -64,9 +64,18 @@ if(__worker) {
 }
 
 const canvas = document.getElementById('glCanvas')
+// extensions can remove canvas from DOM after requesting webgl2
+const canvasParent = canvas.parentNode
 const gl = canvas.getContext('webgl2', { alpha: false })
 
-if (!gl) { throw 'WebGL 2 is not supported.' }
+if (!gl) {
+    try { canvasParent.removeChild(canvas) }
+    catch(err) { console.error(err) }
+    canvasParent.append(document.createTextNode(
+        "Sorry, your device doesn't support WebGL2"
+    ))
+    throw new Error('WebGL 2 is not supported.')
+}
 
 // Note: this is not correct alpha blending, works only if background is already fully transparent!
 // 1. Source alpha is multiplied by itself so overall transparency decreases when drawing transparent things
