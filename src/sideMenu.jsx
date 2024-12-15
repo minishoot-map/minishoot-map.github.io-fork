@@ -2,7 +2,7 @@ import * as R from 'react'
 import { createPortal } from 'react-dom'
 import reactDom from 'react-dom/client'
 import * as Z from 'zustand'
-import { meta, getAsSchema, parsedSchema } from '/schema.js'
+import { meta, parsedSchema } from '/schema.js'
 
 const useCurrentObject = Z.create((set) => ({
     data: {},
@@ -28,64 +28,17 @@ export function setup(_context) {
     context.sideMenu = renderData
     gotoOther = context.viewObject
 
-    sideMenuElement = window['side-menu']
-    tabsElement = window['tabs']
+    const root1 = reactDom.createRoot(document.querySelector('.object-menu'))
+    root1.render(<R.StrictMode><ObjectMenu/></R.StrictMode>)
 
-    const root = reactDom.createRoot(sideMenuElement)
-    root.render(<R.StrictMode><SideMenu /></R.StrictMode>)
+    const root2 = reactDom.createRoot(document.querySelector('.filter-menu'))
+    root2.render(<R.StrictMode><FilterMenu/></R.StrictMode>)
 }
 
 export function setCurrentObject(obj) {
     renderData.currentObject = obj
     if(context) context.requestRender(1)
-
-    // console.log(JSON.parse(JSON.stringify(obj)))
     useCurrentObject.getState().update(obj)
-}
-
-const useCurrentTab = Z.create(() => 0)
-
-function SideMenu() {
-
-    return <>
-        <Tabs/>
-        <div>
-            <ObjectMenu/>
-            <FilterMenu/>
-        </div>
-    </>
-}
-
-function Tabs() {
-    const currentTab = useCurrentTab()
-
-    function tab(e) {
-        useCurrentTab.setState(parseInt(e.target.value))
-    }
-    function setTab(target) {
-        if(!target) return
-        if(target.value === '' + currentTab) {
-            target.checked = true
-        }
-    }
-
-    return createPortal(
-        <div className='menu-type' data-map-selected>
-            <label className="map-button">
-                <input type='radio' name='menu' value='0'
-                    ref={setTab} onChange={tab}/>Map
-            </label>
-            <label>
-                <input type='radio' name='menu' value='1'
-                    ref={setTab} onChange={tab}/>Object
-            </label>
-            <label>
-                <input type='radio' name='menu' value='2'
-                    ref={setTab} onChange={tab}/>Filters
-            </label>
-        </div>,
-        tabsElement
-    )
 }
 
 function Filter({ filter }) {

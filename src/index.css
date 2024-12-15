@@ -163,34 +163,33 @@ body {
         & label:has(> input[value="0"]) {
             background: lightgray;
         }
-
-        & > #side-menu {
-            display: none;
-        }
+        & > #side-menu { display: none; }
     }
 
     .container:has(input[value="1"]:checked) {
         & label:has(> input[value="1"]) {
             background: lightgray;
         }
-        & .filter-menu {
-            display: none;
-        }
-        & > .canvas-cont {
-            display: none;
-        }
+        & .filter-menu { display: none; }
+        & .about-menu { display: none; }
+        & .canvas-cont { display: none; }
     }
 
     .container:has(input[value="2"]:checked) {
         & label:has(> input[value="2"]) {
             background: lightgray;
         }
-        & .object-menu {
-            display: none;
+        & .object-menu { display: none; }
+        & .about-menu { display: none; }
+        & .canvas-cont { display: none; }
+    }
+    .container:has(input[value="3"]:checked) {
+        & label:has(> input[value="3"]) {
+            background: lightgray;
         }
-        & > .canvas-cont {
-            display: none;
-        }
+        & .object-menu { display: none; }
+        & .filter-menu { display: none; }
+        & .canvas-cont { display: none; }
     }
 }
 
@@ -208,18 +207,24 @@ body {
         & label:has(> input[value="1"]) {
             background: lightgray;
         }
-        & .filter-menu {
-            display: none;
-        }
+        & .filter-menu { display: none; }
+        & .about-menu { display: none; }
     }
 
     .container:has(input[value="2"]:checked) {
         & label:has(> input[value="2"]) {
             background: lightgray;
         }
-        & .object-menu {
-            display: none;
+        & .object-menu { display: none; }
+        & .about-menu { display: none; }
+    }
+
+    .container:has(input[value="3"]:checked) {
+        & label:has(> input[value="3"]) {
+            background: lightgray;
         }
+        & .object-menu { display: none; }
+        & .filter-menu { display: none; }
     }
 }
 

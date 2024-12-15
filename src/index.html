@@ -1,13 +1,13 @@
 <!DOCTYPE HTML>
 <html lang="en">
     <head>
-        <title>Minishoot' Adventures map</title>
+        <title>Minishoot' Adventures Map</title>
         <link rel="icon" type="image/png" href="favicon-48x48.png" sizes="48x48">
         <link rel="icon" sizes="any" type="image/svg+xml" href="favicon.svg">
         <link rel="apple-touch-icon" href="apple-touch-icon.png">
         <link rel="manifest" href="site.webmanifest">
-        <meta name="description" content="The most complete Minishoot' Adventures map">
-        <meta name="keywords" content="Minishoot Adventures Map, Minishoot Adventures Upgrades, Minishoot Adventures Checklist, Minishoot Adventures Red Coins Map, Minishoot Adventures Bosses, Minishoot Map Pieces, Minishoot Adventures Key Locations, Minishoot Adventures Dungeons, Minishoot Adventures Temples">
+        <meta name="description" content="The most complete Minishoot' Adventures map. All collectables, enemies and locations.">
+        <meta name="keywords" content="Minishoot Adventures Map, Minishoot Adventures Upgrades, Minishoot Adventures Red Coins Map, Minishoot Adventures Bosses, Minishoot Map Pieces, Minishoot Adventures Key Locations, Minishoot Adventures Dungeons, Minishoot Adventures Temples">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,8 +19,27 @@
         <noscript>Sorry, your device doesn't support JavaScript</noscript>
         <div class="container">
             <div class="canvas-cont"><canvas id="glCanvas"></canvas></div>
-            <div id="tabs"></div>
-            <div id="side-menu"></div>
+            <div id="tabs">
+                <div class='menu-type'>
+                    <label class="map-button"><input type='radio' name='menu' value='0' checked>Map</label>
+                    <label><input type='radio' name='menu' value='1'>Object</label>
+                    <label><input type='radio' name='menu' value='2'>Filters</label>
+                    <label><input type='radio' name='menu' value='3'>About</label>
+                </div>
+            </div>
+            <div id="side-menu">
+                <div class="object-menu"></div>
+                <div class="filter-menu"></div>
+                <div class="about-menu">
+                    Interactive Map of <a target="blank" href="https://store.steampowered.com/app/1634860/">Minishoot' Adventures</a>.
+                    <p>
+                        This map contains every game object from the <i>v1</i> version of the game.
+                    <p>
+                        Source code is available on
+                        <a target="blank" href="https://github.com/vanaigr/minishoot-map">GitHub</a>.
+                    </p>
+                </div>
+            </div>
         </div>
     </body>
 </html>
