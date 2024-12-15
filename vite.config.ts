@@ -73,7 +73,7 @@ function injectPreloads(command) {
                             rel: 'preload',
                             href: './data-processed/backgrounds.pak',
                             as: 'fetch',
-                            crossorigin: 'anonimous',
+                            crossorigin: 'anonymous',
                         },
                     },
                     {
