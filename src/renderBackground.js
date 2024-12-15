@@ -1,15 +1,14 @@
-import * as bkg from '$/backgrounds.js'
 import * as bkg2 from '$/backgrounds.json'
 import { loadShader, checkProg } from './render_util.js'
 import backgroundsUrl from '$/backgrounds.pak'
 
 const actualResolution = bkg2.backgroundResolution
-const texturesC = bkg.backgrounds.length
+const texturesC = bkg2.backgroundLength
 
-// THIS LANGUAGE... IMAGINE TOT BEING ABLE TO PRINT A NUMBER WITH DECIMAL POINT
+// THIS LANGUAGE... IMAGINE NOT BEING ABLE TO PRINT A NUMBER WITH DECIMAL POINT
 // NO, toFixed() ALSO ROUNDS THE NUMBER OR ADDS A MILLION ZEROS
 // NO, toString() PRINTS INTEGERS WITHOUT DECIMAL POINT
-const bgSize = bkg.backgroundSize + '.0'
+const bgSize = bkg2.backgroundSize + '.0'
 
 const vsSource = `#version 300 es
 precision highp float;
@@ -111,11 +110,13 @@ function convToRGB565(gl, inputC) {
     return res
 }
 
-function updateBackground(context, index, chunks) {
+function updateBackground(context, imageData, chunks) {
     const rd = context.backgrounds
     if(rd?.loadImages !== true) return
 
-    const imgData = rd.images[index]
+    const imgData = rd.images[imageData.i]
+    imgData.x = imageData.x
+    imgData.y = imageData.y
 
     const blob = new Blob(chunks, { type: 'image/png' })
     const url = URL.createObjectURL(blob)
@@ -127,7 +128,7 @@ function updateBackground(context, index, chunks) {
         // Technically can be the last texture, so this will make
         // mimpaps not appear. But only until the user moves the screen
         // or something else triggers a rerender, so shouldn't be a big deal
-        context.backgrounds.changed.push(index)
+        context.backgrounds.changed.push(imageData.i)
         imgData.done = true
         URL.revokeObjectURL(url)
         console.log('err')
@@ -138,13 +139,13 @@ function updateBackground(context, index, chunks) {
         gl.bindTexture(gl.TEXTURE_2D_ARRAY, rd.bgTextures)
         gl.texSubImage3D(
             gl.TEXTURE_2D_ARRAY, 0,
-            0, 0, index,
+            0, 0, imageData.i,
             actualResolution, actualResolution, 1,
             gl.RGB, gl.UNSIGNED_BYTE,
             img
         )
 
-        rd.changed.push(index)
+        rd.changed.push(imageData.i)
         imgData.ok = true
         imgData.done = true
 
@@ -223,15 +224,18 @@ async function downloadBackgrounds(context) {
     const imageDatas = []
     for(let i = 0; i < len; i++) {
         const size = parseCompressedInt()
-        const ti = parseCompressedInt()
-        imageDatas.push({ size, index: ti })
+        const xi = parseCompressedInt()
+        const yi = parseCompressedInt()
+        const x = bkg2.backgroundStart[0] + xi * bkg2.backgroundSize
+        const y = bkg2.backgroundStart[1] + yi * bkg2.backgroundSize
+        imageDatas.push({ size, i, x, y })
     }
 
     for(let i = 0; i < imageDatas.length; i++) {
         const id = imageDatas[i]
         var chunks = tryRead(id.size)
         if(chunks == null) chunks = await read(id.size)
-        updateBackground(context, id.index, chunks)
+        updateBackground(context, id, chunks)
     }
 }
 
@@ -358,14 +362,11 @@ export function render(context) {
         var coordsCount = 0
         var done = true
         for(let i = 0; i < texturesC; i++) {
-            done = done & rd.images[i].done
-            if(!rd.images[i].ok) continue
-            const bg = bkg.backgrounds[i]
-
-            const x = bkg.backgroundStart[0] + bg[0] * bkg.backgroundSize
-            const y = bkg.backgroundStart[1] + bg[1] * bkg.backgroundSize
-            dv.setFloat32(coordsCount * 12    , x, true)
-            dv.setFloat32(coordsCount * 12 + 4, y, true)
+            const it = rd.images[i]
+            done = done & it.done
+            if(!it.ok) continue
+            dv.setFloat32(coordsCount * 12    , it.x, true)
+            dv.setFloat32(coordsCount * 12 + 4, it.y, true)
             dv.setUint32 (coordsCount * 12 + 8, i, true)
             coordsCount++
         }

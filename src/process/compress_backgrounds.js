@@ -1,11 +1,11 @@
 import sharp from 'sharp'
 import * as fs from 'node:fs'
 import { join } from 'node:path'
-import { backgroundColor } from '../data-raw/backgrounds/backgrounds.js'
+import * as B from '../data-raw/backgrounds/backgrounds.js'
 
-const bgr = parseInt(backgroundColor.slice(0, 2), 16)
-const bgg = parseInt(backgroundColor.slice(2, 4), 16)
-const bgb = parseInt(backgroundColor.slice(4, 6), 16)
+const bgr = parseInt(B.backgroundColor.slice(0, 2), 16)
+const bgg = parseInt(B.backgroundColor.slice(2, 4), 16)
+const bgb = parseInt(B.backgroundColor.slice(4, 6), 16)
 const bgInt = bgr | (bgg << 8) | (bgb << 16)
 
 const srcPath = join(import.meta.dirname, '../data-raw/backgrounds')
@@ -21,15 +21,6 @@ var done = 0
 function updateDone() {
     done++
     if(done % 10 === 0) console.log('done', done, 'of ~' + filenames.length)
-}
-
-function uint32ToString(value) {
-    return String.fromCharCode(
-        (value      ) & 0xff,
-        (value >>  8) & 0xff,
-        (value >> 16) & 0xff,
-        (value >> 24) & 0xff,
-    );
 }
 
 function findChunk(buffer, name) {
@@ -152,5 +143,9 @@ for(let i = 0; i < filenames.length; i++) {
 const bgInfo = {}
 bgInfo.backgroundColor = bgInt
 bgInfo.backgroundResolution = 512
+bgInfo.backgroundSize = B.backgroundSize
+bgInfo.backgroundStart = B.backgroundStart
+bgInfo.backgroundCount = B.backgroundCount
+bgInfo.backgroundLength = B.backgrounds.length
 
 fs.writeFileSync(dstInfo, JSON.stringify(bgInfo))

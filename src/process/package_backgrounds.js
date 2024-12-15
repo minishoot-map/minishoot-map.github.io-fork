@@ -1,21 +1,61 @@
 import { promises as fs } from 'node:fs'
 import { createWriteStream } from 'node:fs'
 import { join } from 'node:path'
-import { backgrounds } from '../data-raw/backgrounds/backgrounds.js'
+import * as B from '../data-raw/backgrounds/backgrounds.js'
 
 const srcDir = join(import.meta.dirname, '../data-processed/backgrounds')
 const dstFilename = join(import.meta.dirname, '../data-processed/backgrounds.pak')
 
+const bs = new Map()
 
-const filenames = await fs.readdir(srcDir)
-
-const filesP = []
-for(let i = 0; i < filenames.length; i++) {
-    filesP[i] = fs.readFile(join(srcDir, filenames[i]))
+for(let i = 0; i < B.backgrounds.length; i++) {
+    const [x, y] = B.backgrounds[i]
+    let col = bs.get(x)
+    if(col == null) bs.set(x, col = new Map())
+    col.set(y, fs.readFile(join(srcDir, x + '_' + y + '.png')))
 }
 
-const header = []
+const len = B.backgrounds.length
 
+const filesOrder = (() => {
+    const order = []
+
+    let stepSize = 1
+    let x = 18, y = 12
+    let dx = -1, dy = 0
+
+    function add() {
+        const col = bs.get(x)
+        if(col == null) return
+        const val = col.get(y)
+        if(val != null) order.push({ x, y, fileP: val })
+    }
+
+    function step() {
+        for(let i = 0; i < stepSize; i++) {
+            if(order.length >= len) return true
+            x += dx
+            y += dy
+            add()
+        }
+        // 90 degrees counter clockwise
+        const tmp = dx
+        dx = -dy
+        dy = tmp
+    }
+
+    add()
+    // go stepSize, turn, go stepSize, stepSize++
+    while(true) {
+        if(step()) break
+        if(step()) break
+        stepSize++
+    }
+
+    return order
+})()
+
+const header = []
 function writeUint(v) {
     var it = v
     do {
@@ -25,40 +65,14 @@ function writeUint(v) {
         it = div;
     } while(it != 0)
 }
-function writeString(v) {
-    const buffer = Buffer.from(v, 'utf8')
-    for(var i = 0; i < buffer.length; i++) if(buffer.readInt8(i) < 0) {
-        throw new Exception(v)
-    }
 
-    if(buffer.length == 0) header.push(1 << 7)
-    else {
-        if(buffer.length == 1 && buffer.readUint8(0) == (1 << 7)) throw new Exception()
-        for(let i = 0; i < buffer.length-1; i++) {
-            header.push(buffer[i])
-        }
-        header.push(buffer[buffer.length - 1] | (1 << 7))
-    }
-}
-
-writeUint(filenames.length)
-
-const files = await Promise.all(filesP)
-
-const nameRegex = /^(.+)_(.+)\.png$/
-
-for(let i = 0; i < filenames.length; i++) {
-    writeUint(files[i].length)
-    const groups = filenames[i].match(nameRegex)
-    const x = groups[1]
-    const y = groups[2]
-    let texI = 0
-    while(true) {
-        const coord = backgrounds[texI]
-        if(coord[0] == x && coord[1] == y) break
-        texI++
-    }
-    writeUint(texI)
+writeUint(len)
+for(let i = 0; i < filesOrder.length; i++) {
+    const it = filesOrder[i]
+    const file = await it.fileP
+    writeUint(file.length)
+    writeUint(it.x)
+    writeUint(it.y)
 }
 
 const dst = createWriteStream(dstFilename)
@@ -67,8 +81,8 @@ hLen.writeUint32LE(header.length)
 dst.write(hLen)
 dst.write(Buffer.from(header))
 
-for(let i = 0; i < files.length; i++) {
-    dst.write(files[i])
+for(let i = 0; i < filesOrder.length; i++) {
+    dst.write(await filesOrder[i].fileP)
 }
 
 dst.end(async() => {
