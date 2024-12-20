@@ -43,8 +43,6 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Build
         run: pnpm build
-        env:
-          MY_GITHUB_PAGES: '/minishoot-map/'
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact
